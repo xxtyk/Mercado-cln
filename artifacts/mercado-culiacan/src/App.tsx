@@ -71,7 +71,8 @@ function App() {
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
   const [vendedor, setVendedor] = useState("");
-  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; vendedor?: string }>({});
+  const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
+  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; vendedor?: string; tipoEntrega?: string }>({});
 
   const mostrarToast = (msg: string) => {
     setToast(msg);
@@ -100,14 +101,16 @@ function App() {
   };
 
   const totalProductos = carrito.reduce((s, i) => s + i.producto.precio * i.cantidad, 0);
-  const totalFinal = totalProductos + (carrito.length > 0 ? COSTO_ENVIO : 0);
+  const costoEntrega = tipoEntrega === "domicilio" ? COSTO_ENVIO : 0;
+  const totalFinal = totalProductos + costoEntrega;
   const cantidadItems = carrito.reduce((s, i) => s + i.cantidad, 0);
 
   const validarDatos = () => {
-    const e: { nombre?: string; direccion?: string; vendedor?: string } = {};
+    const e: { nombre?: string; direccion?: string; vendedor?: string; tipoEntrega?: string } = {};
     if (!nombre.trim()) e.nombre = "Por favor ingresa tu nombre";
     if (!direccion.trim()) e.direccion = "Por favor ingresa tu dirección";
     if (!vendedor) e.vendedor = "Por favor selecciona un vendedor";
+    if (!tipoEntrega) e.tipoEntrega = "Por favor selecciona cómo quieres recibir tu pedido";
     setErrores(e);
     return Object.keys(e).length === 0;
   };
@@ -125,7 +128,7 @@ function App() {
       "🧾 *Productos:*",
       ...lineas,
       "",
-      `📦 *Costo de entrega:* $${COSTO_ENVIO}.00 (Solo Culiacán)`,
+      `🚚 *Entrega:* ${tipoEntrega === "domicilio" ? `Envío a domicilio — $${COSTO_ENVIO}.00` : "Recoger en bodega — Gratis"}`,
       `💰 *TOTAL A PAGAR: $${totalFinal}.00*`,
       `💵 *Pago:* Efectivo (Contra entrega)`,
     ].join("\n");
@@ -147,6 +150,7 @@ function App() {
     setNombre("");
     setDireccion("");
     setVendedor("");
+    setTipoEntrega("");
     setErrores({});
     setCarritoAbierto(true);
   };
@@ -297,6 +301,37 @@ function App() {
                     {errores.vendedor && <p style={errorStyle}>{errores.vendedor}</p>}
                   </div>
 
+                  <div>
+                    <label style={labelStyle}>🚚 ¿Cómo quieres recibir tu pedido?</label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {[
+                        { valor: "domicilio", etiqueta: "Envío a domicilio", detalle: "$40", color: "#1976d2" },
+                        { valor: "bodega",    etiqueta: "Recoger en bodega", detalle: "Gratis", color: "#2e7d32" },
+                      ].map(op => (
+                        <button
+                          key={op.valor}
+                          type="button"
+                          onClick={() => { setTipoEntrega(op.valor as "domicilio" | "bodega"); setErrores(er => ({ ...er, tipoEntrega: undefined })); }}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "14px 16px",
+                            borderRadius: "10px",
+                            border: tipoEntrega === op.valor ? `2px solid ${op.color}` : "2px solid #e0e0e0",
+                            backgroundColor: tipoEntrega === op.valor ? (op.valor === "domicilio" ? "#e3f2fd" : "#e8f5e9") : "#fff",
+                            cursor: "pointer",
+                            textAlign: "left",
+                          }}
+                        >
+                          <span style={{ fontSize: "15px", fontWeight: 600, color: "#212121" }}>{op.etiqueta}</span>
+                          <span style={{ fontSize: "15px", fontWeight: 700, color: op.color }}>{op.detalle}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {errores.tipoEntrega && <p style={errorStyle}>{errores.tipoEntrega}</p>}
+                  </div>
+
                   <div style={{ backgroundColor: "#f9f9f9", borderRadius: "8px", padding: "14px" }}>
                     <p style={{ fontSize: "13px", fontWeight: 600, color: "#333", marginBottom: "8px" }}>Resumen del pedido</p>
                     {carrito.map(i => (
@@ -305,8 +340,9 @@ function App() {
                         <span>${i.producto.precio * i.cantidad}.00</span>
                       </div>
                     ))}
-                    <div style={{ borderTop: "1px solid #e0e0e0", marginTop: "8px", paddingTop: "8px", display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#1976d2" }}>
-                      <span>Costo de Entrega</span><span>$40.00</span>
+                    <div style={{ borderTop: "1px solid #e0e0e0", marginTop: "8px", paddingTop: "8px", display: "flex", justifyContent: "space-between", fontSize: "13px", color: costoEntrega > 0 ? "#1976d2" : "#2e7d32" }}>
+                      <span>Costo de Entrega</span>
+                      <span>{costoEntrega > 0 ? `$${costoEntrega}.00` : tipoEntrega === "bodega" ? "Gratis" : "—"}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px", fontWeight: 700, color: "#212121", marginTop: "6px" }}>
                       <span>Total</span><span>${totalFinal}.00</span>
@@ -320,7 +356,7 @@ function App() {
 
                   <div style={{ backgroundColor: "#e3f2fd", borderRadius: "8px", padding: "12px 14px" }}>
                     <p style={{ fontSize: "13px", color: "#1565c0" }}>
-                      💬 Al presionar <strong>FINALIZAR</strong>, se abrirá el grupo de WhatsApp con el pedido listo para enviar.
+                      ✅ Al presionar <strong>FINALIZAR</strong>, tu pedido quedará registrado y nos pondremos en contacto contigo.
                     </p>
                   </div>
 
