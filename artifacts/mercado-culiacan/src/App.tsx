@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;
+const WEBHOOK_URL = "https://hook.us2.make.com/6i4bkyis6v89kcv5y8if0jp6f545xn1y";
 
 interface Vendedor {
   nombre: string;
@@ -142,12 +143,34 @@ function App() {
     navigator.clipboard.writeText(mensaje).catch(() => {});
 
     const vendedorInfo = VENDEDORES.find(v => v.nombre === vendedor) ?? VENDEDORES[0];
-    setSnapshot({
+
+    const snap = {
       items: [...carrito],
       total: totalFinal,
       vendedorNombre: vendedorInfo.nombre,
       vendedorWA: vendedorInfo.whatsapp,
-    });
+    };
+    setSnapshot(snap);
+
+    if (tipoEntrega === "bodega") {
+      fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cliente: nombre.trim(),
+          direccion: direccion.trim(),
+          vendedor: vendedorInfo.nombre,
+          tipo_entrega: "Recoger en bodega",
+          productos: carrito.map(i => ({
+            nombre: i.producto.nombre,
+            cantidad: i.cantidad,
+            subtotal: i.producto.precio * i.cantidad,
+          })),
+          total: totalFinal,
+          pago: "Efectivo (Contra entrega)",
+        }),
+      }).catch(() => {});
+    }
 
     setPaso("confirmado");
     setCarrito([]);
