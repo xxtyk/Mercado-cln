@@ -311,7 +311,7 @@ function App() {
                     </p>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingBottom: "100px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", paddingBottom: "80px" }}>
                     <button
                       onClick={finalizarPedido}
                       style={{
@@ -319,15 +319,15 @@ function App() {
                         backgroundColor: "#39ff14",
                         color: "#000",
                         border: "none",
-                        borderRadius: "12px",
+                        borderRadius: "14px",
                         padding: "22px 16px",
                         fontSize: "22px",
                         fontWeight: 900,
                         cursor: "pointer",
-                        letterSpacing: "0.5px",
-                        boxShadow: "0 0 20px rgba(57,255,20,0.6), 0 6px 16px rgba(0,0,0,0.2)",
-                        lineHeight: "1.3",
+                        boxShadow: "0 0 24px rgba(57,255,20,0.65), 0 6px 16px rgba(0,0,0,0.15)",
+                        lineHeight: "1.35",
                         textAlign: "center",
+                        display: "block",
                       }}
                       onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"}
                       onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"}
@@ -339,18 +339,15 @@ function App() {
                     <button
                       onClick={() => setPaso("carrito")}
                       style={{
-                        width: "100%",
-                        backgroundColor: "transparent",
-                        color: "#9e9e9e",
-                        border: "1.5px solid #ddd",
-                        borderRadius: "8px",
-                        padding: "13px",
-                        fontSize: "14px",
-                        fontWeight: 500,
+                        background: "none",
+                        border: "none",
+                        color: "#bdbdbd",
+                        fontSize: "13px",
                         cursor: "pointer",
+                        padding: "4px 8px",
                       }}
                     >
-                      ← Volver al carrito
+                      ← Volver
                     </button>
                   </div>
                 </div>
