@@ -73,6 +73,7 @@ function App() {
   const [vendedor, setVendedor] = useState("");
   const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
   const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; vendedor?: string; tipoEntrega?: string }>({});
+  const [snapshot, setSnapshot] = useState<{ items: ItemCarrito[]; total: number; vendedorNombre: string; vendedorWA: string } | null>(null);
 
   const mostrarToast = (msg: string) => {
     setToast(msg);
@@ -138,8 +139,15 @@ function App() {
     if (!validarDatos()) return;
 
     const mensaje = generarMensaje();
-
     navigator.clipboard.writeText(mensaje).catch(() => {});
+
+    const vendedorInfo = VENDEDORES.find(v => v.nombre === vendedor) ?? VENDEDORES[0];
+    setSnapshot({
+      items: [...carrito],
+      total: totalFinal,
+      vendedorNombre: vendedorInfo.nombre,
+      vendedorWA: vendedorInfo.whatsapp,
+    });
 
     setPaso("confirmado");
     setCarrito([]);
@@ -151,6 +159,7 @@ function App() {
     setDireccion("");
     setVendedor("");
     setTipoEntrega("");
+    setSnapshot(null);
     setErrores({});
     setCarritoAbierto(true);
   };
@@ -250,13 +259,23 @@ function App() {
                     ¡Pedido recibido!
                   </h3>
 
-                  {tipoEntrega === "bodega" ? (
+                  {tipoEntrega === "bodega" && snapshot ? (
                     <>
                       <p style={{ fontSize: "14px", color: "#444", lineHeight: "1.7", marginBottom: "24px" }}>
                         ¡Listo! Para recoger tu pedido, coordina la hora de entrega con tu asesor presionando el siguiente botón.
                       </p>
                       <a
-                        href={`https://wa.me/${VENDEDORES.find(v => v.nombre === vendedor)?.whatsapp ?? VENDEDORES[0].whatsapp}?text=${encodeURIComponent(`Hola ${vendedor}, acabo de hacer un pedido para recoger en bodega, ¿me pasas la ubicación?`)}`}
+                        href={`https://wa.me/${snapshot.vendedorWA}?text=${encodeURIComponent(
+                          [
+                            `Hola ${snapshot.vendedorNombre}, acabo de hacer este pedido para recoger en bodega:`,
+                            "",
+                            ...snapshot.items.map(i => `• ${i.producto.nombre} x${i.cantidad} = $${i.producto.precio * i.cantidad}.00`),
+                            "",
+                            `Total: $${snapshot.total}.00`,
+                            "",
+                            "¿Me puedes dar la ubicación y decirme a qué hora paso?",
+                          ].join("\n")
+                        )}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
