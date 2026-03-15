@@ -7,17 +7,27 @@ const GRUPO_ENVIO_ID     = "120363423760711292@g.us";
 
 const router = Router();
 
-function normalizarTelefono(tel: string): string {
+function soloLocal(tel: string): string {
   const digits = tel.replace(/\D/g, "");
-  if (digits.length === 10) return `52${digits}`;
+  if (digits.length === 12 && digits.startsWith("52")) return digits.slice(2);
+  if (digits.length === 13 && digits.startsWith("521")) return digits.slice(3);
   return digits;
 }
 
-async function enviarWA(chatId: string, message: string) {
+function conPais(tel: string): string {
+  const local = soloLocal(tel);
+  return `52${local}`;
+}
+
+function chatId(tel: string): string {
+  return `${conPais(tel)}@c.us`;
+}
+
+async function enviarWA(cId: string, message: string) {
   return fetch(GREEN_API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chatId, message }),
+    body: JSON.stringify({ chatId: cId, message }),
   });
 }
 
@@ -42,7 +52,7 @@ router.post("/webhook-pedido", async (req, res) => {
     const mensajeGrupo =
       `🛒 *NUEVO PEDIDO*\n` +
       `👤 *Cliente:* ${cliente}\n` +
-      `📱 *WhatsApp cliente:* ${normalizarTelefono(telefono)}\n` +
+      `📱 *WhatsApp cliente:* ${soloLocal(telefono)}\n` +
       `📍 *Dirección:* ${direccion}\n` +
       `🧑‍💼 *Vendedor:* ${vendedor}\n` +
       `📦 *Entrega:* ${tipo_entrega}\n\n` +
@@ -56,19 +66,17 @@ router.post("/webhook-pedido", async (req, res) => {
       `¡Gracias por su compra, *${cliente}*! ✅\n\n` +
       `👤 *Su vendedor es:* ${vendedor}\n` +
       `📲 Para dudas o aclaraciones sobre su pedido escríbale directo aquí:\n` +
-      `👉 https://wa.me/${vendedor_wa}\n\n` +
+      `👉 https://wa.me/${conPais(vendedor_wa)}\n\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `🕛 Empezamos a entregar *de medio día en adelante*.\n\n` +
       `🛵 Espere el mensaje del *repartidor* por WhatsApp para coordinar su entrega.\n` +
       `━━━━━━━━━━━━━━━━━━\n\n` +
       `¡Gracias por elegir *Mercado en Línea Culiacán*! 🙌`;
 
-    const telefonoNormalizado = normalizarTelefono(telefono);
-
     const mensajeVendedor =
       `📦 *PEDIDO PARA RECOGER EN BODEGA*\n\n` +
       `👤 *Cliente:* ${cliente}\n` +
-      `📱 *WhatsApp:* ${telefonoNormalizado}\n\n` +
+      `📱 *WhatsApp:* ${soloLocal(telefono)}\n\n` +
       `🧾 *Productos:*\n${lineas}\n\n` +
       `💰 *Total:* *$${total}.00*\n` +
       `💵 *Pago:* ${pago}\n` +
@@ -77,17 +85,17 @@ router.post("/webhook-pedido", async (req, res) => {
 
     const envios: Promise<Response>[] = [
       enviarWA(GRUPO_ENVIO_ID, mensajeGrupo),
-      enviarWA(`${telefonoNormalizado}@c.us`, mensajeCliente),
+      enviarWA(chatId(telefono), mensajeCliente),
     ];
 
     if (tipo_entrega === "Recoger en bodega" && vendedor_wa) {
-      envios.push(enviarWA(`${normalizarTelefono(vendedor_wa)}@c.us`, mensajeVendedor));
+      envios.push(enviarWA(chatId(vendedor_wa), mensajeVendedor));
     }
 
     const [resGrupo, resCliente, resVendedor] = await Promise.all(envios);
 
-    const dataGrupo   = await resGrupo.json();
-    const dataCliente = await resCliente.json();
+    const dataGrupo    = await resGrupo.json();
+    const dataCliente  = await resCliente.json();
     const dataVendedor = resVendedor ? await resVendedor.json() : null;
 
     res.status(200).json({ ok: true, grupo: dataGrupo, cliente: dataCliente, vendedor: dataVendedor });
