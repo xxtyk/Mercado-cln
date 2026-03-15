@@ -20,7 +20,7 @@ router.post("/webhook-pedido", async (req, res) => {
     const mensaje =
       `🛒 *NUEVO PEDIDO*\n` +
       `👤 *Cliente:* ${cliente}\n` +
-      `📱 *WhatsApp:* ${telefono}\n` +
+      `📱 *WhatsApp cliente:* https://wa.me/${telefono}\n` +
       `📍 *Dirección:* ${direccion}\n` +
       `🧑‍💼 *Vendedor:* ${vendedor}\n` +
       `📦 *Entrega:* ${tipo_entrega}\n\n` +

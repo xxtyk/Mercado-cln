@@ -209,7 +209,7 @@ function App() {
         `Total: $${totalFinal}.00`,
         `Pago: Efectivo (Contra entrega)`,
         `Cliente: ${nombre.trim()}`,
-        `WhatsApp: ${telefono.trim()}`,
+        `WhatsApp: https://wa.me/${telefono.trim()}`,
         "",
         "¿Me puedes dar la ubicación y decirme a qué hora paso?",
       ].join("\n");
