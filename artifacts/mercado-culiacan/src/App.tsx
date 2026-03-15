@@ -372,31 +372,37 @@ function App() {
                 </button>
               )}
               {paso === "datos" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
                   <button
                     onClick={finalizarPedido}
                     style={{
                       width: "100%", backgroundColor: "#00c853",
-                      color: "white", border: "none", borderRadius: "8px",
-                      padding: "18px", fontSize: "18px", fontWeight: 700,
-                      cursor: "pointer", letterSpacing: "1px",
-                      boxShadow: "0 4px 14px rgba(0,200,83,0.45)",
-                      transition: "background-color 0.2s, box-shadow 0.2s",
+                      color: "white", border: "none", borderRadius: "10px",
+                      padding: "20px 16px", fontSize: "20px", fontWeight: 800,
+                      cursor: "pointer", letterSpacing: "0.5px",
+                      boxShadow: "0 6px 20px rgba(0,200,83,0.5)",
+                      transition: "background-color 0.2s, transform 0.1s",
+                      minHeight: "64px",
+                      lineHeight: "1.2",
                     }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00b248";
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 18px rgba(0,200,83,0.55)";
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00c853";
-                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(0,200,83,0.45)";
-                    }}
+                    onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00b248"}
+                    onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00c853"}
+                    onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)"}
+                    onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"}
                   >
-                    ✅ FINALIZAR PEDIDO — ${totalFinal}.00
+                    ✅ FINALIZAR PEDIDO<br />
+                    <span style={{ fontSize: "15px", fontWeight: 600, opacity: 0.9 }}>${totalFinal}.00 · Efectivo contra entrega</span>
                   </button>
+                  <div style={{ height: "16px" }} />
                   <button
                     onClick={() => setPaso("carrito")}
-                    style={{ width: "100%", backgroundColor: "transparent", color: "#757575", border: "1px solid #ccc", borderRadius: "6px", padding: "10px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}
+                    style={{
+                      width: "100%", backgroundColor: "transparent",
+                      color: "#9e9e9e", border: "1.5px solid #e0e0e0",
+                      borderRadius: "8px", padding: "12px",
+                      fontSize: "14px", fontWeight: 500, cursor: "pointer",
+                      minHeight: "44px",
+                    }}
                   >
                     ← Volver al carrito
                   </button>
