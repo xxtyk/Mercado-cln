@@ -338,6 +338,47 @@ function App() {
                       >
                         💬 Hablar con mi vendedor por WhatsApp
                       </a>
+
+                      <div style={{ marginTop: "12px", borderTop: "1px solid #e0e0e0", paddingTop: "16px" }}>
+                        <p style={{ fontSize: "13px", color: "#777", marginBottom: "10px" }}>
+                          También avisa al grupo de logística:
+                        </p>
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(
+                            [
+                              "🚚 *NUEVA FICHA DE BODEGA*",
+                              "",
+                              `👤 Cliente: ${nombre.trim()}`,
+                              `🧑‍💼 Vendedor: ${snapshot.vendedorNombre}`,
+                              "",
+                              "🧾 Productos:",
+                              ...snapshot.items.map(i => `  • ${i.producto.nombre} x${i.cantidad} = $${i.producto.precio * i.cantidad}.00`),
+                              "",
+                              `💰 Total: $${snapshot.total}.00`,
+                              `💵 Pago: Efectivo (Contra entrega)`,
+                              `📦 Entrega: Recoger en bodega`,
+                            ].join("\n")
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: "block",
+                            width: "100%",
+                            backgroundColor: "#ff6f00",
+                            color: "#fff",
+                            borderRadius: "14px",
+                            padding: "16px 12px",
+                            fontSize: "16px",
+                            fontWeight: 700,
+                            textDecoration: "none",
+                            boxSizing: "border-box",
+                            lineHeight: "1.4",
+                            textAlign: "center",
+                          }}
+                        >
+                          📦 Enviar ficha al grupo de logística
+                        </a>
+                      </div>
                     </>
                   ) : (
                     <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.7" }}>
