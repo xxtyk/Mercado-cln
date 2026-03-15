@@ -311,46 +311,28 @@ function App() {
                     </p>
                   </div>
 
-                  <div style={{ paddingBottom: "100px" }}>
-                    <button
-                      onClick={finalizarPedido}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        backgroundColor: "#39ff14",
-                        color: "#000000",
-                        border: "none",
-                        borderRadius: "14px",
-                        padding: "22px 12px",
-                        fontSize: "22px",
-                        fontWeight: 900,
-                        cursor: "pointer",
-                        boxShadow: "0 0 24px rgba(57,255,20,0.7)",
-                        lineHeight: "1.4",
-                        textAlign: "center",
-                        marginBottom: "20px",
-                        boxSizing: "border-box",
-                      }}
-                    >
-                      ✅ FINALIZAR PEDIDO<br />
-                      <span style={{ fontSize: "14px", fontWeight: 700 }}>${totalFinal}.00 · Efectivo contra entrega</span>
-                    </button>
-                    <div style={{ textAlign: "center" }}>
-                      <button
-                        onClick={() => setPaso("carrito")}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#bdbdbd",
-                          fontSize: "13px",
-                          cursor: "pointer",
-                          padding: "6px",
-                        }}
-                      >
-                        ← Volver
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    onClick={finalizarPedido}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      backgroundColor: "#1db510",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: "16px",
+                      padding: "24px 12px",
+                      fontSize: "26px",
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      boxShadow: "0 0 28px rgba(29,181,16,0.6)",
+                      textAlign: "center",
+                      marginBottom: "120px",
+                      boxSizing: "border-box",
+                      letterSpacing: "1px",
+                    }}
+                  >
+                    Finalizar
+                  </button>
                 </div>
               ) : carrito.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 20px", color: "#9e9e9e" }}>
