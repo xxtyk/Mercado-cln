@@ -372,22 +372,33 @@ function App() {
                 </button>
               )}
               {paso === "datos" && (
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => setPaso("carrito")}
-                    style={{ ...btnVerde, backgroundColor: "#757575", flex: "0 0 auto", padding: "14px 18px", fontSize: "13px" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#616161"}
-                    onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#757575"}
-                  >
-                    ← Volver
-                  </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   <button
                     onClick={finalizarPedido}
-                    style={{ ...btnVerde, flex: 1 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1b5e20"}
-                    onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#2e7d32"}
+                    style={{
+                      width: "100%", backgroundColor: "#00c853",
+                      color: "white", border: "none", borderRadius: "8px",
+                      padding: "18px", fontSize: "18px", fontWeight: 700,
+                      cursor: "pointer", letterSpacing: "1px",
+                      boxShadow: "0 4px 14px rgba(0,200,83,0.45)",
+                      transition: "background-color 0.2s, box-shadow 0.2s",
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00b248";
+                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 18px rgba(0,200,83,0.55)";
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00c853";
+                      (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(0,200,83,0.45)";
+                    }}
                   >
-                    ✅ FINALIZAR · ${totalFinal}.00
+                    ✅ FINALIZAR PEDIDO — ${totalFinal}.00
+                  </button>
+                  <button
+                    onClick={() => setPaso("carrito")}
+                    style={{ width: "100%", backgroundColor: "transparent", color: "#757575", border: "1px solid #ccc", borderRadius: "6px", padding: "10px", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}
+                  >
+                    ← Volver al carrito
                   </button>
                 </div>
               )}
