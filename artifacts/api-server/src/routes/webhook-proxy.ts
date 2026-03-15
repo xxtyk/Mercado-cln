@@ -65,15 +65,32 @@ router.post("/webhook-pedido", async (req, res) => {
 
     const telefonoNormalizado = normalizarTelefono(telefono);
 
-    const [resGrupo, resCliente] = await Promise.all([
+    const mensajeVendedor =
+      `📦 *PEDIDO PARA RECOGER EN BODEGA*\n\n` +
+      `👤 *Cliente:* ${cliente}\n` +
+      `📱 *WhatsApp:* ${telefonoNormalizado}\n\n` +
+      `🧾 *Productos:*\n${lineas}\n\n` +
+      `💰 *Total:* *$${total}.00*\n` +
+      `💵 *Pago:* ${pago}\n` +
+      (nota ? `📝 *Nota:* ${nota}\n` : "") +
+      `\n_El cliente pasará a recoger. Favor de coordinar hora y ubicación._`;
+
+    const envios: Promise<Response>[] = [
       enviarWA(GRUPO_ENVIO_ID, mensajeGrupo),
       enviarWA(`${telefonoNormalizado}@c.us`, mensajeCliente),
-    ]);
+    ];
+
+    if (tipo_entrega === "Recoger en bodega" && vendedor_wa) {
+      envios.push(enviarWA(`${normalizarTelefono(vendedor_wa)}@c.us`, mensajeVendedor));
+    }
+
+    const [resGrupo, resCliente, resVendedor] = await Promise.all(envios);
 
     const dataGrupo   = await resGrupo.json();
     const dataCliente = await resCliente.json();
+    const dataVendedor = resVendedor ? await resVendedor.json() : null;
 
-    res.status(200).json({ ok: true, grupo: dataGrupo, cliente: dataCliente });
+    res.status(200).json({ ok: true, grupo: dataGrupo, cliente: dataCliente, vendedor: dataVendedor });
   } catch (err) {
     res.status(500).json({ ok: false, error: String(err) });
   }
