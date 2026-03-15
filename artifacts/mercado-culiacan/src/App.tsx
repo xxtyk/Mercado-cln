@@ -73,6 +73,7 @@ function App() {
   const [direccion, setDireccion] = useState("");
   const [vendedor, setVendedor] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [nota, setNota] = useState("");
   const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
   const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; telefono?: string; vendedor?: string; tipoEntrega?: string }>({});
   const [snapshot, setSnapshot] = useState<{ items: ItemCarrito[]; total: number; vendedorNombre: string; vendedorWA: string } | null>(null);
@@ -137,6 +138,7 @@ function App() {
       `🚚 *Entrega:* ${tipoEntrega === "domicilio" ? `Envío a domicilio — $${COSTO_ENVIO}.00` : "Recoger en bodega — Gratis"}`,
       `💰 *TOTAL A PAGAR: $${totalFinal}.00*`,
       `💵 *Pago:* Efectivo (Contra entrega)`,
+      ...(nota.trim() ? [`📝 *Nota:* ${nota.trim()}`] : []),
     ].join("\n");
   };
 
@@ -160,6 +162,7 @@ function App() {
       cliente: nombre.trim(),
       telefono: telefono.trim(),
       direccion: direccion.trim(),
+      nota: nota.trim(),
       vendedor: vendedorInfo.nombre,
       tipo_entrega: tipoEntrega === "bodega" ? "Recoger en bodega" : "Envío a domicilio",
       productos: carrito.map(i => ({
@@ -205,6 +208,7 @@ function App() {
     setNombre("");
     setDireccion("");
     setTelefono("");
+    setNota("");
     setVendedor("");
     setTipoEntrega("");
     setSnapshot(null);
@@ -393,6 +397,17 @@ function App() {
                       maxLength={13}
                     />
                     {errores.telefono && <p style={errorStyle}>{errores.telefono}</p>}
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>📝 Nota (opcional)</label>
+                    <textarea
+                      placeholder="Ej: Dejar con el vecino, timbre no funciona, color preferido..."
+                      value={nota}
+                      onChange={e => setNota(e.target.value)}
+                      rows={3}
+                      style={{ ...inputStyle, resize: "vertical", minHeight: "70px" }}
+                    />
                   </div>
 
                   <div>

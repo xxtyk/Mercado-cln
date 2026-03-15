@@ -9,7 +9,7 @@ const router = Router();
 
 router.post("/webhook-pedido", async (req, res) => {
   try {
-    const { cliente, telefono, direccion, vendedor, tipo_entrega, productos, total, pago } = req.body;
+    const { cliente, telefono, direccion, nota, vendedor, tipo_entrega, productos, total, pago } = req.body;
 
     const lineas = Array.isArray(productos)
       ? productos.map((p: { nombre: string; cantidad: number; subtotal: number }) =>
@@ -26,7 +26,8 @@ router.post("/webhook-pedido", async (req, res) => {
       `📦 *Entrega:* ${tipo_entrega}\n\n` +
       `🧾 *Productos:*\n${lineas}\n\n` +
       `💰 *Total: $${total}.00*\n` +
-      `💵 *Pago:* ${pago}`;
+      `💵 *Pago:* ${pago}` +
+      (nota ? `\n📝 *Nota:* ${nota}` : "");
 
     const response = await fetch(GREEN_API_URL, {
       method: "POST",
