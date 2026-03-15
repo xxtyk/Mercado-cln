@@ -55,7 +55,8 @@ function App() {
   const [paso, setPaso] = useState<Paso>("carrito");
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string }>({});
+  const [vendedor, setVendedor] = useState("");
+  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; vendedor?: string }>({});
 
   const mostrarToast = (msg: string) => {
     setToast(msg);
@@ -88,9 +89,10 @@ function App() {
   const cantidadItems = carrito.reduce((s, i) => s + i.cantidad, 0);
 
   const validarDatos = () => {
-    const e: { nombre?: string; direccion?: string } = {};
+    const e: { nombre?: string; direccion?: string; vendedor?: string } = {};
     if (!nombre.trim()) e.nombre = "Por favor ingresa tu nombre";
     if (!direccion.trim()) e.direccion = "Por favor ingresa tu dirección";
+    if (!vendedor) e.vendedor = "Por favor selecciona un vendedor";
     setErrores(e);
     return Object.keys(e).length === 0;
   };
@@ -103,7 +105,7 @@ function App() {
       "🛒 *NUEVO PEDIDO*",
       `👤 *Cliente:* ${nombre.trim()}`,
       `📍 *Dirección:* ${direccion.trim()} (Culiacán, Sinaloa)`,
-      `🏪 *Vendedor:* ${VENDEDOR}`,
+      `🏪 *Vendedor:* ${vendedor}`,
       "",
       "🧾 *Productos:*",
       ...lineas,
@@ -131,6 +133,7 @@ function App() {
     setPaso("carrito");
     setNombre("");
     setDireccion("");
+    setVendedor("");
     setErrores({});
     setCarritoAbierto(true);
   };
@@ -260,6 +263,21 @@ function App() {
                       style={{ ...inputStyle, borderColor: errores.direccion ? "#f44336" : "#e0e0e0" }}
                     />
                     {errores.direccion && <p style={errorStyle}>{errores.direccion}</p>}
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>🧑‍💼 Nombre del vendedor</label>
+                    <select
+                      value={vendedor}
+                      onChange={e => { setVendedor(e.target.value); setErrores(er => ({ ...er, vendedor: undefined })); }}
+                      style={{ ...inputStyle, borderColor: errores.vendedor ? "#f44336" : "#e0e0e0", backgroundColor: "white", cursor: "pointer" }}
+                    >
+                      <option value="">— Selecciona un vendedor —</option>
+                      {["Silvia", "Brissa", "Cristian", "Amayrany", "Hector", "Natalia", "Juan", "Claudia", "Ninguno"].map(v => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                    {errores.vendedor && <p style={errorStyle}>{errores.vendedor}</p>}
                   </div>
 
                   <div style={{ backgroundColor: "#f9f9f9", borderRadius: "8px", padding: "14px" }}>
