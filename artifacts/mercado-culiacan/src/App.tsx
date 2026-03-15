@@ -146,9 +146,16 @@ function App() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         boxShadow: "0 2px 4px rgba(0,0,0,0.3)", position: "sticky", top: 0, zIndex: 200,
       }}>
-        <span style={{ fontSize: "20px", fontWeight: 500, letterSpacing: "0.5px" }}>
-          Mercado en Línea Culiacán
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <img
+            src={`${BASE}logo.jpg`}
+            alt="Mercado en Línea Culiacán"
+            style={{ height: "44px", width: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}
+          />
+          <span style={{ fontSize: "18px", fontWeight: 600, letterSpacing: "0.3px" }}>
+            Mercado en Línea Culiacán
+          </span>
+        </div>
         <button
           onClick={abrirCarrito}
           style={{
