@@ -31,6 +31,14 @@ router.post("/webhook-pedido", async (req, res) => {
         ).join("\n")
       : "";
 
+    const subtotalProductos = Array.isArray(productos)
+      ? productos.reduce((s: number, p: { subtotal: number }) => s + p.subtotal, 0)
+      : total;
+    const costoEnvio = tipo_entrega === "Envío a domicilio" ? 40 : 0;
+    const resumenTotal = costoEnvio > 0
+      ? `$${subtotalProductos}.00 productos + $${costoEnvio}.00 envío = *$${total}.00*`
+      : `*$${total}.00*`;
+
     const mensajeGrupo =
       `🛒 *NUEVO PEDIDO*\n` +
       `👤 *Cliente:* ${cliente}\n` +
@@ -39,7 +47,7 @@ router.post("/webhook-pedido", async (req, res) => {
       `🧑‍💼 *Vendedor:* ${vendedor}\n` +
       `📦 *Entrega:* ${tipo_entrega}\n\n` +
       `🧾 *Productos:*\n${lineas}\n\n` +
-      `💰 *Total: $${total}.00*\n` +
+      `💰 *Total:* ${resumenTotal}\n` +
       `💵 *Pago:* ${pago}` +
       (nota ? `\n📝 *Nota:* ${nota}` : "");
 
