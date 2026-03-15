@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;
@@ -77,6 +77,26 @@ function App() {
   const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
   const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; telefono?: string; vendedor?: string; tipoEntrega?: string }>({});
   const [snapshot, setSnapshot] = useState<{ items: ItemCarrito[]; total: number; vendedorNombre: string; vendedorWA: string } | null>(null);
+
+  const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
+  const [bannerVisible, setBannerVisible] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setBannerVisible(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    (installPrompt as any).prompt();
+    const { outcome } = await (installPrompt as any).userChoice;
+    if (outcome === "accepted") setBannerVisible(false);
+  };
 
   const mostrarToast = (msg: string) => {
     setToast(msg);
@@ -218,6 +238,58 @@ function App() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#f5f5f5", fontFamily: "Roboto, sans-serif" }}>
+
+      {bannerVisible && (
+        <div style={{
+          backgroundColor: "#1565c0",
+          color: "#fff",
+          padding: "10px 16px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "10px",
+          zIndex: 300,
+          flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: "13px", fontWeight: 500, flex: 1 }}>
+            📲 ¡Instala nuestra App para hacer tus pedidos más rápido!
+          </span>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <button
+              onClick={handleInstall}
+              style={{
+                backgroundColor: "#fff",
+                color: "#1565c0",
+                border: "none",
+                borderRadius: "20px",
+                padding: "6px 16px",
+                fontWeight: 700,
+                fontSize: "13px",
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Instalar
+            </button>
+            <button
+              onClick={() => setBannerVisible(false)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "#fff",
+                fontSize: "18px",
+                cursor: "pointer",
+                lineHeight: 1,
+                padding: "0 4px",
+              }}
+              aria-label="Cerrar"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <header style={{
         backgroundColor: "#000", color: "white",
         padding: "12px 20px",
