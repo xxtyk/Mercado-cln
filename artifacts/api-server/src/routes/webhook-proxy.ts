@@ -55,7 +55,7 @@ router.post("/webhook-pedido", async (req, res) => {
       `*MERCADO EN LÍNEA CULIACÁN* 🛒🔵⚫\n\n` +
       `¡Muchas gracias por tu compra, ${cliente}! Tu pedido ha sido recibido con éxito. ✅\n\n` +
       `👤 *Te atendió:* ${vendedor}\n` +
-      `_(Para cualquier duda sobre tu pedido o para tus próximas compras, escríbele directamente:)_\n` +
+      `_(Para dudas o aclaraciones sobre tu pedido, comunícate directamente con tu vendedor ${vendedor}:)_\n` +
       `💬 https://wa.me/${vendedor_wa}\n\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `⚠️ *INFORMACIÓN IMPORTANTE SOBRE TU ENTREGA:*\n\n` +
