@@ -173,6 +173,25 @@ function App() {
       body: fichaWebhook,
     }).catch(() => {});
 
+    if (tipoEntrega === "bodega") {
+      const msgVendedor = [
+        `Hola ${vendedorInfo.nombre}, acabo de hacer este pedido para recoger en bodega:`,
+        "",
+        ...carrito.map(i => `• ${i.producto.nombre} x${i.cantidad} = $${i.producto.precio * i.cantidad}.00`),
+        "",
+        `Total: $${totalFinal}.00`,
+        `Pago: Efectivo (Contra entrega)`,
+        `Cliente: ${nombre.trim()}`,
+        "",
+        "¿Me puedes dar la ubicación y decirme a qué hora paso?",
+      ].join("\n");
+
+      window.open(
+        `https://wa.me/${vendedorInfo.whatsapp}?text=${encodeURIComponent(msgVendedor)}`,
+        "_blank"
+      );
+    }
+
     setPaso("confirmado");
     setCarrito([]);
   };
