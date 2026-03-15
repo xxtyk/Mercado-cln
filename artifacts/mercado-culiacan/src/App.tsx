@@ -184,6 +184,7 @@ function App() {
       direccion: direccion.trim(),
       nota: nota.trim(),
       vendedor: vendedorInfo.nombre,
+      vendedor_wa: vendedorInfo.whatsapp,
       tipo_entrega: tipoEntrega === "bodega" ? "Recoger en bodega" : "Envío a domicilio",
       productos: carrito.map(i => ({
         nombre: i.producto.nombre,

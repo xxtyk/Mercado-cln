@@ -23,7 +23,7 @@ async function enviarWA(chatId: string, message: string) {
 
 router.post("/webhook-pedido", async (req, res) => {
   try {
-    const { cliente, telefono, direccion, nota, vendedor, tipo_entrega, productos, total, pago } = req.body;
+    const { cliente, telefono, direccion, nota, vendedor, vendedor_wa, tipo_entrega, productos, total, pago } = req.body;
 
     const lineas = Array.isArray(productos)
       ? productos.map((p: { nombre: string; cantidad: number; subtotal: number }) =>
@@ -47,7 +47,8 @@ router.post("/webhook-pedido", async (req, res) => {
       `*MERCADO EN LÍNEA CULIACÁN* 🛒🔵⚫\n\n` +
       `¡Muchas gracias por tu compra, ${cliente}! Tu pedido ha sido recibido con éxito. ✅\n\n` +
       `👤 *Te atendió:* ${vendedor}\n` +
-      `_(Para tus próximos pedidos, ¡no dudes en contactarle directamente!)_\n\n` +
+      `_(Para cualquier duda sobre tu pedido o para tus próximas compras, escríbele directamente:)_\n` +
+      `💬 https://wa.me/${vendedor_wa}\n\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
       `⚠️ *INFORMACIÓN IMPORTANTE SOBRE TU ENTREGA:*\n\n` +
       `🛵 *EL REPARTIDOR TE CONTACTARÁ POR WHATSAPP* para coordinar los detalles exactos de la entrega y confirmar tu ubicación.\n\n` +
