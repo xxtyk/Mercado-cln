@@ -9,7 +9,7 @@ const router = Router();
 
 router.post("/webhook-pedido", async (req, res) => {
   try {
-    const { cliente, direccion, vendedor, tipo_entrega, productos, total, pago } = req.body;
+    const { cliente, telefono, direccion, vendedor, tipo_entrega, productos, total, pago } = req.body;
 
     const lineas = Array.isArray(productos)
       ? productos.map((p: { nombre: string; cantidad: number; subtotal: number }) =>
@@ -20,6 +20,7 @@ router.post("/webhook-pedido", async (req, res) => {
     const mensaje =
       `🛒 *NUEVO PEDIDO*\n` +
       `👤 *Cliente:* ${cliente}\n` +
+      `📱 *WhatsApp:* ${telefono}\n` +
       `📍 *Dirección:* ${direccion}\n` +
       `🧑‍💼 *Vendedor:* ${vendedor}\n` +
       `📦 *Entrega:* ${tipo_entrega}\n\n` +

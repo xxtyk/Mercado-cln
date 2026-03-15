@@ -72,8 +72,9 @@ function App() {
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
   const [vendedor, setVendedor] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
-  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; vendedor?: string; tipoEntrega?: string }>({});
+  const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; telefono?: string; vendedor?: string; tipoEntrega?: string }>({});
   const [snapshot, setSnapshot] = useState<{ items: ItemCarrito[]; total: number; vendedorNombre: string; vendedorWA: string } | null>(null);
 
   const mostrarToast = (msg: string) => {
@@ -108,9 +109,11 @@ function App() {
   const cantidadItems = carrito.reduce((s, i) => s + i.cantidad, 0);
 
   const validarDatos = () => {
-    const e: { nombre?: string; direccion?: string; vendedor?: string; tipoEntrega?: string } = {};
+    const e: { nombre?: string; direccion?: string; telefono?: string; vendedor?: string; tipoEntrega?: string } = {};
     if (!nombre.trim()) e.nombre = "Por favor ingresa tu nombre";
     if (!direccion.trim()) e.direccion = "Por favor ingresa tu dirección";
+    if (!telefono.trim()) e.telefono = "Por favor ingresa tu número de WhatsApp";
+    else if (!/^\d{10,13}$/.test(telefono.replace(/\s+/g, ""))) e.telefono = "Ingresa un número válido (10 dígitos)";
     if (!vendedor) e.vendedor = "Por favor selecciona un vendedor";
     if (!tipoEntrega) e.tipoEntrega = "Por favor selecciona cómo quieres recibir tu pedido";
     setErrores(e);
@@ -124,6 +127,7 @@ function App() {
     return [
       "🛒 *NUEVO PEDIDO*",
       `👤 *Cliente:* ${nombre.trim()}`,
+      `📱 *WhatsApp:* ${telefono.trim()}`,
       `📍 *Dirección:* ${direccion.trim()} (Culiacán, Sinaloa)`,
       `🏪 *Vendedor:* ${vendedor}`,
       "",
@@ -154,6 +158,7 @@ function App() {
 
     const fichaWebhook = JSON.stringify({
       cliente: nombre.trim(),
+      telefono: telefono.trim(),
       direccion: direccion.trim(),
       vendedor: vendedorInfo.nombre,
       tipo_entrega: tipoEntrega === "bodega" ? "Recoger en bodega" : "Envío a domicilio",
@@ -199,6 +204,7 @@ function App() {
     setPaso("carrito");
     setNombre("");
     setDireccion("");
+    setTelefono("");
     setVendedor("");
     setTipoEntrega("");
     setSnapshot(null);
@@ -374,6 +380,19 @@ function App() {
                       style={{ ...inputStyle, borderColor: errores.direccion ? "#f44336" : "#e0e0e0" }}
                     />
                     {errores.direccion && <p style={errorStyle}>{errores.direccion}</p>}
+                  </div>
+
+                  <div>
+                    <label style={labelStyle}>📱 Número de WhatsApp</label>
+                    <input
+                      type="tel"
+                      placeholder="Ej: 6671234567"
+                      value={telefono}
+                      onChange={e => { setTelefono(e.target.value.replace(/\D/g, "")); setErrores(er => ({ ...er, telefono: undefined })); }}
+                      style={{ ...inputStyle, borderColor: errores.telefono ? "#f44336" : "#e0e0e0" }}
+                      maxLength={13}
+                    />
+                    {errores.telefono && <p style={errorStyle}>{errores.telefono}</p>}
                   </div>
 
                   <div>
