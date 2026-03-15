@@ -244,17 +244,45 @@ function App() {
 
             <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
               {paso === "confirmado" ? (
-                <div style={{ textAlign: "center", padding: "40px 20px" }}>
-                  <div style={{ fontSize: "52px", marginBottom: "16px" }}>✅</div>
-                  <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#2e7d32", marginBottom: "12px" }}>
-                    ¡Gracias por su compra!
+                <div style={{ textAlign: "center", padding: "36px 20px 100px" }}>
+                  <div style={{ fontSize: "56px", marginBottom: "14px" }}>✅</div>
+                  <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#2e7d32", marginBottom: "10px" }}>
+                    ¡Pedido recibido!
                   </h3>
-                  <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.6", marginBottom: "16px" }}>
-                    Un repartidor le mandará WhatsApp para la entrega.
-                  </p>
-                  <div style={{ backgroundColor: "#e8f5e9", borderRadius: "8px", padding: "14px", fontSize: "13px", color: "#2e7d32" }}>
-                    📋 El resumen del pedido fue copiado automáticamente. Pégalo en el grupo de WhatsApp si aún no se envió.
-                  </div>
+
+                  {tipoEntrega === "bodega" ? (
+                    <>
+                      <p style={{ fontSize: "14px", color: "#444", lineHeight: "1.7", marginBottom: "24px" }}>
+                        ¡Listo! Para recoger tu pedido, coordina la hora de entrega con tu asesor presionando el siguiente botón.
+                      </p>
+                      <a
+                        href={`https://wa.me/${VENDEDORES.find(v => v.nombre === vendedor)?.whatsapp ?? VENDEDORES[0].whatsapp}?text=${encodeURIComponent("Hola, acabo de hacer un pedido para recoger en bodega, ¿me puedes dar la ubicación y horario?")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          backgroundColor: "#25d366",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "14px",
+                          padding: "20px 12px",
+                          fontSize: "18px",
+                          fontWeight: 800,
+                          textDecoration: "none",
+                          boxShadow: "0 0 24px rgba(37,211,102,0.5)",
+                          boxSizing: "border-box",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        💬 Hablar con mi vendedor por WhatsApp
+                      </a>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.7" }}>
+                      Tu pedido está confirmado. Un repartidor te contactará por WhatsApp para coordinar la entrega a tu domicilio.
+                    </p>
+                  )}
                 </div>
               ) : paso === "datos" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
