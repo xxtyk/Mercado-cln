@@ -311,44 +311,45 @@ function App() {
                     </p>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", paddingBottom: "80px" }}>
+                  <div style={{ paddingBottom: "100px" }}>
                     <button
                       onClick={finalizarPedido}
                       style={{
+                        display: "block",
                         width: "100%",
                         backgroundColor: "#39ff14",
-                        color: "#000",
+                        color: "#000000",
                         border: "none",
                         borderRadius: "14px",
-                        padding: "22px 16px",
+                        padding: "22px 12px",
                         fontSize: "22px",
                         fontWeight: 900,
                         cursor: "pointer",
-                        boxShadow: "0 0 24px rgba(57,255,20,0.65), 0 6px 16px rgba(0,0,0,0.15)",
-                        lineHeight: "1.35",
+                        boxShadow: "0 0 24px rgba(57,255,20,0.7)",
+                        lineHeight: "1.4",
                         textAlign: "center",
-                        display: "block",
-                      }}
-                      onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"}
-                      onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"}
-                    >
-                      ✅ FINALIZAR PEDIDO
-                      <br />
-                      <span style={{ fontSize: "15px", fontWeight: 700 }}>${totalFinal}.00 · Efectivo contra entrega</span>
-                    </button>
-                    <button
-                      onClick={() => setPaso("carrito")}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#bdbdbd",
-                        fontSize: "13px",
-                        cursor: "pointer",
-                        padding: "4px 8px",
+                        marginBottom: "20px",
+                        boxSizing: "border-box",
                       }}
                     >
-                      ← Volver
+                      ✅ FINALIZAR PEDIDO<br />
+                      <span style={{ fontSize: "14px", fontWeight: 700 }}>${totalFinal}.00 · Efectivo contra entrega</span>
                     </button>
+                    <div style={{ textAlign: "center" }}>
+                      <button
+                        onClick={() => setPaso("carrito")}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#bdbdbd",
+                          fontSize: "13px",
+                          cursor: "pointer",
+                          padding: "6px",
+                        }}
+                      >
+                        ← Volver
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : carrito.length === 0 ? (
