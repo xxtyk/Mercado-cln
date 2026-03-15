@@ -152,22 +152,25 @@ function App() {
     };
     setSnapshot(snap);
 
+    const fichaWebhook = JSON.stringify({
+      cliente: nombre.trim(),
+      direccion: direccion.trim(),
+      vendedor: vendedorInfo.nombre,
+      tipo_entrega: tipoEntrega === "bodega" ? "Recoger en bodega" : "Envío a domicilio",
+      productos: carrito.map(i => ({
+        nombre: i.producto.nombre,
+        cantidad: i.cantidad,
+        subtotal: i.producto.precio * i.cantidad,
+      })),
+      total: totalFinal,
+      pago: "Efectivo (Contra entrega)",
+    });
+
     fetch(WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cliente: nombre.trim(),
-        direccion: direccion.trim(),
-        vendedor: vendedorInfo.nombre,
-        tipo_entrega: tipoEntrega === "bodega" ? "Recoger en bodega" : "Envío a domicilio",
-        productos: carrito.map(i => ({
-          nombre: i.producto.nombre,
-          cantidad: i.cantidad,
-          subtotal: i.producto.precio * i.cantidad,
-        })),
-        total: totalFinal,
-        pago: "Efectivo (Contra entrega)",
-      }),
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: fichaWebhook,
     }).catch(() => {});
 
     setPaso("confirmado");
