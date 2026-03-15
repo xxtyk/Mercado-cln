@@ -310,6 +310,49 @@ function App() {
                       💬 Al presionar <strong>FINALIZAR</strong>, se abrirá el grupo de WhatsApp con el pedido listo para enviar.
                     </p>
                   </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingBottom: "100px" }}>
+                    <button
+                      onClick={finalizarPedido}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "#39ff14",
+                        color: "#000",
+                        border: "none",
+                        borderRadius: "12px",
+                        padding: "22px 16px",
+                        fontSize: "22px",
+                        fontWeight: 900,
+                        cursor: "pointer",
+                        letterSpacing: "0.5px",
+                        boxShadow: "0 0 20px rgba(57,255,20,0.6), 0 6px 16px rgba(0,0,0,0.2)",
+                        lineHeight: "1.3",
+                        textAlign: "center",
+                      }}
+                      onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.97)"}
+                      onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"}
+                    >
+                      ✅ FINALIZAR PEDIDO
+                      <br />
+                      <span style={{ fontSize: "15px", fontWeight: 700 }}>${totalFinal}.00 · Efectivo contra entrega</span>
+                    </button>
+                    <button
+                      onClick={() => setPaso("carrito")}
+                      style={{
+                        width: "100%",
+                        backgroundColor: "transparent",
+                        color: "#9e9e9e",
+                        border: "1.5px solid #ddd",
+                        borderRadius: "8px",
+                        padding: "13px",
+                        fontSize: "14px",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ← Volver al carrito
+                    </button>
+                  </div>
                 </div>
               ) : carrito.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 20px", color: "#9e9e9e" }}>
@@ -360,8 +403,8 @@ function App() {
               )}
             </div>
 
-            <div style={{ padding: "16px", borderTop: "1px solid #e0e0e0" }}>
-              {paso === "carrito" && carrito.length > 0 && (
+            {paso === "carrito" && carrito.length > 0 && (
+              <div style={{ padding: "16px", borderTop: "1px solid #e0e0e0" }}>
                 <button
                   onClick={() => setPaso("datos")}
                   style={btnVerde}
@@ -370,45 +413,8 @@ function App() {
                 >
                   Continuar · ${totalFinal}.00
                 </button>
-              )}
-              {paso === "datos" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-                  <button
-                    onClick={finalizarPedido}
-                    style={{
-                      width: "100%", backgroundColor: "#00c853",
-                      color: "white", border: "none", borderRadius: "10px",
-                      padding: "20px 16px", fontSize: "20px", fontWeight: 800,
-                      cursor: "pointer", letterSpacing: "0.5px",
-                      boxShadow: "0 6px 20px rgba(0,200,83,0.5)",
-                      transition: "background-color 0.2s, transform 0.1s",
-                      minHeight: "64px",
-                      lineHeight: "1.2",
-                    }}
-                    onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00b248"}
-                    onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#00c853"}
-                    onMouseDown={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(0.98)"}
-                    onMouseUp={e => (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"}
-                  >
-                    ✅ FINALIZAR PEDIDO<br />
-                    <span style={{ fontSize: "15px", fontWeight: 600, opacity: 0.9 }}>${totalFinal}.00 · Efectivo contra entrega</span>
-                  </button>
-                  <div style={{ height: "16px" }} />
-                  <button
-                    onClick={() => setPaso("carrito")}
-                    style={{
-                      width: "100%", backgroundColor: "transparent",
-                      color: "#9e9e9e", border: "1.5px solid #e0e0e0",
-                      borderRadius: "8px", padding: "12px",
-                      fontSize: "14px", fontWeight: 500, cursor: "pointer",
-                      minHeight: "44px",
-                    }}
-                  >
-                    ← Volver al carrito
-                  </button>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       )}
