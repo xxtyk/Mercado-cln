@@ -52,18 +52,16 @@ router.post("/webhook-pedido", async (req, res) => {
       (nota ? `\n📝 *Nota:* ${nota}` : "");
 
     const mensajeCliente =
-      `*MERCADO EN LÍNEA CULIACÁN* 🛒🔵⚫\n\n` +
-      `¡Muchas gracias por tu compra, ${cliente}! Tu pedido ha sido recibido con éxito. ✅\n\n` +
-      `👤 *Te atendió:* ${vendedor}\n` +
-      `_(Para dudas o aclaraciones sobre tu pedido, comunícate directamente con tu vendedor ${vendedor}:)_\n` +
-      `💬 https://wa.me/${vendedor_wa}\n\n` +
+      `🛒⚫🔵 *MERCADO EN LÍNEA CULIACÁN* 🔵⚫🛒\n\n` +
+      `¡Gracias por su compra, *${cliente}*! ✅\n\n` +
+      `👤 *Su vendedor es:* ${vendedor}\n` +
+      `📲 Para dudas o aclaraciones sobre su pedido escríbale directo aquí:\n` +
+      `👉 https://wa.me/${vendedor_wa}\n\n` +
       `━━━━━━━━━━━━━━━━━━\n` +
-      `⚠️ *INFORMACIÓN IMPORTANTE SOBRE TU ENTREGA:*\n\n` +
-      `🛵 *EL REPARTIDOR TE CONTACTARÁ POR WHATSAPP* para coordinar los detalles exactos de la entrega y confirmar tu ubicación.\n\n` +
-      `🕛 *HORARIOS DE ENTREGA:* Recuerda que comenzamos con las rutas de reparto *después del medio día*.\n` +
+      `🕛 Empezamos a entregar *de medio día en adelante*.\n\n` +
+      `🛵 Espere el mensaje del *repartidor* por WhatsApp para coordinar su entrega.\n` +
       `━━━━━━━━━━━━━━━━━━\n\n` +
-      `¡Gracias por elegir *Mercado en Línea Culiacán*! 🙌\n` +
-      `_Calidad y frescura hasta tu hogar._`;
+      `¡Gracias por elegir *Mercado en Línea Culiacán*! 🙌`;
 
     const telefonoNormalizado = normalizarTelefono(telefono);
 
