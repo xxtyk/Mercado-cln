@@ -385,50 +385,11 @@ function App() {
                     ¡Pedido recibido!
                   </h3>
 
-                  {tipoEntrega === "bodega" && snapshot ? (
-                    <>
-                      <p style={{ fontSize: "14px", color: "#444", lineHeight: "1.7", marginBottom: "24px" }}>
-                        ¡Listo! Para recoger tu pedido, coordina la hora de entrega con tu asesor presionando el siguiente botón.
-                      </p>
-                      <a
-                        href={`https://wa.me/${snapshot.vendedorWA}?text=${encodeURIComponent(
-                          [
-                            `Hola ${snapshot.vendedorNombre}, acabo de hacer este pedido para recoger en bodega:`,
-                            "",
-                            ...snapshot.items.map(i => `• ${i.producto.nombre} x${i.cantidad} = $${i.producto.precio * i.cantidad}.00`),
-                            "",
-                            `Total: $${snapshot.total}.00`,
-                            "",
-                            "¿Me puedes dar la ubicación y decirme a qué hora paso?",
-                          ].join("\n")
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          backgroundColor: "#25d366",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "14px",
-                          padding: "20px 12px",
-                          fontSize: "18px",
-                          fontWeight: 800,
-                          textDecoration: "none",
-                          boxShadow: "0 0 24px rgba(37,211,102,0.5)",
-                          boxSizing: "border-box",
-                          lineHeight: "1.4",
-                        }}
-                      >
-                        💬 Hablar con mi vendedor por WhatsApp
-                      </a>
-
-                    </>
-                  ) : (
-                    <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.7" }}>
-                      Tu pedido está confirmado. Un repartidor te contactará por WhatsApp para coordinar la entrega a tu domicilio.
-                    </p>
-                  )}
+                  <p style={{ fontSize: "14px", color: "#555", lineHeight: "1.7" }}>
+                    {tipoEntrega === "bodega"
+                      ? "¡Listo! Tu pedido ha sido recibido. Tu asesor se pondrá en contacto contigo para coordinar la entrega."
+                      : "Tu pedido está confirmado. Un repartidor te contactará por WhatsApp para coordinar la entrega a tu domicilio."}
+                  </p>
                 </div>
               ) : paso === "datos" ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
