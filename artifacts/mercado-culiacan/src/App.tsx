@@ -2,8 +2,23 @@ import { useState } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;
-const VENDEDOR = "Mercado en Línea Culiacán";
-const GRUPO_WA = "https://chat.whatsapp.com/HtBWXyZmMAxJImgPY5SRXU";
+
+interface Vendedor {
+  nombre: string;
+  whatsapp: string;
+}
+
+const VENDEDORES: Vendedor[] = [
+  { nombre: "Hector",   whatsapp: "526679771409" },
+  { nombre: "Silvia",   whatsapp: "526674263892" },
+  { nombre: "Juan",     whatsapp: "526678962503" },
+  { nombre: "Brissa",   whatsapp: "526674283998" },
+  { nombre: "Claudia",  whatsapp: "526671605229" },
+  { nombre: "Cristian", whatsapp: "526673587278" },
+  { nombre: "Amairany", whatsapp: "526677469585" },
+  { nombre: "Natalia",  whatsapp: "526673513058" },
+  { nombre: "Ninguno",  whatsapp: "526679771409" },
+];
 
 interface Producto {
   id: number;
@@ -122,8 +137,6 @@ function App() {
     const mensaje = generarMensaje();
 
     navigator.clipboard.writeText(mensaje).catch(() => {});
-
-    window.open(GRUPO_WA, "_blank");
 
     setPaso("confirmado");
     setCarrito([]);
@@ -277,8 +290,8 @@ function App() {
                       style={{ ...inputStyle, borderColor: errores.vendedor ? "#f44336" : "#e0e0e0", backgroundColor: "white", cursor: "pointer" }}
                     >
                       <option value="">— Selecciona un vendedor —</option>
-                      {["Silvia", "Brissa", "Cristian", "Amayrany", "Hector", "Natalia", "Juan", "Claudia", "Ninguno"].map(v => (
-                        <option key={v} value={v}>{v}</option>
+                      {VENDEDORES.map(v => (
+                        <option key={v.nombre} value={v.nombre}>{v.nombre}</option>
                       ))}
                     </select>
                     {errores.vendedor && <p style={errorStyle}>{errores.vendedor}</p>}
