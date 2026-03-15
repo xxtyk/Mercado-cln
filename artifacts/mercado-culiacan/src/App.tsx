@@ -141,28 +141,25 @@ function App() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", backgroundColor: "#f5f5f5", fontFamily: "Roboto, sans-serif" }}>
       <header style={{
-        backgroundColor: "#1976d2", color: "white",
-        padding: "0 20px", height: "56px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.3)", position: "sticky", top: 0, zIndex: 200,
+        backgroundColor: "#000", color: "white",
+        padding: "12px 20px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
+        position: "sticky", top: 0, zIndex: 200,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <img
-            src={`${BASE}logo.jpg`}
-            alt="Mercado en Línea Culiacán"
-            style={{ height: "44px", width: "44px", borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}
-          />
-          <span style={{ fontSize: "18px", fontWeight: 600, letterSpacing: "0.3px" }}>
-            Mercado en Línea Culiacán
-          </span>
-        </div>
+        <img
+          src={`${BASE}logo.jpg`}
+          alt="Mercado en Línea Culiacán"
+          style={{ height: "72px", objectFit: "contain" }}
+        />
         <button
           onClick={abrirCarrito}
           style={{
-            background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%",
-            width: "44px", height: "44px", cursor: "pointer",
+            position: "absolute", right: "16px",
+            background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: "50%", width: "44px", height: "44px", cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
-            position: "relative", color: "white", fontSize: "22px",
+            color: "white", fontSize: "22px",
           }}
         >
           🛒
