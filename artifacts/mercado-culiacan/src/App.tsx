@@ -256,7 +256,7 @@ function App() {
                         ¡Listo! Para recoger tu pedido, coordina la hora de entrega con tu asesor presionando el siguiente botón.
                       </p>
                       <a
-                        href={`https://wa.me/${VENDEDORES.find(v => v.nombre === vendedor)?.whatsapp ?? VENDEDORES[0].whatsapp}?text=${encodeURIComponent("Hola, acabo de hacer un pedido para recoger en bodega, ¿me puedes dar la ubicación y horario?")}`}
+                        href={`https://wa.me/${VENDEDORES.find(v => v.nombre === vendedor)?.whatsapp ?? VENDEDORES[0].whatsapp}?text=${encodeURIComponent(`Hola ${vendedor}, acabo de hacer un pedido para recoger en bodega, ¿me pasas la ubicación?`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{
