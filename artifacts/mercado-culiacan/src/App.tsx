@@ -239,10 +239,10 @@ function App() {
                 <div style={{ textAlign: "center", padding: "40px 20px" }}>
                   <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
                   <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#2e7d32", marginBottom: "8px" }}>
-                    ¡Pedido confirmado!
+                    ¡Gracias por su compra!
                   </h3>
                   <p style={{ fontSize: "14px", color: "#757575" }}>
-                    Tu pedido fue registrado. Nos pondremos en contacto contigo para la entrega en Culiacán.
+                    Un repartidor le mandará WhatsApp para la entrega.
                   </p>
                 </div>
               ) : carrito.length === 0 ? (
