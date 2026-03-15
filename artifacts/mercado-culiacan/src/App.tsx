@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;
-const WEBHOOK_URL = "https://hook.us2.make.com/6i4bkyis6v89kcv5y8if0jp6f545xn1y";
+const PROXY_PEDIDO = "/api/webhook-pedido";
 
 interface Vendedor {
   nombre: string;
@@ -166,10 +166,9 @@ function App() {
       pago: "Efectivo (Contra entrega)",
     });
 
-    fetch(WEBHOOK_URL, {
+    fetch(PROXY_PEDIDO, {
       method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain" },
+      headers: { "Content-Type": "application/json" },
       body: fichaWebhook,
     }).catch(() => {});
 
