@@ -7,6 +7,20 @@ const GRUPO_ENVIO_ID     = "120363423760711292@g.us";
 
 const router = Router();
 
+function normalizarTelefono(tel: string): string {
+  const digits = tel.replace(/\D/g, "");
+  if (digits.length === 10) return `52${digits}`;
+  return digits;
+}
+
+async function enviarWA(chatId: string, message: string) {
+  return fetch(GREEN_API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chatId, message }),
+  });
+}
+
 router.post("/webhook-pedido", async (req, res) => {
   try {
     const { cliente, telefono, direccion, nota, vendedor, tipo_entrega, productos, total, pago } = req.body;
@@ -17,10 +31,10 @@ router.post("/webhook-pedido", async (req, res) => {
         ).join("\n")
       : "";
 
-    const mensaje =
+    const mensajeGrupo =
       `🛒 *NUEVO PEDIDO*\n` +
       `👤 *Cliente:* ${cliente}\n` +
-      `📱 *WhatsApp cliente:* https://wa.me/${telefono}\n` +
+      `📱 *WhatsApp cliente:* https://wa.me/${normalizarTelefono(telefono)}\n` +
       `📍 *Dirección:* ${direccion}\n` +
       `🧑‍💼 *Vendedor:* ${vendedor}\n` +
       `📦 *Entrega:* ${tipo_entrega}\n\n` +
@@ -29,14 +43,30 @@ router.post("/webhook-pedido", async (req, res) => {
       `💵 *Pago:* ${pago}` +
       (nota ? `\n📝 *Nota:* ${nota}` : "");
 
-    const response = await fetch(GREEN_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chatId: GRUPO_ENVIO_ID, message: mensaje }),
-    });
+    const mensajeCliente =
+      `*MERCADO EN LÍNEA CULIACÁN* 🛒🔵⚫\n\n` +
+      `¡Muchas gracias por tu compra, ${cliente}! Tu pedido ha sido recibido con éxito. ✅\n\n` +
+      `👤 *Te atendió:* ${vendedor}\n` +
+      `_(Para tus próximos pedidos, ¡no dudes en contactarle directamente!)_\n\n` +
+      `━━━━━━━━━━━━━━━━━━\n` +
+      `⚠️ *INFORMACIÓN IMPORTANTE SOBRE TU ENTREGA:*\n\n` +
+      `🛵 *EL REPARTIDOR TE CONTACTARÁ POR WHATSAPP* para coordinar los detalles exactos de la entrega y confirmar tu ubicación.\n\n` +
+      `🕛 *HORARIOS DE ENTREGA:* Recuerda que comenzamos con las rutas de reparto *después del medio día*.\n` +
+      `━━━━━━━━━━━━━━━━━━\n\n` +
+      `¡Gracias por elegir *Mercado en Línea Culiacán*! 🙌\n` +
+      `_Calidad y frescura hasta tu hogar._`;
 
-    const data = await response.json();
-    res.status(200).json({ ok: true, status: response.status, data });
+    const telefonoNormalizado = normalizarTelefono(telefono);
+
+    const [resGrupo, resCliente] = await Promise.all([
+      enviarWA(GRUPO_ENVIO_ID, mensajeGrupo),
+      enviarWA(`${telefonoNormalizado}@c.us`, mensajeCliente),
+    ]);
+
+    const dataGrupo   = await resGrupo.json();
+    const dataCliente = await resCliente.json();
+
+    res.status(200).json({ ok: true, grupo: dataGrupo, cliente: dataCliente });
   } catch (err) {
     res.status(500).json({ ok: false, error: String(err) });
   }
