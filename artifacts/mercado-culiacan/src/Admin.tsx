@@ -66,16 +66,13 @@ export default function Admin({ onClose }: AdminProps) {
   }
 
   function login() {
-    sessionStorage.setItem("admin_token", clave);
-    fetch("/api/admin/producto", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${clave}` },
-      body: JSON.stringify({ nombre: "__test__", precio: 0, categoria: "test", descripcion: "", imagen: "", codigo: "", etiqueta: "" }),
-    }).then(r => {
-      if (r.status === 401) { setErrorClave(true); return; }
-      sessionStorage.setItem("admin_ok", "1");
-      setAutenticado(true);
-    }).catch(() => setErrorClave(true));
+    fetch("/api/admin/auth", { headers: { Authorization: `Bearer ${clave}` } })
+      .then(r => {
+        if (r.status === 401) { setErrorClave(true); return; }
+        sessionStorage.setItem("admin_token", clave);
+        sessionStorage.setItem("admin_ok", "1");
+        setAutenticado(true);
+      }).catch(() => setErrorClave(true));
   }
 
   function seleccionarImagen(e: React.ChangeEvent<HTMLInputElement>) {

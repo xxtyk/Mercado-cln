@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Admin from "./Admin";
+import AdminCategorias from "./AdminCategorias";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;

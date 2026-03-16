@@ -1,0 +1,8 @@
+[
+  {"id":"cabello","nombre":"Cuidado del cabello","imagen":"","emoji":"💆","color":"#7b1fa2"},
+  {"id":"cocina","nombre":"Cocina","imagen":"","emoji":"🍳","color":"#e65100"},
+  {"id":"mascotas","nombre":"Mascotas","imagen":"","emoji":"🐾","color":"#2e7d32"},
+  {"id":"musica","nombre":"Música y sonido","imagen":"","emoji":"🎵","color":"#1565c0"},
+  {"id":"personal","nombre":"Cuidado personal","imagen":"","emoji":"💄","color":"#c62828"},
+  {"id":"electrodomesticos","nombre":"Electrodomésticos","imagen":"","emoji":"⚡","color":"#37474f"}
+]
