@@ -9,6 +9,23 @@ interface Vendedor {
   whatsapp: string;
 }
 
+interface Categoria {
+  id: string;
+  nombre: string;
+  imagen: string | null;
+  emoji: string;
+  color: string;
+}
+
+const CATEGORIAS: Categoria[] = [
+  { id: "cabello",          nombre: "Cuidado del cabello",  imagen: `${BASE}producto1.jpg`,  emoji: "💆",  color: "#7b1fa2" },
+  { id: "cocina",           nombre: "Cocina",               imagen: null,                    emoji: "🍳",  color: "#e65100" },
+  { id: "mascotas",         nombre: "Mascotas",             imagen: null,                    emoji: "🐾",  color: "#2e7d32" },
+  { id: "musica",           nombre: "Música y sonido",      imagen: null,                    emoji: "🎵",  color: "#1565c0" },
+  { id: "personal",         nombre: "Cuidado personal",     imagen: null,                    emoji: "💄",  color: "#c62828" },
+  { id: "electrodomesticos",nombre: "Electrodomésticos",    imagen: null,                    emoji: "⚡",  color: "#37474f" },
+];
+
 const VENDEDORES: Vendedor[] = [
   { nombre: "Hector",   whatsapp: "526679771409" },
   { nombre: "Silvia",   whatsapp: "526674263892" },
@@ -28,6 +45,7 @@ interface Producto {
   imagen: string;
   etiqueta: string;
   precio: number;
+  categoria: string;
 }
 
 const productos: Producto[] = [
@@ -38,6 +56,7 @@ const productos: Producto[] = [
     imagen: `${BASE}producto1.jpg`,
     etiqueta: "Cabello rojizo",
     precio: 120,
+    categoria: "cabello",
   },
   {
     id: 2,
@@ -46,6 +65,7 @@ const productos: Producto[] = [
     imagen: `${BASE}producto2.jpg`,
     etiqueta: "Cabello castaño",
     precio: 120,
+    categoria: "cabello",
   },
   {
     id: 3,
@@ -54,6 +74,7 @@ const productos: Producto[] = [
     imagen: `${BASE}producto3.png`,
     etiqueta: "¡Oferta!",
     precio: 150,
+    categoria: "cabello",
   },
 ];
 
@@ -77,6 +98,9 @@ function App() {
   const [tipoEntrega, setTipoEntrega] = useState<"domicilio" | "bodega" | "">("");
   const [errores, setErrores] = useState<{ nombre?: string; direccion?: string; telefono?: string; vendedor?: string; tipoEntrega?: string }>({});
   const [snapshot, setSnapshot] = useState<{ items: ItemCarrito[]; total: number; vendedorNombre: string; vendedorWA: string } | null>(null);
+
+  const [vista, setVista] = useState<"categorias" | "productos">("categorias");
+  const [categoriaActiva, setCategoriaActiva] = useState<Categoria | null>(null);
 
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [bannerVisible, setBannerVisible] = useState(false);
@@ -328,37 +352,88 @@ function App() {
         </button>
       </header>
 
-      <main style={{ flex: 1, padding: "24px 16px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 500, color: "#333", marginBottom: "20px" }}>Nuestros Productos</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "20px" }}>
-          {productos.map((p) => (
-            <div key={p.id}
-              style={{ backgroundColor: "white", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", overflow: "hidden", display: "flex", flexDirection: "column", transition: "box-shadow 0.2s" }}
-              onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.boxShadow = "0 6px 16px rgba(0,0,0,0.18)"}
-              onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.12)"}
-            >
-              <div style={{ position: "relative" }}>
-                <img src={p.imagen} alt={p.nombre} style={{ width: "100%", height: "280px", objectFit: "cover", display: "block" }} />
-                <span style={{ position: "absolute", top: "10px", right: "10px", backgroundColor: "#1976d2", color: "white", padding: "4px 10px", borderRadius: "12px", fontSize: "12px", fontWeight: 600 }}>
-                  {p.etiqueta}
-                </span>
-              </div>
-              <div style={{ padding: "16px", flex: 1, display: "flex", flexDirection: "column", gap: "10px" }}>
-                <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#212121", margin: 0 }}>{p.nombre}</h3>
-                <p style={{ fontSize: "14px", color: "#757575", margin: 0, lineHeight: "1.5" }}>{p.descripcion}</p>
-                <span style={{ fontSize: "20px", fontWeight: 700, color: "#1976d2" }}>${p.precio}.00</span>
-                <button
-                  onClick={() => agregarAlCarrito(p)}
-                  style={{ marginTop: "auto", backgroundColor: "#1976d2", color: "white", border: "none", borderRadius: "4px", padding: "10px 0", fontSize: "14px", fontWeight: 500, letterSpacing: "0.8px", cursor: "pointer", textTransform: "uppercase", transition: "background-color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1565c0"}
-                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#1976d2"}
-                >
-                  Agregar al carrito
-                </button>
-              </div>
+      <main style={{ flex: 1, width: "100%", maxWidth: "600px", margin: "0 auto" }}>
+
+        {vista === "categorias" && (
+          <>
+            <div style={{ backgroundColor: "#222", color: "#fff", padding: "12px 16px", textAlign: "center", letterSpacing: "2px", fontSize: "14px", fontWeight: 700 }}>
+              CATEGORÍAS
             </div>
-          ))}
-        </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", padding: "10px" }}>
+              {CATEGORIAS.map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={() => { setCategoriaActiva(cat); setVista("productos"); }}
+                  style={{ borderRadius: "10px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.15)", cursor: "pointer", backgroundColor: "#fff" }}
+                >
+                  {cat.imagen ? (
+                    <img src={cat.imagen} alt={cat.nombre} style={{ width: "100%", height: "150px", objectFit: "cover", display: "block" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "150px", backgroundColor: cat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "52px" }}>
+                      {cat.emoji}
+                    </div>
+                  )}
+                  <div style={{ backgroundColor: "#fff", textAlign: "center", padding: "10px 8px", fontWeight: 700, fontSize: "14px", color: "#212121" }}>
+                    {cat.nombre}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {vista === "productos" && categoriaActiva && (
+          <>
+            <div style={{ backgroundColor: "#222", color: "#fff", padding: "12px 16px", display: "flex", alignItems: "center", gap: "12px", letterSpacing: "1px", fontSize: "14px", fontWeight: 700 }}>
+              <button
+                onClick={() => setVista("categorias")}
+                style={{ background: "none", border: "none", color: "#fff", fontSize: "20px", cursor: "pointer", lineHeight: 1, padding: "0 4px 0 0" }}
+                aria-label="Volver"
+              >
+                ←
+              </button>
+              {categoriaActiva.nombre.toUpperCase()}
+            </div>
+
+            {(() => {
+              const filtrados = productos.filter(p => p.categoria === categoriaActiva.id);
+              if (filtrados.length === 0) {
+                return (
+                  <div style={{ textAlign: "center", padding: "60px 20px", color: "#888" }}>
+                    <div style={{ fontSize: "48px", marginBottom: "12px" }}>{categoriaActiva.emoji}</div>
+                    <p style={{ fontSize: "16px", fontWeight: 500 }}>Próximamente productos en esta categoría</p>
+                  </div>
+                );
+              }
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px", padding: "10px" }}>
+                  {filtrados.map((p) => (
+                    <div key={p.id} style={{ backgroundColor: "white", borderRadius: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                      <div style={{ position: "relative" }}>
+                        <img src={p.imagen} alt={p.nombre} style={{ width: "100%", height: "150px", objectFit: "cover", display: "block" }} />
+                        <span style={{ position: "absolute", top: "8px", right: "8px", backgroundColor: "#1976d2", color: "white", padding: "3px 8px", borderRadius: "10px", fontSize: "11px", fontWeight: 600 }}>
+                          {p.etiqueta}
+                        </span>
+                      </div>
+                      <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <h3 style={{ fontSize: "13px", fontWeight: 700, color: "#212121", margin: 0, lineHeight: 1.3 }}>{p.nombre}</h3>
+                        <p style={{ fontSize: "12px", color: "#757575", margin: 0, lineHeight: "1.4", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.descripcion}</p>
+                        <span style={{ fontSize: "17px", fontWeight: 700, color: "#1976d2" }}>${p.precio}.00</span>
+                        <button
+                          onClick={() => agregarAlCarrito(p)}
+                          style={{ marginTop: "auto", backgroundColor: "#1976d2", color: "white", border: "none", borderRadius: "6px", padding: "8px 0", fontSize: "12px", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px" }}
+                        >
+                          Agregar al carrito
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </>
+        )}
+
       </main>
 
       {carritoAbierto && (
