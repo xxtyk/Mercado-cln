@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import Admin from "./Admin";
 
 const BASE = import.meta.env.BASE_URL;
 const COSTO_ENVIO = 40;
@@ -101,9 +102,28 @@ function App() {
 
   const [vista, setVista] = useState<"categorias" | "productos">("categorias");
   const [categoriaActiva, setCategoriaActiva] = useState<Categoria | null>(null);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [productosAPI, setProductosAPI] = useState<Producto[]>([]);
 
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [bannerVisible, setBannerVisible] = useState(false);
+
+  useEffect(() => {
+    if (window.location.search.includes("admin")) setAdminOpen(true);
+  }, []);
+
+  useEffect(() => {
+    cargarProductosAPI();
+  }, []);
+
+  function cargarProductosAPI() {
+    fetch("/api/productos")
+      .then(r => r.json())
+      .then((data: Producto[]) => setProductosAPI(data))
+      .catch(() => {});
+  }
+
+  const todosProductos = [...productosAPI, ...productos];
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -396,7 +416,7 @@ function App() {
             </div>
 
             {(() => {
-              const filtrados = productos.filter(p => p.categoria === categoriaActiva.id);
+              const filtrados = todosProductos.filter(p => p.categoria === categoriaActiva.id);
               if (filtrados.length === 0) {
                 return (
                   <div style={{ textAlign: "center", padding: "60px 20px", color: "#888" }}>
@@ -701,6 +721,24 @@ function App() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         input:focus { outline: none; border-color: #1976d2 !important; box-shadow: 0 0 0 2px rgba(25,118,210,0.15); }
       `}</style>
+
+      <footer style={{ textAlign: "center", padding: "16px 0 24px" }}>
+        <button
+          onClick={() => setAdminOpen(true)}
+          style={{ background: "none", border: "none", color: "#ccc", fontSize: "11px", cursor: "pointer" }}
+        >
+          Admin
+        </button>
+      </footer>
+
+      {adminOpen && (
+        <Admin
+          onClose={() => {
+            setAdminOpen(false);
+            cargarProductosAPI();
+          }}
+        />
+      )}
     </div>
   );
 }
