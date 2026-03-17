@@ -1,25 +1,44 @@
-<div class="panel-control">
-  <h3>Panel de Control</h3>
+/* Ajustes para que las letras se vean GRANDES */
+.panel-control h3 {
+    font-size: 28px;           /* Título del Panel más grande */
+    font-weight: 900;
+    text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 20px;
+}
 
-  <form action="/publicar" method="POST" enctype="multipart/form-data">
-    <label>Nombre del Artículo:</label>
-    <input type="text" name="nombre" placeholder="Ej: Shampoo Negro" required>
+.panel-control label {
+    font-size: 22px;           /* Nombres de los campos (Nombre, Precio, etc.) */
+    font-weight: bold;
+    display: block;
+    margin-top: 15px;
+}
 
-    <label>Precio ($):</label>
-    <input type="number" name="precio" placeholder="160" step="0.01" required>
+.panel-control input, 
+.panel-control select {
+    font-size: 20px;           /* Texto que escribes dentro de los cuadros */
+    padding: 12px;
+    width: 100%;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+    margin-bottom: 10px;
+}
 
-    <label>Categoría:</label>
-    <select name="categoria">
-      <option value="mascotas">🐶 Mascotas</option>
-      <option value="cocina">🍳 Cocina</option>
-      <option value="cabello">💇 Cuidado del cabello</option>
-      </select>
+.upload-area p {
+    font-size: 20px;           /* "Toca para subir la foto" en grande */
+    font-weight: bold;
+    color: #555;
+}
 
-    <div class="upload-area">
-      <input type="file" name="archivo" id="archivo" required>
-      <p>Toca para subir la foto o video</p>
-    </div>
-
-    <button type="submit" class="btn-publicar">PUBLICAR EN LA TIENDA</button>
-  </form>
-</div>
+.btn-publicar {
+    font-size: 24px;           /* El botón de PUBLICAR bien llamativo */
+    font-weight: 900;
+    padding: 15px;
+    background-color: #ff4d4d; /* Color vibrante */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 20px;
+}
