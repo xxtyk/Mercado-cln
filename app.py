@@ -6,14 +6,15 @@ app = Flask(__name__)
 # Aquí es donde van tus categorías de Culiacán
 @app.route('/')
 def inicio():
-    categorias = [
-        "Cuidado del cabello", 
-        "Cocina", 
-        "Mascotas", 
-        "Música y sonido", 
-        "Cuidado personal", 
-        "Electrodomésticos"
-    ]
+            categories = [
+            "Cuidado del cabello", 
+            "Cocina", 
+            "Mascotas", 
+            "Música y sonido", 
+            "Cuidado personal", 
+            "Electrodomésticos"
+        ]
+
     return render_template('index.html', categorias=categorias)
 
 if __name__ == "__main__":
