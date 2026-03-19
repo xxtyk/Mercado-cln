@@ -6,7 +6,7 @@ app = Flask(__name__)
 # --- CONFIGURACIÓN DE TU MARCA ---
 # Usamos url_for para que Flask busque 'logo.png' dentro de la carpeta 'static'
 # Si tu archivo se llama diferente (ej: logo.jpg), cámbialo aquí abajo.
-NOMBRE_LOGO = "logo.png" 
+"https://i.postimg.cc/m2mXvPz7/logo-mercado-cln.png"
 
 # --- PALETA DE COLORES ---
 COLOR_FONDO = "#000000"       # Fondo Negro
