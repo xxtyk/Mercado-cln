@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    # Datos de prueba directos para evitar errores
+    # Estas son las categorías que se verán en tu link de Render
     categorias = [
         {'nombre': 'Cuidado del cabello', 'color': '#ffffff', 'icono': '🧴'},
         {'nombre': 'Cocina', 'color': '#FF6F00', 'icono': '🍳'},
@@ -15,6 +15,6 @@ def index():
     return render_template('index.html', categorias=categorias)
 
 if __name__ == "__main__":
-    # Esto es lo que Render necesita para no morir
+    # Render necesita esto para asignar el puerto automáticamente
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
