@@ -1,1 +1,32 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado en Línea</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 500px; margin: auto; }
+        .boton { 
+            padding: 30px 10px; border-radius: 20px; color: white; 
+            text-decoration: none; font-weight: bold; font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .emoji { font-size: 35px; margin-bottom: 8px; }
+        h1 { color: #333; margin-bottom: 25px; }
+    </style>
+</head>
+<body>
+    <h1>Mercado Culichi</h1>
+    <div class="grid">
+        {% for cat in categorias %}
+        <a href="#" class="boton" style="background-color: {{ cat.color }};">
+            <span class="emoji">{{ cat.emoji }}</span>
+            {{ cat.nombre }}
+        </a>
+        {% endfor %}
+    </div>
+</body>
+</html>
