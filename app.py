@@ -51,13 +51,35 @@ def tienda():
 
 @app.route('/admin')
 def admin():
-    return "<h2>Panel de Administración</h2><p>Aquí gestionarás tus productos.</p><a href='/'>Ver tienda</a>"
+    # Este es tu Modo Configuración
+    html_admin = '''
+    <html>
+    <head><title>Configuración Mercado CLN</title></head>
+    <body style="font-family:sans-serif; padding:20px;">
+        <h2>⚙️ Modo Configuración - Héctor</h2>
+        <a href="/">Ir a ver la tienda</a>
+        <hr>
+        {% for p in lista %}
+        <div style="border:1px solid #ccc; padding:10px; margin-bottom:10px;">
+            <p><strong>Producto:</strong> {{ p.nombre }}</p>
+            <form action="/update" method="POST">
+                <input type="hidden" name="id" value="{{ loop.index0 }}">
+                Nombre: <input type="text" name="nombre" value="{{ p.nombre }}"><br><br>
+                Precio: <input type="text" name="precio" value="{{ p.precio }}"><br><br>
+                Foto (Link): <input type="text" name="imagen" value="{{ p.imagen }}"><br><br>
+                <button type="submit" style="background:green; color:white;">Guardar Cambios</button>
+            </form>
+        </div>
+        {% endfor %}
+    </body>
+    </html>
+    '''
+    return render_template_string(html_admin, lista=productos)
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
-
-@app.route('/admin')
-def panel_control():
-    # Aquí es donde tú entrarás para cambiar todo
-    return "<h1>Bienvenido Héctor. Aquí podrás editar tus productos pronto.</h1>"
+@app.route('/update', methods=['POST'])
+def update():
+    idx = int(request.form.get('id'))
+    productos[idx]['nombre'] = request.form.get('nombre')
+    productos[idx]['precio'] = request.form.get('precio')
+    productos[idx]['imagen'] = request.form.get('imagen')
+    return redirect('/admin')
