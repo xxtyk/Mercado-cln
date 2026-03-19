@@ -1,52 +1,58 @@
-from flask import Flask, request
+import os
+from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# 1. LA TIENDA (Lo que ve el cliente)
+# ESTA ES TU LISTA DE PRODUCTOS
+productos = [
+    {"nombre": "Champú de Jengibre", "precio": 150, "desc": "Cuidado natural para tu cabello."},
+    {"nombre": "Minisplit Mirage 1.5T", "precio": 8500, "desc": "Aire acondicionado 220V."},
+    {"nombre": "Boiler de Paso", "precio": 3200, "desc": "Agua caliente al instante."},
+    {"nombre": "Cable Uso Rudo 2x14", "precio": 25, "desc": "Precio por metro."}
+]
+
 @app.route('/')
-def inicio():
-    return '''
-    <body style="margin:0; background:#f4f4f4; font-family:Arial; text-align:center;">
-        
-        <div style="padding:50px;">
-            <h1>Mercado en Línea Culiacán</h1>
-            
-            <a href="/admin" style="display:block; margin:20px auto; width:220px; height:70px; background:red; color:white; text-align:center; line-height:70px; font-weight:bold; text-decoration:none; border-radius:15px; font-size:18px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); z-index:99999;">ENTRAR AL PANEL</a>
-            
-            <div style="border:1px solid #ccc; padding:20px; background:white; display:inline-block; border-radius:10px; margin-top:20px;">
-                <p>Catálogo de Productos activo</p>
-                <button style="background:#007bff; color:white; border:none; padding:10px 20px; border-radius:5px;">Ver Productos</button>
+def tienda():
+    html = '''
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mercado en Línea Culiacán</title>
+        <style>
+            body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f0f2f5; }
+            header { background: #1a73e8; color: white; padding: 20px; text-align: center; }
+            .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+            .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+            .precio { color: #d93025; font-size: 1.5rem; font-weight: bold; margin: 15px 0; }
+            .btn-comprar { background: #25d366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 30px; font-weight: bold; display: inline-block; }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>🛒 Mercado en Línea Culiacán</h1>
+            <p>Calidad y confianza en cada entrega</p>
+        </header>
+        <div class="grid">
+            {% for p in lista %}
+            <div class="card">
+                <h3>{{ p.nombre }}</h3>
+                <p>{{ p.desc }}</p>
+                <div class="precio">${{ p.precio }}</div>
+                <a href="https://wa.me/526671234567?text=Hola,%20me%20interesa%20el%20{{ p.nombre }}" class="btn-comprar">Pedir por WhatsApp</a>
             </div>
+            {% endfor %}
         </div>
     </body>
+    </html>
     '''
+    return render_template_string(html, lista=productos)
 
-# 2. PANEL DE CONTROL (Para subir productos)
 @app.route('/admin')
 def admin():
-    return '''
-    <body style="font-family: Arial; text-align: center; background: #eef2f3; padding: 30px;">
-        <h1 style="color: #2c3e50;">Panel de Victoria</h1>
-        
-        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto;">
-            <h3 style="color: #27ae60;">Agregar Nuevo Producto</h3>
-            <hr>
-            <p>Nombre del Producto:</p>
-            <input type="text" style="width:90%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;">
-            
-            <p>Precio:</p>
-            <input type="number" style="width:90%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ddd;">
-            
-            <p>Foto del Producto:</p>
-            <input type="file" style="width:90%; padding:10px; margin-bottom:20px;">
-            
-            <button style="background:#27ae60; color:white; border:none; padding:15px; border-radius:5px; width:100%; font-weight:bold;">SUBIR PRODUCTO</button>
-        </div>
-        
-        <br>
-        <a href="/" style="text-decoration:none; color:#2980b9;">← Volver a la Tienda</a>
-    </body>
-    '''
+    return "<h2>Panel de Administración</h2><p>Aquí gestionarás tus productos.</p><a href='/'>Ver tienda</a>"
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
