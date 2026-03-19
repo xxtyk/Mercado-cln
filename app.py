@@ -2,15 +2,14 @@ from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
-# --- LINK DIRECTO DE TU LOGO (YA SUBIDO A INTERNET) ---
-LOGO_URL = "https://i.postimg.cc/m2mXvPz7/logo-mercado-cln.png"
+# --- LINK CORREGIDO DE TU LOGO REAL ---
+LOGO_URL = "https://i.ibb.co/LzkpS9XF/logo-cln.png"
 
 # --- CONFIGURACIÓN DE COLORES ---
-COLOR_FONDO = "#000000"  # Negro
-COLOR_ACENTO = "#00E5FF" # Azul Cyan
-COLOR_TEXTO = "#FFFFFF"  # Blanco
+COLOR_FONDO = "#000000"
+COLOR_ACENTO = "#00E5FF"
+COLOR_TEXTO = "#FFFFFF"
 
-# --- TU LISTA DE PRODUCTOS ---
 productos = [
     {"id": 0, "nombre": "Mascarilla Botox", "precio": 150},
     {"id": 1, "nombre": "Set de Shampoo", "precio": 180},
@@ -18,7 +17,6 @@ productos = [
     {"id": 3, "nombre": "Boiler de Paso", "precio": 3200}
 ]
 
-# --- DISEÑO DE LA PÁGINA ---
 HTML_APP = '''
 <!DOCTYPE html>
 <html lang="es">
@@ -28,37 +26,30 @@ HTML_APP = '''
     <title>Mercado CLN</title>
     <style>
         body { font-family: sans-serif; margin: 0; background: {{ fondo }}; color: {{ texto }}; }
-        
-        /* Pantalla de carga con tu logo */
         #splash {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: {{ fondo }}; display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 99;
         }
-        #splash img { max-width: 200px; margin-bottom: 20px; }
-
+        #splash img { max-width: 220px; height: auto; margin-bottom: 20px; }
         header { padding: 20px; text-align: center; border-bottom: 1px solid #333; }
-        header img { height: 60px; }
-        
+        header img { height: 80px; width: auto; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
         .card { background: #111; border: 1px solid #333; border-radius: 12px; padding: 15px; text-align: center; }
-        .precio { color: {{ acento }}; font-weight: bold; font-size: 1.2em; margin-top: 5px; }
+        .precio { color: {{ acento }}; font-weight: bold; font-size: 1.2em; }
         .btn { background: {{ acento }}; color: #000; border: none; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body onload="cerrarSplash()">
-
     <div id="splash">
         <img src="{{ logo }}" alt="Cargando...">
         <p>Cargando Mercado CLN...</p>
     </div>
-
     <header>
         <img src="{{ logo }}" alt="Mercado CLN">
         <h2 style="margin:5px 0 0 0;">Mercado en Línea</h2>
         <small style="color: #888;">Culiacán • Pago Contra Entrega</small>
     </header>
-
     <div class="grid">
         {% for p in lista %}
         <div class="card">
@@ -68,10 +59,9 @@ HTML_APP = '''
         </div>
         {% endfor %}
     </div>
-
     <script>
         function cerrarSplash() {
-            setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 2000);
+            setTimeout(() => { document.getElementById('splash').style.display = 'none'; }, 2500);
         }
     </script>
 </body>
