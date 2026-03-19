@@ -38,6 +38,13 @@ def tienda():
         <div class="grid">
             {% for p in lista %}
             <div class="card">
+               <div class="card">
+    <img src="{{ p.imagen }}" style="width:100%; height:200px; object-fit:cover; border-radius:10px; margin-bottom:10px;">
+    
+    <h3>{{ p.nombre }}</h3>
+    <p>{{ p.desc }}</p>
+    ...
+
                 <h3>{{ p.nombre }}</h3>
                 <p>{{ p.desc }}</p>
                 <div class="precio">${{ p.precio }}</div>
