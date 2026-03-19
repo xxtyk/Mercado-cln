@@ -56,3 +56,8 @@ def admin():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
+@app.route('/admin')
+def panel_control():
+    # Aquí es donde tú entrarás para cambiar todo
+    return "<h1>Bienvenido Héctor. Aquí podrás editar tus productos pronto.</h1>"
