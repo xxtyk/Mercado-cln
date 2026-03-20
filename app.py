@@ -4,18 +4,23 @@ from flask import Flask, request, redirect, url_for
 
 app = Flask(__name__, static_folder='static')
 
-# --- CONFIGURACIÓN ---
+# --- CONFIGURACIÓN DE CARPETAS ---
 UPLOAD_FOLDER = 'static/img'
 DATA_FILE = 'productos.json' 
-if not os.path.exists(UPLOAD_FOLDER): os.makedirs(UPLOAD_FOLDER)
+if not os.path.exists(UPLOAD_FOLDER): 
+    os.makedirs(UPLOAD_FOLDER)
 
-# Función para cargar productos
+# Función para cargar productos desde el archivo JSON
 def cargar_db():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f: return json.load(f)
+        try:
+            with open(DATA_FILE, 'r') as f: 
+                return json.load(f)
+        except:
+            return []
     return []
 
-# --- VISTA DEL CLIENTE (LIMPIA Y MINIMALISTA) ---
+# --- VISTA DEL CLIENTE (MERCADO EN LÍNEA CULIACÁN) ---
 @app.route('/')
 def home():
     productos = cargar_db()
@@ -38,38 +43,23 @@ def home():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Mercado en Línea Culiacán</title>
         <style>
-            /* FONDO TOTALMENTE NEGRO */
             body {{ font-family: sans-serif; margin: 0; background: #000; color: #fff; text-align: center; }}
-            
-            /* LOGO SIN CÍRCULO Y SIN BORDE */
-            .logo-inicio {{ width: 220px; height: auto; margin-top: 50px; border: none; }}
-            
-            /* Subtítulos minimalistas */
-            .info-sub {{ font-size: 14px; color: #888; margin-bottom: 30px; }}
-
-            /* Grid de productos */
+            .logo-inicio {{ width: 250px; height: auto; margin-top: 40px; border: none; }}
+            .info-sub {{ font-size: 14px; color: #888; margin-top: 10px; margin-bottom: 30px; }}
             .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }}
             .card {{ background: #111; border: 1px solid #333; border-radius: 12px; padding: 10px; }}
             .card img {{ width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }}
-            
-            /* Colores de acento (cyan suave para precios) */
             .precio {{ color: #00f2ff; font-weight: bold; font-size: 19px; }}
             .btn-accion {{ background: #00f2ff; color: #000; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }}
-            
-            /* Estilos del Modal (Ficha) */
             .modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; }}
             .modal-content {{ background: #111; margin: 15% auto; padding: 20px; width: 85%; border-radius: 15px; border: 1px solid #00f2ff; }}
             input {{ width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color:#fff; box-sizing: border-box; }}
         </style>
     </head>
     <body>
-        
-        <img src="/static/img/logo.jpg" class="logo-inicio" onerror="this.src='https://via.placeholder.com/200?text=LOGO'">
-        
+        <img src="/static/img/logo.jpg" class="logo-inicio" onerror="this.src='https://via.placeholder.com/200?text=SUBIR+LOGO'">
         <p class="info-sub">Culiacán • Pago Contra Entrega</p>
-        
         <div class="grid">{html_prods}</div>
-
         <div id="modalFicha" class="modal">
             <div class="modal-content">
                 <h3 id="pNom" style="color:#00f2ff;"></h3>
@@ -80,7 +70,6 @@ def home():
                 <button onclick="document.getElementById('modalFicha').style.display='none'" style="background:none; color:red; border:none; margin-top:15px; cursor:pointer;">Cancelar</button>
             </div>
         </div>
-
         <script>
             let sel = {{}};
             function abrirFicha(n, p) {{
@@ -96,7 +85,6 @@ def home():
                 window.open(`https://wa.me/?text=${{m}}`, '_blank');
             }}
         </script>
-        
         <a href="/config" style="display:block; color:#222; margin-top:50px; text-decoration:none; font-size:10px;">Panel</a>
     </body>
     </html>
@@ -111,42 +99,38 @@ def config():
         nombre = request.form.get('nombre')
         precio = request.form.get('precio')
         
-        # Subir el LOGO (nombre fijo)
-        if file and not nombre and not precio:
+        if file and not nombre:
             file.save(os.path.join(UPLOAD_FOLDER, 'logo.jpg'))
             msg = "<p style='color:green;'>¡Logo actualizado!</p>"
             
-        # Subir un PRODUCTO NUEVO (con precio)
         elif file and nombre and precio:
             img_name = nombre.replace(" ", "_").lower() + ".jpg"
             file.save(os.path.join(UPLOAD_FOLDER, img_name))
-            
             db = cargar_db()
             db.append({"nombre": nombre, "precio": precio, "img": img_name})
-            with open(DATA_FILE, 'w') as f: json.dump(db, f)
-            msg = f"<p style='color:green;'>Producto {nombre} guardado con precio ${precio}</p>"
+            with open(DATA_FILE, 'w') as f: 
+                json.dump(db, f)
+            msg = f"<p style='color:green;'>Producto {nombre} guardado.</p>"
 
     return f'''
     <body style="font-family:sans-serif; padding:20px; max-width:500px; margin:auto; background:#eee;">
-        <h2>PANEL DE CONTROL v3.2</h2>
+        <h2>CONTROL DE MERCADO CLN</h2>
         {msg}
-        <a href="/" style="display:block; margin-bottom:20px;">👁️ Ver mi Tienda</a>
-        
+        <a href="/" style="display:block; margin-bottom:20px;">👁️ Ver Catálogo</a>
         <div style="background:#fff; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ccc;">
-            <h3>Actualizar LOGO</h3>
+            <h3>Cambiar Logo</h3>
             <form method="post" enctype="multipart/form-data">
-                <input type="file" name="foto" required style="margin-bottom:10px;"><br>
-                <button type="submit" style="width:100%; padding:10px; background:black; color:white; border:none; border-radius:5px;">ACTUALIZAR LOGO PRINCIPAL</button>
+                <input type="file" name="foto" required><br><br>
+                <button type="submit" style="width:100%; padding:10px; background:black; color:white; border:none; border-radius:5px;">ACTUALIZAR LOGO</button>
             </form>
         </div>
-
         <div style="background:#fff; padding:20px; border-radius:15px; border:1px solid #ccc;">
-            <h3>Subir Nuevo Producto</h3>
+            <h3>Nuevo Producto</h3>
             <form method="post" enctype="multipart/form-data">
-                <input type="text" name="nombre" placeholder="Nombre (Ej: Mascarilla Botox)" style="width:100%; padding:10px; margin-bottom:10px;" required>
-                <input type="number" name="precio" placeholder="Precio ($)" style="width:100%; padding:10px; margin-bottom:10px;" required>
-                <input type="file" name="foto" style="margin-bottom:15px;" required>
-                <button type="submit" style="width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-weight:bold;">SUBIR PRODUCTO CON PRECIO</button>
+                <input type="text" name="nombre" placeholder="Nombre" style="width:100%; padding:10px; margin-bottom:10px;" required>
+                <input type="number" name="precio" placeholder="Precio" style="width:100%; padding:10px; margin-bottom:10px;" required>
+                <input type="file" name="foto" required><br><br>
+                <button type="submit" style="width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px;">GUARDAR</button>
             </form>
         </div>
     </body>
