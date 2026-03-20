@@ -1,2 +1,0 @@
-# Mercado-cln
-Sistema ventas
