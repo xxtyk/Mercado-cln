@@ -1,29 +1,20 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado Culichi</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #eee; margin: 0; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .boton { 
-            padding: 25px 10px; border-radius: 15px; color: white; 
-            text-decoration: none; text-align: center; font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-        .emoji { font-size: 30px; display: block; margin-bottom: 5px; }
-    </style>
-</head>
-<body>
-    <h2 style="text-align: center;">Mercado en Línea</h2>
-    <div class="grid">
-        {% for cat in categorias %}
-        <a href="#" class="boton" style="background-color: {{ cat.color }};">
-            <span class="emoji">{{ cat.emoji }}</span>
-            {{ cat.nombre }}
-        </a>
-        {% endfor %}
-    </div>
-</body>
-</html>
+from flask import Flask, render_template
+import os
+
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    # Esta es la lista que necesita tu HTML para dibujar los botones
+    categorias = [
+        {"nombre": "Abarrotes", "emoji": "🛒", "color": "#27ae60"},
+        {"nombre": "Limpieza", "emoji": "🧼", "color": "#2980b9"},
+        {"nombre": "Frutas", "emoji": "🍎", "color": "#e67e22"},
+        {"nombre": "Mascotas", "emoji": "🐶", "color": "#d35400"}
+    ]
+    return render_template('index.html', categorias=categorias)
+
+if __name__ == '__main__':
+    # Render usa el puerto que le asigne el sistema
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
