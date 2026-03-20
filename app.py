@@ -1,52 +1,34 @@
 import os
+import json
 from flask import Flask, request, redirect, url_for
 
 app = Flask(__name__, static_folder='static')
 
-# --- CONFIGURACIÓN DE CARPETAS ---
+# --- CONFIGURACIÓN ---
 UPLOAD_FOLDER = 'static/img'
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+DATA_FILE = 'productos.json' 
+if not os.path.exists(UPLOAD_FOLDER): os.makedirs(UPLOAD_FOLDER)
 
-# --- VISTA DEL CLIENTE (SOADI HICA) ---
+# Función para cargar productos
+def cargar_db():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, 'r') as f: return json.load(f)
+    return []
+
+# --- VISTA DEL CLIENTE (LIMPIA Y MINIMALISTA) ---
 @app.route('/')
 def home():
-    return '''
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Soadi hica</title>
-        <style>
-            body { font-family: sans-serif; margin: 0; background: #000; color: #fff; text-align: center; }
-            .logo-inicio { width: 200px; height: 200px; margin-top: 60px; cursor: pointer; border-radius: 50%; border: 4px solid #00f2ff; object-fit: cover; }
-            .header-titulo { color: #00f2ff; font-size: 28px; margin-top: 20px; }
-            .btn-entrar { background: #00f2ff; color: #000; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-        <img src="/static/img/logo.jpg" class="logo-inicio" onerror="this.src='https://via.placeholder.com/200?text=LOGO+AQUÍ'">
-        <h1 class="header-titulo">Soadi hica</h1>
-        <p>Culiacán • Pago Contra Entrega</p>
-        <a href="/config" style="display:block; margin-top:100px; color:#333; text-decoration:none;">Acceso Panel</a>
-    </body>
-    </html>
-    '''
-
-# --- PANEL DE CONTROL PROFESIONAL ---
-@app.route('/config', methods=['GET', 'POST'])
-def config():
-    msg = ""
-    if request.method == 'POST':
-        file = request.files.get('foto')
-        nombre = request.form.get('nombre_archivo')
-        if file and nombre:
-            # Aseguramos que termine en .jpg para que el código lo encuentre
-            if not nombre.lower().endswith('.jpg'):
-                nombre = nombre + '.jpg'
-            file.save(os.path.join(UPLOAD_FOLDER, nombre.lower()))
-            msg = f"<div style='background:#d4edda; color:#155724; padding:10px; border-radius:5px;'>¡Archivo '{nombre}' actualizado con éxito!</div>"
+    productos = cargar_db()
+    html_prods = ""
+    for p in productos:
+        html_prods += f'''
+            <div class="card">
+                <img src="/static/img/{p['img']}" onerror="this.src='https://via.placeholder.com/150'">
+                <h4>{p['nombre']}</h4>
+                <p class="precio">${p['precio']}</p>
+                <button class="btn-accion" onclick="abrirFicha('{p['nombre']}', '{p['precio']}')">AGREGAR</button>
+            </div>
+        '''
 
     return f'''
     <!DOCTYPE html>
@@ -54,55 +36,120 @@ def config():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Panel de Control - Soadi hica</title>
+        <title>Mercado en Línea Culiacán</title>
         <style>
-            body {{ font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #333; }}
-            .container {{ max-width: 500px; margin: auto; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }}
-            h2 {{ text-align: center; color: #000; margin-bottom: 30px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; }}
-            .btn {{ display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-weight: bold; text-decoration: none; cursor: pointer; text-align: center; font-size: 16px; box-sizing: border-box; }}
-            .btn-view {{ background: #f8f9fa; border: 2px solid #000; color: #000; }}
-            .btn-cat {{ background: #00f2ff; color: #000; }}
-            .btn-prod {{ background: #000; color: #fff; }}
-            .seccion {{ margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; }}
-            label {{ font-weight: bold; display: block; margin-bottom: 5px; }}
-            input[type="text"], select {{ width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }}
+            /* FONDO TOTALMENTE NEGRO */
+            body {{ font-family: sans-serif; margin: 0; background: #000; color: #fff; text-align: center; }}
+            
+            /* LOGO SIN CÍRCULO Y SIN BORDE */
+            .logo-inicio {{ width: 220px; height: auto; margin-top: 50px; border: none; }}
+            
+            /* Subtítulos minimalistas */
+            .info-sub {{ font-size: 14px; color: #888; margin-bottom: 30px; }}
+
+            /* Grid de productos */
+            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }}
+            .card {{ background: #111; border: 1px solid #333; border-radius: 12px; padding: 10px; }}
+            .card img {{ width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }}
+            
+            /* Colores de acento (cyan suave para precios) */
+            .precio {{ color: #00f2ff; font-weight: bold; font-size: 19px; }}
+            .btn-accion {{ background: #00f2ff; color: #000; border: none; padding: 10px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; }}
+            
+            /* Estilos del Modal (Ficha) */
+            .modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; }}
+            .modal-content {{ background: #111; margin: 15% auto; padding: 20px; width: 85%; border-radius: 15px; border: 1px solid #00f2ff; }}
+            input {{ width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color:#fff; box-sizing: border-box; }}
         </style>
     </head>
     <body>
-        <div class="container">
-            <h2>PANEL DE CONTROL</h2>
-            {msg}
+        
+        <img src="/static/img/logo.jpg" class="logo-inicio" onerror="this.src='https://via.placeholder.com/200?text=LOGO'">
+        
+        <p class="info-sub">Culiacán • Pago Contra Entrega</p>
+        
+        <div class="grid">{html_prods}</div>
 
-            <label>Paso 1: Revisar tienda</label>
-            <a href="/" class="btn btn-view">👁️ VER MI CATÁLOGO</a>
-
-            <div class="seccion">
-                <label>Paso 2: Configurar Categorías</label>
-                <form method="post" enctype="multipart/form-data">
-                    <select name="nombre_archivo">
-                        <option value="logo.jpg">Cambiar LOGO Principal</option>
-                        <option value="cabello.jpg">Imagen Cuidado del Cabello</option>
-                        <option value="cocina.jpg">Imagen Cocina / Hogar</option>
-                        <option value="mascotas.jpg">Imagen Mascotas</option>
-                        <option value="electro.jpg">Imagen Electrodomésticos</option>
-                    </select>
-                    <input type="file" name="foto" required>
-                    <button type="submit" class="btn btn-cat">ACTUALIZAR CATEGORÍA</button>
-                </form>
-            </div>
-
-            <div class="seccion">
-                <label>Paso 3: Configurar Productos Individuales</label>
-                <form method="post" enctype="multipart/form-data">
-                    <input type="text" name="nombre_archivo" placeholder="Ejemplo: botox o minisplit" required>
-                    <input type="file" name="foto" required>
-                    <button type="submit" class="btn btn-prod">SUBIR NUEVO PRODUCTO</button>
-                </form>
+        <div id="modalFicha" class="modal">
+            <div class="modal-content">
+                <h3 id="pNom" style="color:#00f2ff;"></h3>
+                <input type="text" id="c" placeholder="Tu Nombre">
+                <input type="text" id="d" placeholder="Dirección">
+                <input type="text" id="r" placeholder="Referencia">
+                <button class="btn-accion" onclick="enviar()">ENVIAR AL GRUPO</button>
+                <button onclick="document.getElementById('modalFicha').style.display='none'" style="background:none; color:red; border:none; margin-top:15px; cursor:pointer;">Cancelar</button>
             </div>
         </div>
-        <p style="text-align:center; font-size:12px; color:#998; margin-top:20px;">Soadi hica Sistema v3.0</p>
+
+        <script>
+            let sel = {{}};
+            function abrirFicha(n, p) {{
+                sel = {{n, p}};
+                document.getElementById('pNom').innerText = "Pedido: " + n;
+                document.getElementById('modalFicha').style.display = 'block';
+            }}
+            function enviar() {{
+                const c = document.getElementById('c').value;
+                const d = document.getElementById('d').value;
+                if(!c || !d) return alert("Llena los datos");
+                const m = `*PEDIDO MERCADO CLN*%0A*Producto:* ${{sel.n}}%0A*Precio:* $${{sel.p}}%0A*Cliente:* ${{c}}%0A*Dirección:* ${{d}}`;
+                window.open(`https://wa.me/?text=${{m}}`, '_blank');
+            }}
+        </script>
+        
+        <a href="/config" style="display:block; color:#222; margin-top:50px; text-decoration:none; font-size:10px;">Panel</a>
     </body>
     </html>
+    '''
+
+# --- PANEL DE CONTROL ---
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    msg = ""
+    if request.method == 'POST':
+        file = request.files.get('foto')
+        nombre = request.form.get('nombre')
+        precio = request.form.get('precio')
+        
+        # Subir el LOGO (nombre fijo)
+        if file and not nombre and not precio:
+            file.save(os.path.join(UPLOAD_FOLDER, 'logo.jpg'))
+            msg = "<p style='color:green;'>¡Logo actualizado!</p>"
+            
+        # Subir un PRODUCTO NUEVO (con precio)
+        elif file and nombre and precio:
+            img_name = nombre.replace(" ", "_").lower() + ".jpg"
+            file.save(os.path.join(UPLOAD_FOLDER, img_name))
+            
+            db = cargar_db()
+            db.append({"nombre": nombre, "precio": precio, "img": img_name})
+            with open(DATA_FILE, 'w') as f: json.dump(db, f)
+            msg = f"<p style='color:green;'>Producto {nombre} guardado con precio ${precio}</p>"
+
+    return f'''
+    <body style="font-family:sans-serif; padding:20px; max-width:500px; margin:auto; background:#eee;">
+        <h2>PANEL DE CONTROL v3.2</h2>
+        {msg}
+        <a href="/" style="display:block; margin-bottom:20px;">👁️ Ver mi Tienda</a>
+        
+        <div style="background:#fff; padding:20px; border-radius:15px; margin-bottom:20px; border:1px solid #ccc;">
+            <h3>Actualizar LOGO</h3>
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="foto" required style="margin-bottom:10px;"><br>
+                <button type="submit" style="width:100%; padding:10px; background:black; color:white; border:none; border-radius:5px;">ACTUALIZAR LOGO PRINCIPAL</button>
+            </form>
+        </div>
+
+        <div style="background:#fff; padding:20px; border-radius:15px; border:1px solid #ccc;">
+            <h3>Subir Nuevo Producto</h3>
+            <form method="post" enctype="multipart/form-data">
+                <input type="text" name="nombre" placeholder="Nombre (Ej: Mascarilla Botox)" style="width:100%; padding:10px; margin-bottom:10px;" required>
+                <input type="number" name="precio" placeholder="Precio ($)" style="width:100%; padding:10px; margin-bottom:10px;" required>
+                <input type="file" name="foto" style="margin-bottom:15px;" required>
+                <button type="submit" style="width:100%; padding:15px; background:#000; color:white; border:none; border-radius:10px; font-weight:bold;">SUBIR PRODUCTO CON PRECIO</button>
+            </form>
+        </div>
+    </body>
     '''
 
 if __name__ == "__main__":
