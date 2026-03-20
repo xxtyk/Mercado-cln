@@ -1,18 +1,17 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, request, redirect, url_for
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static')
 
-# Configuración de subida de archivos
+# Configuración de subida
 UPLOAD_FOLDER = 'static/img'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Si no existe la carpeta de imágenes, la crea automáticamente
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# --- VISTA DEL CLIENTE (MERCADO CULIACÁN) ---
+# --- VISTA DEL CLIENTE ---
 @app.route('/')
 def home():
     return '''
@@ -34,7 +33,6 @@ def home():
             .c-mascotas { border-color: #4caf50; }
             .c-electro { border-color: #2196f3; }
             .btn-ws { position: fixed; bottom: 20px; right: 20px; background: #25d366; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-decoration: none; }
-            .admin-link { display: block; text-align: center; margin-top: 10px; color: #666; text-decoration: none; font-size: 12px; }
         </style>
     </head>
     <body>
@@ -57,7 +55,6 @@ def home():
                 <h4>Electrodomésticos</h4>
             </div>
         </div>
-        <a href="/config" class="admin-link">Panel de Control</a>
         <a href="https://wa.me/526671234567" class="btn-ws" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35">
         </a>
@@ -65,20 +62,16 @@ def home():
     </html>
     '''
 
-# --- PANEL DE CONTROL (PARA SUBIR FOTOS) ---
+# --- PANEL DE CONTROL ---
 @app.route('/config', methods=['GET', 'POST'])
 def config():
     if request.method == 'POST':
-        if 'foto' not in request.files:
-            return redirect(request.url)
-        file = request.files['foto']
-        filename_manual = request.form.get('nombre_archivo') # Ej: cabello.jpg
-
+        file = request.files.get('foto')
+        filename_manual = request.form.get('nombre_archivo')
         if file and filename_manual:
-            # Guardamos con el nombre que tú decidas (cabello.jpg, cocina.jpg, etc)
             filename = secure_filename(filename_manual)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return f"<h1>¡Foto {filename} subida con éxito!</h1><br><a href='/config'>Volver</a>"
+            return f"<h1>¡Foto {filename} subida!</h1><br><a href='/config'>Volver</a>"
 
     return '''
     <!DOCTYPE html>
@@ -86,13 +79,33 @@ def config():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Panel Control - Mercado</title>
+        <title>Panel Control</title>
         <style>
             body { font-family: sans-serif; padding: 20px; background: #eee; }
-            .box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-            input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
-            button { background: #000; color: #fff; border: none; width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; cursor: pointer; }
+            .box { background: #fff; padding: 20px; border-radius: 10px; }
+            select, input, button { width: 100%; padding: 15px; margin: 10px 0; font-size: 16px; }
+            button { background: #000; color: #fff; border: none; border-radius: 8px; }
         </style>
     </head>
     <body>
-        <div
+        <div class="box">
+            <h2>Subir Foto</h2>
+            <form method="post" enctype="multipart/form-data">
+                <select name="nombre_archivo">
+                    <option value="cabello.jpg">Cabello</option>
+                    <option value="cocina.jpg">Cocina</option>
+                    <option value="mascotas.jpg">Mascotas</option>
+                    <option value="electro.jpg">Electrodomésticos</option>
+                </select>
+                <input type="file" name="foto" accept="image/*" required>
+                <button type="submit">ACTUALIZAR FOTO</button>
+            </form>
+            <br><a href="/">Ver Mercado</a>
+        </div>
+    </body>
+    </html>
+    '''
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
