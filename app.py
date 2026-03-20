@@ -1,17 +1,14 @@
 import os
 from flask import Flask, request, redirect, url_for
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static')
 
-# Configuración de subida
+# --- CONFIGURACIÓN DE CARPETAS ---
 UPLOAD_FOLDER = 'static/img'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# --- VISTA DEL CLIENTE ---
+# --- VISTA DEL CLIENTE (SOADI HICA) ---
 @app.route('/')
 def home():
     return '''
@@ -20,88 +17,90 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mercado en Línea Culiacán</title>
+        <title>Soadi hica</title>
         <style>
-            body { font-family: sans-serif; margin: 0; background: #f4f4f4; padding-bottom: 80px; }
-            .header { background: #000; color: #fff; padding: 20px; text-align: center; font-weight: bold; font-size: 22px; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-            .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; border-bottom: 6px solid; }
-            .card img { width: 100%; height: 150px; object-fit: cover; background: #eee; }
-            .card h4 { margin: 10px 0; font-size: 14px; color: #333; }
-            .c-cabello { border-color: #e91e63; }
-            .c-cocina { border-color: #ff9800; }
-            .c-mascotas { border-color: #4caf50; }
-            .c-electro { border-color: #2196f3; }
-            .btn-ws { position: fixed; bottom: 20px; right: 20px; background: #25d366; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-decoration: none; }
+            body { font-family: sans-serif; margin: 0; background: #000; color: #fff; text-align: center; }
+            .logo-inicio { width: 200px; height: 200px; margin-top: 60px; cursor: pointer; border-radius: 50%; border: 4px solid #00f2ff; object-fit: cover; }
+            .header-titulo { color: #00f2ff; font-size: 28px; margin-top: 20px; }
+            .btn-entrar { background: #00f2ff; color: #000; padding: 15px 30px; border-radius: 25px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 20px; }
         </style>
     </head>
     <body>
-        <div class="header">MERCADO EN LÍNEA CULIACÁN</div>
-        <div class="grid">
-            <div class="card c-cabello">
-                <img src="/static/img/cabello.jpg" onerror="this.src='https://via.placeholder.com/150?text=Subir+Foto'">
-                <h4>Cuidado del cabello</h4>
-            </div>
-            <div class="card c-cocina">
-                <img src="/static/img/cocina.jpg" onerror="this.src='https://via.placeholder.com/150?text=Subir+Foto'">
-                <h4>Cocina</h4>
-            </div>
-            <div class="card c-mascotas">
-                <img src="/static/img/mascotas.jpg" onerror="this.src='https://via.placeholder.com/150?text=Subir+Foto'">
-                <h4>Mascotas</h4>
-            </div>
-            <div class="card c-electro">
-                <img src="/static/img/electro.jpg" onerror="this.src='https://via.placeholder.com/150?text=Subir+Foto'">
-                <h4>Electrodomésticos</h4>
-            </div>
-        </div>
-        <a href="https://wa.me/526671234567" class="btn-ws" target="_blank">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35">
-        </a>
+        <img src="/static/img/logo.jpg" class="logo-inicio" onerror="this.src='https://via.placeholder.com/200?text=LOGO+AQUÍ'">
+        <h1 class="header-titulo">Soadi hica</h1>
+        <p>Culiacán • Pago Contra Entrega</p>
+        <a href="/config" style="display:block; margin-top:100px; color:#333; text-decoration:none;">Acceso Panel</a>
     </body>
     </html>
     '''
 
-# --- PANEL DE CONTROL ---
+# --- PANEL DE CONTROL PROFESIONAL ---
 @app.route('/config', methods=['GET', 'POST'])
 def config():
+    msg = ""
     if request.method == 'POST':
         file = request.files.get('foto')
-        filename_manual = request.form.get('nombre_archivo')
-        if file and filename_manual:
-            filename = secure_filename(filename_manual)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return f"<h1>¡Foto {filename} subida!</h1><br><a href='/config'>Volver</a>"
+        nombre = request.form.get('nombre_archivo')
+        if file and nombre:
+            # Aseguramos que termine en .jpg para que el código lo encuentre
+            if not nombre.lower().endswith('.jpg'):
+                nombre = nombre + '.jpg'
+            file.save(os.path.join(UPLOAD_FOLDER, nombre.lower()))
+            msg = f"<div style='background:#d4edda; color:#155724; padding:10px; border-radius:5px;'>¡Archivo '{nombre}' actualizado con éxito!</div>"
 
-    return '''
+    return f'''
     <!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Panel Control</title>
+        <title>Panel de Control - Soadi hica</title>
         <style>
-            body { font-family: sans-serif; padding: 20px; background: #eee; }
-            .box { background: #fff; padding: 20px; border-radius: 10px; }
-            select, input, button { width: 100%; padding: 15px; margin: 10px 0; font-size: 16px; }
-            button { background: #000; color: #fff; border: none; border-radius: 8px; }
+            body {{ font-family: sans-serif; background: #f4f4f4; padding: 20px; color: #333; }}
+            .container {{ max-width: 500px; margin: auto; background: #fff; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }}
+            h2 {{ text-align: center; color: #000; margin-bottom: 30px; border-bottom: 2px solid #00f2ff; padding-bottom: 10px; }}
+            .btn {{ display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; font-weight: bold; text-decoration: none; cursor: pointer; text-align: center; font-size: 16px; box-sizing: border-box; }}
+            .btn-view {{ background: #f8f9fa; border: 2px solid #000; color: #000; }}
+            .btn-cat {{ background: #00f2ff; color: #000; }}
+            .btn-prod {{ background: #000; color: #fff; }}
+            .seccion {{ margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc; }}
+            label {{ font-weight: bold; display: block; margin-bottom: 5px; }}
+            input[type="text"], select {{ width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }}
         </style>
     </head>
     <body>
-        <div class="box">
-            <h2>Subir Foto</h2>
-            <form method="post" enctype="multipart/form-data">
-                <select name="nombre_archivo">
-                    <option value="cabello.jpg">Cabello</option>
-                    <option value="cocina.jpg">Cocina</option>
-                    <option value="mascotas.jpg">Mascotas</option>
-                    <option value="electro.jpg">Electrodomésticos</option>
-                </select>
-                <input type="file" name="foto" accept="image/*" required>
-                <button type="submit">ACTUALIZAR FOTO</button>
-            </form>
-            <br><a href="/">Ver Mercado</a>
+        <div class="container">
+            <h2>PANEL DE CONTROL</h2>
+            {msg}
+
+            <label>Paso 1: Revisar tienda</label>
+            <a href="/" class="btn btn-view">👁️ VER MI CATÁLOGO</a>
+
+            <div class="seccion">
+                <label>Paso 2: Configurar Categorías</label>
+                <form method="post" enctype="multipart/form-data">
+                    <select name="nombre_archivo">
+                        <option value="logo.jpg">Cambiar LOGO Principal</option>
+                        <option value="cabello.jpg">Imagen Cuidado del Cabello</option>
+                        <option value="cocina.jpg">Imagen Cocina / Hogar</option>
+                        <option value="mascotas.jpg">Imagen Mascotas</option>
+                        <option value="electro.jpg">Imagen Electrodomésticos</option>
+                    </select>
+                    <input type="file" name="foto" required>
+                    <button type="submit" class="btn btn-cat">ACTUALIZAR CATEGORÍA</button>
+                </form>
+            </div>
+
+            <div class="seccion">
+                <label>Paso 3: Configurar Productos Individuales</label>
+                <form method="post" enctype="multipart/form-data">
+                    <input type="text" name="nombre_archivo" placeholder="Ejemplo: botox o minisplit" required>
+                    <input type="file" name="foto" required>
+                    <button type="submit" class="btn btn-prod">SUBIR NUEVO PRODUCTO</button>
+                </form>
+            </div>
         </div>
+        <p style="text-align:center; font-size:12px; color:#998; margin-top:20px;">Soadi hica Sistema v3.0</p>
     </body>
     </html>
     '''
