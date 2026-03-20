@@ -1,8 +1,18 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static')
 
+# Configuración de subida de archivos
+UPLOAD_FOLDER = 'static/img'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Si no existe la carpeta de imágenes, la crea automáticamente
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# --- VISTA DEL CLIENTE (MERCADO CULIACÁN) ---
 @app.route('/')
 def home():
     return '''
@@ -19,14 +29,12 @@ def home():
             .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; border-bottom: 6px solid; }
             .card img { width: 100%; height: 150px; object-fit: cover; background: #eee; }
             .card h4 { margin: 10px 0; font-size: 14px; color: #333; }
-            
-            /* Colores de las barras inferiores */
             .c-cabello { border-color: #e91e63; }
             .c-cocina { border-color: #ff9800; }
             .c-mascotas { border-color: #4caf50; }
             .c-electro { border-color: #2196f3; }
-
             .btn-ws { position: fixed; bottom: 20px; right: 20px; background: #25d366; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-decoration: none; }
+            .admin-link { display: block; text-align: center; margin-top: 10px; color: #666; text-decoration: none; font-size: 12px; }
         </style>
     </head>
     <body>
@@ -49,6 +57,7 @@ def home():
                 <h4>Electrodomésticos</h4>
             </div>
         </div>
+        <a href="/config" class="admin-link">Panel de Control</a>
         <a href="https://wa.me/526671234567" class="btn-ws" target="_blank">
             <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35">
         </a>
@@ -56,6 +65,34 @@ def home():
     </html>
     '''
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+# --- PANEL DE CONTROL (PARA SUBIR FOTOS) ---
+@app.route('/config', methods=['GET', 'POST'])
+def config():
+    if request.method == 'POST':
+        if 'foto' not in request.files:
+            return redirect(request.url)
+        file = request.files['foto']
+        filename_manual = request.form.get('nombre_archivo') # Ej: cabello.jpg
+
+        if file and filename_manual:
+            # Guardamos con el nombre que tú decidas (cabello.jpg, cocina.jpg, etc)
+            filename = secure_filename(filename_manual)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return f"<h1>¡Foto {filename} subida con éxito!</h1><br><a href='/config'>Volver</a>"
+
+    return '''
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel Control - Mercado</title>
+        <style>
+            body { font-family: sans-serif; padding: 20px; background: #eee; }
+            .box { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+            input, select { width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; font-size: 16px; }
+            button { background: #000; color: #fff; border: none; width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; cursor: pointer; }
+        </style>
+    </head>
+    <body>
+        <div
