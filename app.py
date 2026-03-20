@@ -1,9 +1,15 @@
 import os
+import cloudinary
+import cloudinary.uploader
 from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# Datos en memoria (Se borran al reiniciar Render)
+# --- CONFIGURACIÓN MAESTRA ---
+# Solo esta línea. Render leerá la CLOUDINARY_URL que pegaste.
+cloudinary.config(secure=True)
+
+# Datos en memoria (Se reinician al desplegar en Render)
 TABLA_PRODUCTOS = []
 TABLA_CATEGORIAS = [{"nombre": "General", "foto": "https://via.placeholder.com/150"}]
 CONFIG = {"logo": "", "nombre_tienda": "MERCADO CLN"}
@@ -51,28 +57,31 @@ def admin():
         accion = request.form.get('accion')
         try:
             if accion == 'subir_logo':
-                logo_url = request.form.get('logo_url')
-                if logo_url:
-                    CONFIG["logo"] = logo_url
+                file = request.files.get('logo_file')
+                if file:
+                    res = cloudinary.uploader.upload(file)
+                    CONFIG["logo"] = res['secure_url']
                     mensaje = "✅ Logo actualizado"
 
             elif accion == 'nueva_categoria':
                 nombre_cat = request.form.get('nombre_cat')
-                foto_url = request.form.get('foto_url')
-                if nombre_cat and foto_url:
-                    TABLA_CATEGORIAS.append({"nombre": nombre_cat, "foto": foto_url})
+                foto_cat = request.files.get('foto_cat')
+                if nombre_cat and foto_cat:
+                    res = cloudinary.uploader.upload(foto_cat)
+                    TABLA_CATEGORIAS.append({"nombre": nombre_cat, "foto": res['secure_url']})
                     mensaje = f"✅ Categoría {nombre_cat} creada"
 
             elif accion == 'guardar_producto':
                 nombre = request.form.get('nombre')
                 precio = request.form.get('precio')
                 categoria = request.form.get('categoria')
-                foto_url = request.form.get('foto_url')
-                if nombre and precio and foto_url:
-                    TABLA_PRODUCTOS.append({"nombre": nombre, "precio": precio, "categoria": categoria, "foto": foto_url})
+                file = request.files.get('file')
+                if nombre and precio and file:
+                    res = cloudinary.uploader.upload(file)
+                    TABLA_PRODUCTOS.append({"nombre": nombre, "precio": precio, "categoria": categoria, "foto": res['secure_url']})
                     mensaje = "✅ Producto guardado"
         except Exception as e:
-            mensaje = f"❌ Error: {str(e)}"
+            mensaje = f"❌ Error de Firma: {str(e)}"
 
     opciones_cat = "".join([f'<option value="{c["nombre"]}">{c["nombre"]}</option>' for c in TABLA_CATEGORIAS])
 
@@ -85,39 +94,13 @@ def admin():
             <h2 style="text-align:center;">PANEL MERCADO CLN</h2>
             <p style="text-align:center; font-weight:bold; color:red;">{mensaje}</p>
             
-            <div style="background:#eee; padding:10px; border-radius:10px; margin-bottom:20px;">
-                <form method="post">
-                    <input type="hidden" name="accion" value="subir_logo">
-                    <b>URL del Logo:</b> <input type="text" name="logo_url" placeholder="Pega el link de la imagen aquí" required style="width:100%; margin-top:5px;">
-                    <button type="submit" style="width:100%; margin-top:5px;">ACTUALIZAR LOGO</button>
-                </form>
-            </div>
+            <form method="post" enctype="multipart/form-data" style="background:#eee; padding:10px; border-radius:10px; margin-bottom:20px;">
+                <input type="hidden" name="accion" value="subir_logo">
+                <b>Cambiar Logo:</b> <input type="file" name="logo_file" required>
+                <button type="submit" style="width:100%; margin-top:5px;">SUBIR LOGO</button>
+            </form>
 
-            <div style="border:2px solid #ff00ea; padding:15px; border-radius:15px; margin-bottom:20px;">
-                <h4>1. Crear Nueva Categoría</h4>
-                <form method="post">
-                    <input type="hidden" name="accion" value="nueva_categoria">
-                    <input type="text" name="nombre_cat" placeholder="Nombre: Ej. Aires" required style="width:100%; margin-bottom:10px;">
-                    <input type="text" name="foto_url" placeholder="Link de la imagen de categoría" required style="width:100%; margin-bottom:10px;">
-                    <button type="submit" style="width:100%; background:#ff00ea; color:white; border:none; padding:10px; border-radius:8px;">CREAR CATEGORÍA</button>
-                </form>
-            </div>
-
-            <div style="border:2px solid #00f2ff; padding:15px; border-radius:15px;">
-                <h4>2. Agregar Producto</h4>
-                <form method="post">
-                    <input type="hidden" name="accion" value="guardar_producto">
-                    <input type="text" name="nombre" placeholder="Nombre del Producto" required style="width:100%; margin-bottom:10px;">
-                    <input type="number" name="precio" placeholder="Precio" required style="width:100%; margin-bottom:10px;">
-                    <select name="categoria" style="width:100%; margin-bottom:10px;">{opciones_cat}</select>
-                    <input type="text" name="foto_url" placeholder="Link de la imagen del producto" required style="width:100%; margin-bottom:15px;">
-                    <button type="submit" style="width:100%; padding:15px; background:#000; color:#fff; border:none; border-radius:10px; font-weight:bold;">GUARDAR PRODUCTO</button>
-                </form>
-            </div>
-            <a href="/" style="display:block; text-align:center; margin-top:20px; font-weight:bold;">VER TIENDA</a>
-        </div>
-    </body>
-    </html>'''
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+            <form method="post" enctype="multipart/form-data" style="border:2px solid #ff00ea; padding:15px; border-radius:15px; margin-bottom:20px;">
+                <input type="hidden" name="accion" value="nueva_categoria">
+                <h4>1. Nueva Categoría</h4>
+                <input type="text" name="nombre_cat" placeholder="Nombre" required style="width:100%; margin-bottom:10px;">
