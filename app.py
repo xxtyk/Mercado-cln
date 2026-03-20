@@ -5,11 +5,13 @@ from flask import Flask, request, render_template_string
 
 app = Flask(__name__)
 
-# Configuración de Cloudinary
+# --- CONFIGURACIÓN CORREGIDA DE CLOUDINARY ---
+# Asegúrate de que en Render las llaves se llamen EXACTAMENTE ASÍ
 cloudinary.config(
     cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
     api_key = os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
+    secure = True
 )
 
 # Datos en memoria (Se borran al reiniciar Render)
@@ -62,9 +64,10 @@ def admin():
             if accion == 'subir_logo':
                 file = request.files.get('logo_file')
                 if file:
+                    # Se agrega la subida directa
                     res = cloudinary.uploader.upload(file)
                     CONFIG["logo"] = res['secure_url']
-                    mensaje = "✅ Logo actualizado"
+                    mensaje = "✅ Logo actualizado correctamente"
 
             elif accion == 'nueva_categoria':
                 nombre_cat = request.form.get('nombre_cat')
@@ -72,7 +75,7 @@ def admin():
                 if nombre_cat and foto_cat:
                     res = cloudinary.uploader.upload(foto_cat)
                     TABLA_CATEGORIAS.append({"nombre": nombre_cat, "foto": res['secure_url']})
-                    mensaje = f"✅ Categoría {nombre_cat} creada"
+                    mensaje = f"✅ Categoría '{nombre_cat}' creada"
 
             elif accion == 'guardar_producto':
                 nombre = request.form.get('nombre')
@@ -81,10 +84,16 @@ def admin():
                 file = request.files.get('file')
                 if nombre and precio and file:
                     res = cloudinary.uploader.upload(file)
-                    TABLA_PRODUCTOS.append({"nombre": nombre, "precio": precio, "categoria": categoria, "foto": res['secure_url']})
-                    mensaje = "✅ Producto guardado"
+                    TABLA_PRODUCTOS.append({
+                        "nombre": nombre, 
+                        "precio": precio, 
+                        "categoria": categoria, 
+                        "foto": res['secure_url']
+                    })
+                    mensaje = "✅ Producto guardado con éxito"
         except Exception as e:
-            mensaje = f"❌ Error: {str(e)}"
+            # Esto nos dirá en el panel exactamente qué está fallando
+            mensaje = f"❌ Error de Cloudinary: {str(e)}"
 
     opciones_cat = "".join([f'<option value="{c["nombre"]}">{c["nombre"]}</option>' for c in TABLA_CATEGORIAS])
 
@@ -95,7 +104,7 @@ def admin():
     <body style="font-family:sans-serif; background:#f4f4f4; padding:15px;">
         <div style="max-width:450px; margin:auto; background:#fff; padding:20px; border-radius:20px; box-shadow:0 4px 10px rgba(0,0,0,0.1);">
             <h2 style="text-align:center;">PANEL MERCADO CLN</h2>
-            <p style="text-align:center; font-weight:bold; color:red;">{mensaje}</p>
+            <p style="text-align:center; font-weight:bold; color:{"green" if "✅" in mensaje else "red"};">{mensaje}</p>
             
             <div style="background:#eee; padding:10px; border-radius:10px; margin-bottom:20px;">
                 <form method="post" enctype="multipart/form-data">
@@ -126,7 +135,7 @@ def admin():
                     <button type="submit" style="width:100%; padding:15px; background:#000; color:#fff; border:none; border-radius:10px; font-weight:bold;">GUARDAR PRODUCTO</button>
                 </form>
             </div>
-            <a href="/" style="display:block; text-align:center; margin-top:20px; font-weight:bold;">VER TIENDA</a>
+            <a href="/" style="display:block; text-align:center; margin-top:20px; font-weight:bold; color:#333;">VER TIENDA</a>
         </div>
     </body>
     </html>'''
