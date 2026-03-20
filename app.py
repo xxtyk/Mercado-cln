@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request
 
 app = Flask(__name__, static_folder='static')
 
@@ -10,17 +10,17 @@ DATA_FILE = 'productos.json'
 if not os.path.exists(UPLOAD_FOLDER): 
     os.makedirs(UPLOAD_FOLDER)
 
-# Función para cargar productos desde el archivo JSON
+# Función segura para cargar productos
 def cargar_db():
     if os.path.exists(DATA_FILE):
         try:
-            with open(DATA_FILE, 'r') as f: 
+            with open(DATA_FILE, 'r', encoding='utf-8') as f: 
                 return json.load(f)
         except:
             return []
     return []
 
-# --- VISTA DEL CLIENTE (MERCADO EN LÍNEA CULIACÁN) ---
+# --- VISTA DEL CLIENTE ---
 @app.route('/')
 def home():
     productos = cargar_db()
@@ -108,8 +108,8 @@ def config():
             file.save(os.path.join(UPLOAD_FOLDER, img_name))
             db = cargar_db()
             db.append({"nombre": nombre, "precio": precio, "img": img_name})
-            with open(DATA_FILE, 'w') as f: 
-                json.dump(db, f)
+            with open(DATA_FILE, 'w', encoding='utf-8') as f: 
+                json.dump(db, f, indent=4)
             msg = f"<p style='color:green;'>Producto {nombre} guardado.</p>"
 
     return f'''
