@@ -6,27 +6,46 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return '''
-    <html>
-        <head>
-            <title>Mercado en Línea Culiacán</title>
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-                body { font-family: sans-serif; text-align: center; background: #f4f4f4; }
-                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-                .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-                .header { background: black; color: white; padding: 20px; }
-            </style>
-        </head>
-        <body>
-            <div class="header"><h1>MERCADO EN LÍNEA</h1></div>
-            <h3>CATEGORÍAS</h3>
-            <div class="grid">
-                <div class="card" style="border-bottom: 5px solid red;">Cuidado del cabello</div>
-                <div class="card" style="border-bottom: 5px solid orange;">Cocina</div>
-                <div class="card" style="border-bottom: 5px solid green;">Mascotas</div>
-                <div class="card" style="border-bottom: 5px solid blue;">Música y sonido</div>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Mercado en Línea Culiacán</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 0; background-color: #f0f0f0; }
+            .header { background: #000; color: white; padding: 15px; text-align: center; }
+            .container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+            .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+            .card img { width: 100%; height: 150px; object-fit: cover; }
+            .card h4 { margin: 10px 0; font-size: 14px; }
+            .whatsapp-btn { position: fixed; bottom: 20px; right: 20px; background: #25d366; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        </style>
+    </head>
+    <body>
+        <div class="header"><h2>MERCADO EN LÍNEA</h2></div>
+        <div class="container">
+            <div class="card">
+                <img src="https://via.placeholder.com/150" alt="Cabello">
+                <h4>Cuidado del cabello</h4>
             </div>
-        </body>
+            <div class="card">
+                <img src="https://via.placeholder.com/150" alt="Cocina">
+                <h4>Cocina</h4>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/150" alt="Mascotas">
+                <h4>Mascotas</h4>
+            </div>
+            <div class="card">
+                <img src="https://via.placeholder.com/150" alt="Electro">
+                <h4>Electrodomésticos</h4>
+            </div>
+        </div>
+        <div class="whatsapp-btn">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="35">
+        </div>
+    </body>
     </html>
     '''
 
