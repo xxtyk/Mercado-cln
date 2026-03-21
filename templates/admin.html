@@ -1,30 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Admin</title>
-</head>
 <body>
 
-<h1>Panel Admin 🛠️</h1>
+<h1>Panel Admin</h1>
 
 <form action="/agregar" method="POST">
-    <input type="text" name="nombre" placeholder="Nombre" required>
-    <input type="text" name="precio" placeholder="Precio" required>
-    <input type="text" name="imagen" placeholder="URL imagen" required>
-    <input type="text" name="categoria" placeholder="Categoría" required>
-    <button type="submit">Agregar</button>
+<input name="nombre" placeholder="Nombre" required>
+<input name="precio" placeholder="Precio" required>
+<input name="imagen" placeholder="URL imagen" required>
+<input name="categoria" placeholder="Categoria" required>
+<button>Agregar</button>
 </form>
 
 <hr>
 
-<h2>Productos</h2>
-
 {% for p in productos %}
-    <div>
-        <p>{{ p.nombre }} - ${{ p.precio }}</p>
-        <img src="{{ p.imagen }}" width="100">
-        <a href="/eliminar/{{ loop.index0 }}">Eliminar</a>
-    </div>
+<div>
+    <p>{{p.nombre}} - ${{p.precio}} ({{p.categoria}})</p>
+    <img src="{{p.imagen}}" width="80">
+    <a href="/eliminar/{{loop.index0}}">Eliminar</a>
+</div>
 {% endfor %}
 
 </body>
