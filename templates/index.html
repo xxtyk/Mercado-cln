@@ -1,162 +1,114 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Mercado en Línea Culiacán</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mercado en Línea CLN</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: sans-serif; background: #f4f4f4; padding-bottom: 80px; }
+        
+        header { 
+            background: #00a884; 
+            color: white; 
+            padding: 15px; 
+            text-align: center; 
+            font-weight: bold; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
 
-<style>
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        .contenedor { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            padding: 10px; 
+        }
 
-body { 
-    margin: 0; 
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-    background: #f0f2f5; 
-    color: #1c1e21;
-}
+        .producto { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 10px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
 
-/* HEADER */
-header {
-    background: #00a884;
-    color: white;
-    padding: 18px;
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
+        /* AJUSTE DE IMAGEN */
+        .img-container {
+            width: 100%;
+            height: 140px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
 
-/* GRID PRODUCTOS */
-.contenedor {
-    display: grid;
-    grid-template-columns: 1fr 1fr; /* Dos columnas en celular */
-    gap: 12px;
-    padding: 12px;
-}
+        .producto img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* Esto hace que la foto llene el cuadro sin deformarse */
+            display: block;
+        }
 
-/* TARJETA */
-.producto {
-    background: white;
-    border-radius: 15px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+        .producto h3 { font-size: 14px; margin-bottom: 5px; color: #333; height: 34px; overflow: hidden; }
+        .precio { color: #25d366; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
 
-.producto img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    border-radius: 10px;
-    background: #eee;
-}
+        .btn { 
+            background: #00a884; 
+            color: white; 
+            border: none; 
+            padding: 10px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer;
+        }
 
-.producto h3 {
-    font-size: 15px;
-    margin: 10px 0 5px 0;
-    height: 36px;
-    overflow: hidden;
-    line-height: 1.2;
-}
+        /* CARRITO FLOTANTE */
+        .carrito-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25d366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 200;
+        }
 
-.precio {
-    color: #25d366;
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 8px;
-}
+        .badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            font-size: 12px;
+            padding: 3px 7px;
+            border-radius: 50%;
+        }
 
-/* BOTÓN AGREGAR */
-.btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 10px;
-    background: #e7f3ff;
-    color: #0084ff;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-}
+        /* MODAL DE PEDIDO */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 1000;
+        }
 
-.btn:active { background: #d0e7ff; }
-
-/* BOTÓN FLOTANTE CARRITO */
-.carrito-flotante {
-    position: fixed;
-    bottom: 25px;
-    right: 20px;
-    background: #25d366;
-    color: white;
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    z-index: 99;
-}
-
-.badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: red;
-    color: white;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 50%;
-}
-
-/* FORMULARIO TIPO MODAL */
-.formulario {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    z-index: 1000;
-    display: none;
-    flex-direction: column;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-.cerrar { float: right; font-size: 30px; font-weight: bold; }
-
-input, select {
-    width: 100%;
-    padding: 15px;
-    margin: 8px 0;
-    border-radius: 10px;
-    border: 1px solid #ddd;
-    font-size: 16px; /* Evita zoom molesto en iPhone */
-}
-
-.finalizar {
-    width: 100%;
-    padding: 18px;
-    background: #25d366;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    margin-top: 20px;
-}
-
-#total-pago { font-size: 22px; color: #1c1e21; margin: 15px 0; }
-</style>
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .btn-finalizar { background: #25d366; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 10px; }
+    </style>
 </head>
-
 <body>
 
 <header>🛒 Mercado en Línea CLN</header>
@@ -164,117 +116,79 @@ input, select {
 <div class="contenedor">
     {% for p in productos %}
     <div class="producto">
-        <img src="{{p.imagen}}" onerror="this.src='https://via.placeholder.com/150?text=Producto'">
-        <div>
-            <h3>{{p.nombre}}</h3>
-            <p class="precio">$ {{p.precio}}</p>
+        <div class="img-container">
+            <img src="{{ p.imagen }}" alt="{{ p.nombre }}" onerror="this.src='https://via.placeholder.com/150?text=Error+Foto'">
         </div>
-        <button class="btn" onclick="agregar('{{p.nombre}}', {{p.precio}})">+ Agregar</button>
+        <h3>{{ p.nombre }}</h3>
+        <p class="precio">$ {{ p.precio }}</p>
+        <button class="btn" onclick="agregar('{{ p.nombre }}', {{ p.precio }})">+ Agregar</button>
     </div>
     {% endfor %}
 </div>
 
-<div class="carrito-flotante" onclick="abrirFormulario()">
-    🛒 <span id="contador" class="badge">0</span>
+<div class="carrito-btn" onclick="abrirModal()">
+    🛒 <span id="count" class="badge">0</span>
 </div>
 
-<div class="formulario" id="formulario">
-    <span class="cerrar" onclick="cerrarFormulario()">&times;</span>
-    <h2 style="margin-top: 0;">Tu Pedido</h2>
+<div id="modal" class="modal">
+    <h2 style="margin-bottom:15px;">Finalizar Pedido</h2>
+    <div id="resumen" style="flex-grow:1; overflow-y:auto; margin-bottom:15px;"></div>
     
-    <div id="lista-resumen" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
-
-    <input id="nombre_cliente" type="text" placeholder="¿A nombre de quién?">
-    <input id="direccion" type="text" placeholder="Colonia y Calle">
+    <input id="cliente" type="text" placeholder="Tu nombre">
+    <input id="ubicacion" type="text" placeholder="Colonia y Calle">
     
-    <p style="margin: 10px 0 5px 0;">Método de entrega:</p>
-    <select id="envio" onchange="calcularTotal()">
-        <option value="0">Recoger en local</option>
-        <option value="40">Envío a domicilio (+$40)</option>
-    </select>
-
-    <h3 id="total-pago">Total: $0</h3>
-
-    <button class="finalizar" onclick="finalizar()">Confirmar por WhatsApp 💬</button>
+    <h3 id="total-txt" style="margin: 10px 0;">Total: $0</h3>
+    <button class="btn-finalizar" onclick="enviarWhatsApp()">Enviar Pedido por WhatsApp 💬</button>
+    <button onclick="cerrarModal()" style="background:none; border:none; color:grey; margin-top:15px;">Volver</button>
 </div>
 
 <script>
-let carrito = [];
-const MI_WHATSAPP = "526671234567"; // <-- PON TU NÚMERO AQUÍ (con 52 al inicio)
+    let carrito = [];
+    let whatsapp_negocio = "526671234567"; // CAMBIA ESTO POR TU NÚMERO (con 521)
 
-function agregar(nombre, precio){
-    carrito.push({nombre, precio});
-    document.getElementById("contador").innerText = carrito.length;
-    // Vibración corta si el cel lo soporta
-    if (window.navigator.vibrate) window.navigator.vibrate(50);
-}
-
-function abrirFormulario(){
-    if(carrito.length == 0){
-        alert("Agrega productos primero");
-        return;
-    }
-    
-    let lista = document.getElementById("lista-resumen");
-    lista.innerHTML = "";
-    carrito.forEach(p => {
-        lista.innerHTML += `<p style="margin:5px 0;">• ${p.nombre} - <b>$${p.precio}</b></p>`;
-    });
-
-    document.getElementById("formulario").style.display = "flex";
-    calcularTotal();
-}
-
-function cerrarFormulario(){
-    document.getElementById("formulario").style.display = "none";
-}
-
-function calcularTotal(){
-    let envio = parseInt(document.getElementById("envio").value);
-    let total = carrito.reduce((sum, p) => sum + p.precio, 0) + envio;
-    document.getElementById("total-pago").innerText = "Total: $" + total;
-}
-
-function finalizar(){
-    let nombre = document.getElementById("nombre_cliente").value;
-    let direccion = document.getElementById("direccion").value;
-    let costoEnvio = parseInt(document.getElementById("envio").value);
-    let total = carrito.reduce((sum, p) => sum + p.precio, 0) + costoEnvio;
-
-    if(!nombre || !direccion) {
-        alert("Por favor llena tu nombre y dirección");
-        return;
+    function agregar(nombre, precio) {
+        carrito.push({nombre, precio});
+        document.getElementById("count").innerText = carrito.length;
+        if(navigator.vibrate) navigator.vibrate(50);
     }
 
-    // Guardar en base de datos interna
-    let pedido = { nombre, direccion, productos: carrito, total };
-    fetch('/guardar_pedido', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(pedido)
-    });
+    function abrirModal() {
+        if(carrito.length === 0) return alert("El carrito está vacío");
+        let resumen = document.getElementById("resumen");
+        resumen.innerHTML = "";
+        let total = 0;
+        carrito.forEach(item => {
+            resumen.innerHTML += `<p>• ${item.nombre} - $${item.precio}</p>`;
+            total += item.precio;
+        });
+        document.getElementById("total-txt").innerText = "Total: $" + total;
+        document.getElementById("modal").style.display = "flex";
+    }
 
-    // ARMAR MENSAJE DE WHATSAPP
-    let texto = `*NUEVO PEDIDO - MERCADO CLN*\n\n`;
-    texto += `*Cliente:* ${nombre}\n`;
-    texto += `*Dirección:* ${direccion}\n`;
-    texto += `--------------------------\n`;
-    carrito.forEach(p => {
-        texto += `• ${p.nombre} ($${p.precio})\n`;
-    });
-    if(costoEnvio > 0) texto += `*Envío:* $40\n`;
-    texto += `--------------------------\n`;
-    texto += `*TOTAL A PAGAR: $${total}*`;
+    function cerrarModal() {
+        document.getElementById("modal").style.display = "none";
+    }
 
-    let url = "https://api.whatsapp.com/send?phone=" + MI_WHATSAPP + "&text=" + encodeURIComponent(texto);
-    
-    window.open(url, '_blank');
-    
-    // Limpiar todo
-    carrito = [];
-    document.getElementById("contador").innerText = "0";
-    cerrarFormulario();
-}
+    function enviarWhatsApp() {
+        let nombre = document.getElementById("cliente").value;
+        let direccion = document.getElementById("ubicacion").value;
+        if(!nombre || !direccion) return alert("Llena tus datos");
+
+        let total = carrito.reduce((s, i) => s + i.precio, 0);
+        let mensaje = `*NUEVO PEDIDO*\n\n*Cliente:* ${nombre}\n*Dirección:* ${direccion}\n\n*Productos:*\n`;
+        carrito.forEach(i => { mensaje += `- ${i.nombre} ($${i.precio})\n`; });
+        mensaje += `\n*TOTAL: $${total}*`;
+
+        let url = `https://api.whatsapp.com/send?phone=${whatsapp_negocio}&text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+        
+        // Guardar también en el servidor
+        fetch('/guardar_pedido', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nombre, direccion, productos: carrito, total})
+        });
+    }
 </script>
 
 </body>
