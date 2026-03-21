@@ -10,7 +10,7 @@ PASSWORD = "1234"
 
 DB = "productos.json"
 
-# Crear archivo si no existe
+# crear archivo si no existe
 if not os.path.exists(DB):
     with open(DB, "w") as f:
         json.dump([], f)
@@ -27,16 +27,20 @@ def guardar(data):
 @app.route('/')
 def index():
     productos = cargar()
-    return render_template('index.html', productos=productos)
+    categoria = request.args.get('categoria')
+
+    if categoria:
+        productos = [p for p in productos if p['categoria'] == categoria]
+
+    categorias = list(set([p['categoria'] for p in cargar()]))
+
+    return render_template('index.html', productos=productos, categorias=categorias)
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = request.form['usuario']
-        pwd = request.form['password']
-
-        if user == USUARIO and pwd == PASSWORD:
+        if request.form['usuario'] == USUARIO and request.form['password'] == PASSWORD:
             session['admin'] = True
             return redirect('/admin')
 
@@ -51,7 +55,7 @@ def admin():
     productos = cargar()
     return render_template('admin.html', productos=productos)
 
-# AGREGAR PRODUCTO
+# AGREGAR
 @app.route('/agregar', methods=['POST'])
 def agregar():
     productos = cargar()
@@ -68,7 +72,7 @@ def agregar():
 
     return redirect('/admin')
 
-# ELIMINAR PRODUCTO
+# ELIMINAR
 @app.route('/eliminar/<int:index>')
 def eliminar(index):
     productos = cargar()
