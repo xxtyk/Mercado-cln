@@ -1,146 +1,101 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - Mercado CLN</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración - Mercado Culiacán</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+    }
 
-        /* LA "HOJA" O TARJETA PRINCIPAL */
-        .admin-card {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px; /* Tamaño ideal para celular */
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+    #panel-configuracion {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+      background-color: #ffffff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
-        /* EL ENCABEZADO CON TUS COLORES (AZUL OSCURO) */
-        .admin-header {
-            background-color: #0d1b2a; /* Azul oscuro como tu logo */
-            color: white;
-            padding: 25px;
-            text-align: center;
-        }
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .admin-header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 300px;
+    }
 
-        .admin-header p {
-            margin: 5px 0 0;
-            opacity: 0.8;
-            font-size: 14px;
-        }
+    label {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      width: 100%;
+      font-size: 16px;
+    }
 
-        /* EL FORMULARIO POR DENTRO */
-        .admin-form {
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+    input[type="text"], input[type="checkbox"] {
+      margin-top: 5px;
+      padding: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+    button {
+      padding: 12px 25px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      width: 100%;
+    }
 
-        .form-group label {
-            font-weight: bold;
-            color: #333;
-            font-size: 14px;
-        }
+    button:hover {
+      background-color: #0056b3;
+    }
 
-        .form-group input {
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #007bff;
+    }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #0d1b2a; /* Resaltar con azul oscuro */
-        }
-
-        /* EL BOTÓN DE AGREGAR (AZUL FUERTE) */
-        .btn-submit {
-            background-color: #0d1b2a; /* Azul oscuro */
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover {
-            background-color: #1a2a3a; /* Un azul un poco más claro al pasar el dedo */
-        }
-
-        /* ENLACE PARA REGRESAR A LA TIENDA */
-        .back-link {
-            text-align: center;
-            padding: 15px;
-            border-top: 1px solid #eee;
-        }
-
-        .back-link a {
-            color: #0d1b2a;
-            text-decoration: none;
-            font-size: 14px;
-        }
-    </style>
+    a:hover {
+      color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-
-    <div class="admin-card">
-        <div class="admin-header">
-            <h1>Panel de Control</h1>
-            <p>Mercado en Línea Culiacán</p>
-        </div>
-
-        <form class="admin-form" action="/admin_hector" method="POST">
-            <div class="form-group">
-                <label for="nombre">Nombre del Producto:</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Ej. Shampoo Negro 1 Litro" required>
-            </div>
-
-            <div class="form-group">
-                <label for="precio">Precio (MXN):</label>
-                <input type="number" id="precio" name="precio" placeholder="Ej. 160" required step="0.01">
-            </div>
-
-            <div class="form-group">
-                <label for="imagen">Enlace de la Imagen (ImgBB):</label>
-                <input type="url" id="imagen" name="imagen" placeholder="https://i.ibb.co/..." required>
-            </div>
-
-            <button type="submit" class="btn-submit">+ Agregar Nuevo Producto</button>
-        </form>
-
-        <div class="back-link">
-            <a href="/">← Regresar a la Tienda</a>
-        </div>
-    </div>
-
+  <div id="panel-configuracion">
+    <h2>Configuración</h2>
+    <form action="/guardar_configuracion" method="POST">
+      <label>Nombre de usuario:
+        <input type="text" name="usuario" placeholder="Escribe tu nombre" value="{{ config.get('usuario', '') }}">
+      </label>
+      <label>
+        <input type="checkbox" name="notificaciones" {% if config.get('notificaciones') %}checked{% endif %}>
+        Notificaciones activas
+      </label>
+      <button type="submit">Guardar cambios</button>
+    </form>
+    <a href="/">Volver al catálogo</a>
+  </div>
 </body>
 </html>
