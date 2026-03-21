@@ -1,1 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin</title>
+</head>
+<body>
 
+<h1>Panel Admin</h1>
+
+<form action="/guardar_producto" method="post" enctype="multipart/form-data">
+<input name="nombre" placeholder="Nombre">
+<input name="precio" placeholder="Precio">
+<input name="categoria" placeholder="Categoria">
+<input type="file" name="archivo">
+<button type="submit">Agregar</button>
+</form>
+
+<hr>
+
+{% for p in productos %}
+<div>
+    <h3>{{p.nombre}} - ${{p.precio}}</h3>
+    <p>{{p.categoria}}</p>
+    <a href="/toggle/{{p.id}}">
+        {% if p.activo %}Desactivar{% else %}Activar{% endif %}
+    </a>
+</div>
+{% endfor %}
+
+</body>
+</html>
