@@ -1,31 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado en Línea Culiacán</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>🛒 Mercado en Línea Culiacán</h1>
+
+    <header style="background: #1a1a1a; padding: 20px; text-align: center;">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo Mercado" style="width: 150px; border-radius: 10px;">
+        <h1 style="color: white;">Mercado en Línea Culiacán</h1>
     </header>
 
-    <h2>Categorías</h2>
-    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
-        <a href="/categoria/Aire acondicionado" style="text-decoration:none; background:white; padding:15px; border-radius:10px; color:black; border:1px solid #ddd;">❄️ Aires</a>
-        <a href="/categoria/Cuidado personal" style="text-decoration:none; background:white; padding:15px; border-radius:10px; color:black; border:1px solid #ddd;">🧴 Cuidado</a>
-        <a href="/categoria/Mascota" style="text-decoration:none; background:white; padding:15px; border-radius:10px; color:black; border:1px solid #ddd;">🐶 Mascotas</a>
+    <div class="contenedor">
+        {% for p in productos %}
+        <div class="tarjeta">
+            <img src="{{ p.imagen }}">
+            <h3>{{ p.nombre }}</h3>
+            <p class="precio">${{ p.precio }}</p>
+            <form action="/pedido" method="POST">
+                <input type="hidden" name="total" value="{{ p.precio }}">
+                <input type="text" name="nombre" placeholder="Tu nombre" required>
+                <button type="submit">Pedir por WhatsApp</button>
+            </form>
+        </div>
+        {% endfor %}
     </div>
 
-    <div class="card">
-        <h3>Hacer un pedido rápido</h3>
-        <form action="/pedido" method="POST">
-            <input type="text" name="nombre" placeholder="Tu Nombre" required>
-            <input type="text" name="colonia" placeholder="Tu Colonia" required>
-            <input type="text" name="direccion" placeholder="Calle y Número" required>
-            <input type="hidden" name="total" value="0">
-            <input type="hidden" name="envio" value="40">
-            <button type="submit">Enviar a WhatsApp</button>
-        </form>
-    </div>
 </body>
 </html>
