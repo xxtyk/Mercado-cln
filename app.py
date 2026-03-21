@@ -1,47 +1,46 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-import json
+from flask import Flask, render_template, request, redirect, url_for, session
 import os
-import cloudinary
-import cloudinary.uploader
 
 app = Flask(__name__)
-app.secret_key = "12345"
+app.secret_key = "mi_clave_super_secreta"
 
-# --- CONFIGURACIÓN CLOUDINARY ---
-cloudinary.config(
-    cloud_name="dosyi726x",
-    api_key="942229587198227",
-    api_secret="jHn-OlPaUEdfqvCk1DvgTeSUhyQ",
-    secure=True
-)
+# Usuario de prueba
+USUARIO = "admin"
+PASSWORD = "1234"
 
-# --- ARCHIVOS JSON ---
-PRODUCTOS_FILE = "productos.json"
-CATEGORIAS_FILE = "categorias.json"
-CONFIG_FILE = "config.json"
-PEDIDOS_FILE = "pedidos.json"
+# --- Rutas ---
 
-# --- FUNCIONES AUXILIARES ---
-def cargar_json(file_path):
-    if not os.path.exists(file_path):
-        with open(file_path, "w") as f:
-            json.dump({} if "json" in file_path else [], f)
-    with open(file_path, "r") as f:
-        return json.load(f)
-
-def guardar_json(file_path, data):
-    with open(file_path, "w") as f:
-        json.dump(data, f, indent=4)
-
-# --- RUTAS PRINCIPALES ---
 @app.route("/")
-def index():
-    productos = cargar_json(PRODUCTOS_FILE)
-    categorias = cargar_json(CATEGORIAS_FILE)
-    config = cargar_json(CONFIG_FILE)
-    return render_template("index.html", productos=productos, categorias=categorias, config=config)
+def home():
+    return redirect(url_for("login"))
 
-@app.route("/configuracion")
-def configuracion():
-    productos = cargar_json(PRODUCTOS_FILE)
-    categorias =
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == USUARIO and password == PASSWORD:
+            session["user"] = username
+            return redirect(url_for("panel"))
+        else:
+            return render_template("login.html", error="Usuario o contraseña incorrectos")
+    
+    return render_template("login.html")
+
+@app.route("/panel")
+def panel():
+    if "user" in session:
+        return render_template("panel.html", user=session["user"])
+    else:
+        return redirect(url_for("login"))
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    return redirect(url_for("login"))
+
+# --- Ejecutar ---
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
