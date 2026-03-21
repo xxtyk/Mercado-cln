@@ -1,105 +1,212 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Mercado en Línea</title>
 
 <style>
-body { margin:0; font-family:Arial; background:#f5f5f5; }
+* {
+    box-sizing: border-box;
+}
 
+body {
+    margin:0;
+    font-family: Arial;
+    background:#f5f5f5;
+}
+
+/* HEADER */
 header {
     background:#00a884;
     color:white;
     padding:15px;
     text-align:center;
-    font-size:20px;
+    font-size:18px;
+    position:sticky;
+    top:0;
 }
 
-.categorias {
-    display:flex;
-    overflow-x:auto;
-    padding:10px;
-    background:white;
-}
-
-.categorias a {
-    margin-right:10px;
-    padding:8px 12px;
-    background:#eee;
-    border-radius:20px;
-    text-decoration:none;
-    color:black;
-}
-
+/* GRID PRODUCTOS */
 .contenedor {
     display:grid;
-    grid-template-columns:repeat(2,1fr);
+    grid-template-columns:1fr 1fr;
     gap:10px;
     padding:10px;
 }
 
+/* TARJETA */
 .producto {
     background:white;
     border-radius:12px;
-    padding:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.1);
+    padding:8px;
 }
 
 .producto img {
     width:100%;
+    height:140px;
+    object-fit:cover;
     border-radius:10px;
 }
 
-.precio { color:green; font-weight:bold; }
-
-.btn {
-    display:block;
-    background:#00a884;
-    color:white;
-    text-align:center;
-    padding:8px;
-    border-radius:8px;
-    text-decoration:none;
+.producto h3 {
+    font-size:14px;
+    margin:5px 0;
 }
 
-.admin-btn {
+.precio {
+    color:green;
+    font-weight:bold;
+}
+
+/* BOTÓN */
+.btn {
+    width:100%;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#00a884;
+    color:white;
+    font-size:14px;
+}
+
+/* BOTÓN CARRITO */
+.carrito {
     position:fixed;
-    bottom:10px;
-    right:10px;
+    bottom:15px;
+    right:15px;
     background:black;
     color:white;
-    padding:12px;
+    padding:18px;
     border-radius:50%;
-    text-decoration:none;
+    font-size:18px;
+}
+
+/* FORMULARIO */
+.formulario {
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:100%;
+    background:white;
+    padding:20px;
+    display:none;
+    overflow:auto;
+}
+
+input, select {
+    width:100%;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:16px;
+}
+
+.finalizar {
+    width:100%;
+    padding:15px;
+    background:#00a884;
+    color:white;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
 }
 </style>
 </head>
 
 <body>
 
-<header>🛒 Mercado en Línea Culiacán</header>
-
-<div class="categorias">
-    <a href="/">Todos</a>
-    {% for c in categorias %}
-        <a href="/?categoria={{c}}">{{c}}</a>
-    {% endfor %}
-</div>
+<header>🛒 Mercado en Línea</header>
 
 <div class="contenedor">
 {% for p in productos %}
 <div class="producto">
-    <img src="{{ p.imagen }}">
-    <h3>{{ p.nombre }}</h3>
-    <p class="precio">$ {{ p.precio }}</p>
-
-    <a class="btn" href="https://wa.me/526671377298?text=Quiero%20comprar%20{{p.nombre}}">
-        Comprar
-    </a>
+<img src="{{p.imagen}}">
+<h3>{{p.nombre}}</h3>
+<p class="precio">$ {{p.precio}}</p>
+<button class="btn" onclick="agregar('{{p.nombre}}', {{p.precio}})">Agregar</button>
 </div>
 {% endfor %}
 </div>
 
-<a href="/admin" class="admin-btn">⚙️</a>
+<div class="carrito" onclick="abrirFormulario()">🛒</div>
+
+<div class="formulario" id="formulario">
+
+<h2>Finalizar pedido</h2>
+
+<input id="nombre" placeholder="Nombre">
+<input id="telefono" placeholder="WhatsApp">
+<input id="direccion" placeholder="Calle, número, colonia">
+
+<select id="envio">
+<option value="0">Recoger en bodega</option>
+<option value="40">Envío Culiacán +$40</option>
+</select>
+
+<h3 id="total">Total: $0</h3>
+
+<button class="finalizar" onclick="finalizar()">Finalizar pedido</button>
+
+</div>
+
+<script>
+let carrito = [];
+
+function agregar(nombre, precio){
+    carrito.push({nombre, precio});
+    alert("Agregado");
+}
+
+function abrirFormulario(){
+    if(carrito.length == 0){
+        alert("Carrito vacío");
+        return;
+    }
+
+    document.getElementById("formulario").style.display = "block";
+    calcularTotal();
+}
+
+function calcularTotal(){
+    let envio = parseInt(document.getElementById("envio").value);
+    let total = carrito.reduce((sum, p) => sum + p.precio, 0) + envio;
+    document.getElementById("total").innerText = "Total: $" + total;
+}
+
+document.getElementById("envio").addEventListener("change", calcularTotal);
+
+function finalizar(){
+    let nombre = document.getElementById("nombre").value;
+    let telefono = document.getElementById("telefono").value;
+    let direccion = document.getElementById("direccion").value;
+    let envio = parseInt(document.getElementById("envio").value);
+
+    let total = carrito.reduce((sum, p) => sum + p.precio, 0) + envio;
+
+    let pedido = {
+        nombre,
+        telefono,
+        direccion,
+        productos: carrito,
+        envio,
+        total
+    };
+
+    fetch('/guardar_pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pedido)
+    });
+
+    alert("Pedido guardado ✅");
+
+    carrito = [];
+    document.getElementById("formulario").style.display = "none";
+}
+</script>
 
 </body>
 </html>
