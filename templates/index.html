@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mercado en línea Culiacán</title>
+</head>
+<body>
 
+<h1>Mercado en línea Culiacán</h1>
+
+<h2>Categorías</h2>
+
+{% for p in productos %}
+<div>
+    <img src="{{p.imagen}}" width="100">
+    <h3>{{p.nombre}}</h3>
+    <p>$ {{p.precio}}</p>
+</div>
+{% endfor %}
+
+<hr>
+
+<h2>Pedido</h2>
+
+<form action="/pedido" method="post">
+<input name="nombre" placeholder="Nombre"><br>
+<input name="colonia" placeholder="Colonia"><br>
+<input name="direccion" placeholder="Calle y número"><br>
+
+<input name="total" placeholder="Total"><br>
+<input name="envio" placeholder="Envío"><br>
+
+<button type="submit">Enviar pedido</button>
+</form>
+
+</body>
+</html>
