@@ -1,32 +1,22 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado en Línea Culiacán</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-    <header style="background: #1a1a1a; padding: 20px; text-align: center;">
-        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo Mercado" style="width: 150px; border-radius: 10px;">
-        <h1 style="color: white;">Mercado en Línea Culiacán</h1>
-    </header>
+    <h1>🛒 Mercado en Línea Culiacán</h1>
 
-    <div class="contenedor">
-        {% for p in productos %}
-        <div class="tarjeta">
-            <img src="{{ p.imagen }}">
-            <h3>{{ p.nombre }}</h3>
-            <p class="precio">${{ p.precio }}</p>
-            <form action="/pedido" method="POST">
-                <input type="hidden" name="total" value="{{ p.precio }}">
-                <input type="text" name="nombre" placeholder="Tu nombre" required>
-                <button type="submit">Pedir por WhatsApp</button>
-            </form>
+    <img src="{{ url_for('static', filename='logo.png') }}" width="150">
+
+    <h2>Productos</h2>
+
+    {% for producto in productos %}
+        <div>
+            <h3>{{ producto.nombre }}</h3>
+            <p>Precio: ${{ producto.precio }}</p>
         </div>
-        {% endfor %}
-    </div>
+    {% endfor %}
 
 </body>
 </html>
