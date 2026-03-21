@@ -9,11 +9,13 @@ USUARIO = "admin"
 PASSWORD = "1234"
 
 DB = "productos.json"
+PEDIDOS = "pedidos.json"
 
-# crear archivo si no existe
-if not os.path.exists(DB):
-    with open(DB, "w") as f:
-        json.dump([], f)
+# crear archivos si no existen
+for archivo in [DB, PEDIDOS]:
+    if not os.path.exists(archivo):
+        with open(archivo, "w") as f:
+            json.dump([], f)
 
 def cargar():
     with open(DB, "r") as f:
@@ -55,7 +57,7 @@ def admin():
     productos = cargar()
     return render_template('admin.html', productos=productos)
 
-# AGREGAR
+# AGREGAR PRODUCTO
 @app.route('/agregar', methods=['POST'])
 def agregar():
     productos = cargar()
@@ -72,13 +74,28 @@ def agregar():
 
     return redirect('/admin')
 
-# ELIMINAR
+# ELIMINAR PRODUCTO
 @app.route('/eliminar/<int:index>')
 def eliminar(index):
     productos = cargar()
     productos.pop(index)
     guardar(productos)
     return redirect('/admin')
+
+# GUARDAR PEDIDO
+@app.route('/guardar_pedido', methods=['POST'])
+def guardar_pedido():
+    data = request.json
+
+    with open(PEDIDOS, "r") as f:
+        pedidos = json.load(f)
+
+    pedidos.append(data)
+
+    with open(PEDIDOS, "w") as f:
+        json.dump(pedidos, f, indent=4)
+
+    return {"status": "ok"}
 
 if __name__ == '__main__':
     app.run(debug=True)
