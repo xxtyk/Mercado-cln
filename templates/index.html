@@ -1,54 +1,58 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mercado Culiacán</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin:20px; background-color:#f8f8f8; }
-    h1,h2{text-align:center;}
-    .categorias { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px; }
-    .categoria { padding:10px 15px; background:#007bff; color:white; border-radius:5px; cursor:pointer; }
-    .categoria:hover { background:#0056b3; }
-    ul { list-style:none; padding:0; display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
-    li { border:1px solid #ccc; padding:10px; width:150px; text-align:center; border-radius:8px; background:white; box-shadow:2px2px5px rgba(0,0,0,0.1);}
-    li img { max-width:100%; border-radius:5px; }
-    a { display:inline-block; margin-top:20px; text-decoration:none; color:#007bff; text-align:center; }
-    a:hover { color:#0056b3; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado Culiacán</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f8f8f8;}
+h1,h2{text-align:center;}
+.categorias{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
+.categoria{padding:10px 15px;background:#007bff;color:white;border-radius:5px;cursor:pointer;}
+.categoria:hover{background:#0056b3;}
+ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+li{border:1px solid #ccc;padding:10px;width:150px;text-align:center;border-radius:8px;background:white;box-shadow:2px2px5px rgba(0,0,0,0.1);}
+li img{max-width:100%;border-radius:5px;}
+button{background:#007bff;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;margin-top:5px;}
+button:hover{background:#0056b3;}
+.download{display:block;text-align:center;margin:15px;color:#007bff;}
+.download:hover{color:#0056b3;}
+.alert{background:#fffae6;padding:10px;text-align:center;margin-bottom:10px;border-radius:5px;color:#8a6d3b;}
+</style>
 </head>
 <body>
-  <!-- Logo -->
-  {% if config.get('logo') %}
-    <img src="{{ config.get('logo') }}" alt="Logo" width="150" style="display:block;margin:0 auto 20px;">
-  {% endif %}
 
-  <h1>Mercado Culiacán</h1>
-  
-  <h2>Categorías</h2>
-  <div class="categorias">
-    {% for id, nombre in categorias.items() %}
-      <a class="categoria" href="#cat-{{ id }}">{{ nombre }}</a>
-    {% endfor %}
-  </div>
+{% if config.get('logo') %}
+<img src="{{ config.get('logo') }}" alt="Logo" width="150" style="display:block;margin:0 auto 20px;">
+{% endif %}
 
-  <!-- Productos por categoría -->
-  {% for cat_id, cat_nombre in categorias.items() %}
-    <h2 id="cat-{{ cat_id }}">{{ cat_nombre }}</h2>
-    <ul>
-      {% for id, producto in productos.items() %}
-        {% if producto.categoria == cat_nombre and producto.disponible %}
-        <li>
-          <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
-          <strong>{{ producto.nombre }}</strong><br>
-          ${{ producto.precio }}<br>
-          <a href="{{ url_for('pedido', producto_id=id) }}">Comprar</a>
-        </li>
-        {% endif %}
-      {% endfor %}
-    </ul>
+<h1>Mercado Culiacán</h1>
+
+<div class="alert">⚠️ Recuerda: el pago es a CONTRA ENTREGA</div>
+<a class="download" href="#">📱 Descarga nuestra app para compras más rápidas</a>
+
+<h2>Categorías</h2>
+<div class="categorias">
+  {% for id, nombre in categorias.items() %}
+    <a class="categoria" href="#cat-{{ id }}">{{ nombre }}</a>
   {% endfor %}
+</div>
 
-  <a href="/configuracion">Panel de Configuración</a>
+{% for cat_id, cat_nombre in categorias.items() %}
+<h2 id="cat-{{ cat_id }}">{{ cat_nombre }}</h2>
+<ul>
+  {% for id, producto in productos.items() %}
+    {% if producto.categoria == cat_nombre and producto.disponible %}
+    <li>
+      <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+      <strong>{{ producto.nombre }}</strong><br>
+      ${{ producto.precio }}<br>
+      <a href="{{ url_for('pedido', producto_id=id) }}">Comprar</a>
+    </li>
+    {% endif %}
+  {% endfor %}
+</ul>
+{% endfor %}
+
 </body>
 </html>
