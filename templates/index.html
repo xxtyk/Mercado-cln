@@ -1,195 +1,101 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mercado en Línea CLN</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: sans-serif; background: #f4f4f4; padding-bottom: 80px; }
-        
-        header { 
-            background: #00a884; 
-            color: white; 
-            padding: 15px; 
-            text-align: center; 
-            font-weight: bold; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercado Culiacán</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f8f8f8;
+    }
 
-        .contenedor { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            padding: 10px; 
-        }
+    h1, h2 {
+      text-align: center;
+    }
 
-        .producto { 
-            background: white; 
-            border-radius: 12px; 
-            padding: 10px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-        }
+    ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
 
-        /* AJUSTE DE IMAGEN */
-        .img-container {
-            width: 100%;
-            height: 140px;
-            background: #eee;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
+    li {
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 150px;
+      text-align: center;
+      border-radius: 8px;
+      background-color: white;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+    }
 
-        .producto img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; /* Esto hace que la foto llene el cuadro sin deformarse */
-            display: block;
-        }
+    li img {
+      max-width: 100%;
+      border-radius: 5px;
+    }
 
-        .producto h3 { font-size: 14px; margin-bottom: 5px; color: #333; height: 34px; overflow: hidden; }
-        .precio { color: #25d366; font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+    form {
+      max-width: 300px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-        .btn { 
-            background: #00a884; 
-            color: white; 
-            border: none; 
-            padding: 10px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer;
-        }
+    form input, form button {
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
 
-        /* CARRITO FLOTANTE */
-        .carrito-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #25d366;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 200;
-        }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-        .badge {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: red;
-            color: white;
-            font-size: 12px;
-            padding: 3px 7px;
-            border-radius: 50%;
-        }
+    button:hover {
+      background-color: #0056b3;
+    }
 
-        /* MODAL DE PEDIDO */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            z-index: 1000;
-        }
+    a {
+      display: inline-block;
+      margin-top: 20px;
+      text-decoration: none;
+      color: #007bff;
+      text-align: center;
+    }
 
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-        .btn-finalizar { background: #25d366; color: white; padding: 15px; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; margin-top: 10px; }
-    </style>
+    a:hover {
+      color: #0056b3;
+    }
+  </style>
 </head>
 <body>
+  <h1>Mercado Culiacán</h1>
 
-<header>🛒 Mercado en Línea CLN</header>
-
-<div class="contenedor">
-    {% for p in productos %}
-    <div class="producto">
-        <div class="img-container">
-            <img src="{{ p.imagen }}" alt="{{ p.nombre }}" onerror="this.src='https://via.placeholder.com/150?text=Error+Foto'">
-        </div>
-        <h3>{{ p.nombre }}</h3>
-        <p class="precio">$ {{ p.precio }}</p>
-        <button class="btn" onclick="agregar('{{ p.nombre }}', {{ p.precio }})">+ Agregar</button>
-    </div>
+  <h2>Productos</h2>
+  <ul>
+    {% for id, producto in productos.items() %}
+      <li>
+        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+        <strong>{{ producto.nombre }}</strong><br>
+        ${{ producto.precio }}
+      </li>
     {% endfor %}
-</div>
+  </ul>
 
-<div class="carrito-btn" onclick="abrirModal()">
-    🛒 <span id="count" class="badge">0</span>
-</div>
-
-<div id="modal" class="modal">
-    <h2 style="margin-bottom:15px;">Finalizar Pedido</h2>
-    <div id="resumen" style="flex-grow:1; overflow-y:auto; margin-bottom:15px;"></div>
-    
-    <input id="cliente" type="text" placeholder="Tu nombre">
-    <input id="ubicacion" type="text" placeholder="Colonia y Calle">
-    
-    <h3 id="total-txt" style="margin: 10px 0;">Total: $0</h3>
-    <button class="btn-finalizar" onclick="enviarWhatsApp()">Enviar Pedido por WhatsApp 💬</button>
-    <button onclick="cerrarModal()" style="background:none; border:none; color:grey; margin-top:15px;">Volver</button>
-</div>
-
-<script>
-    let carrito = [];
-    let whatsapp_negocio = "526671234567"; // CAMBIA ESTO POR TU NÚMERO (con 521)
-
-    function agregar(nombre, precio) {
-        carrito.push({nombre, precio});
-        document.getElementById("count").innerText = carrito.length;
-        if(navigator.vibrate) navigator.vibrate(50);
-    }
-
-    function abrirModal() {
-        if(carrito.length === 0) return alert("El carrito está vacío");
-        let resumen = document.getElementById("resumen");
-        resumen.innerHTML = "";
-        let total = 0;
-        carrito.forEach(item => {
-            resumen.innerHTML += `<p>• ${item.nombre} - $${item.precio}</p>`;
-            total += item.precio;
-        });
-        document.getElementById("total-txt").innerText = "Total: $" + total;
-        document.getElementById("modal").style.display = "flex";
-    }
-
-    function cerrarModal() {
-        document.getElementById("modal").style.display = "none";
-    }
-
-    function enviarWhatsApp() {
-        let nombre = document.getElementById("cliente").value;
-        let direccion = document.getElementById("ubicacion").value;
-        if(!nombre || !direccion) return alert("Llena tus datos");
-
-        let total = carrito.reduce((s, i) => s + i.precio, 0);
-        let mensaje = `*NUEVO PEDIDO*\n\n*Cliente:* ${nombre}\n*Dirección:* ${direccion}\n\n*Productos:*\n`;
-        carrito.forEach(i => { mensaje += `- ${i.nombre} ($${i.precio})\n`; });
-        mensaje += `\n*TOTAL: $${total}*`;
-
-        let url = `https://api.whatsapp.com/send?phone=${whatsapp_negocio}&text=${encodeURIComponent(mensaje)}`;
-        window.open(url, '_blank');
-        
-        // Guardar también en el servidor
-        fetch('/guardar_pedido', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({nombre, direccion, productos: carrito, total})
-        });
-    }
-</script>
-
-</body>
-</html>
+  <h2>Agregar Producto</h2>
+  <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
+    <input type="text" name="nombre" placeholder="Nombre del producto" required>
+    <input type="text" name="precio" placeholder="Precio" required>
+    <input type="file" name="imagen" required>
+    <button type="submit">Agregar
