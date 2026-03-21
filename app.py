@@ -8,8 +8,6 @@ app.secret_key = "mi_clave_super_secreta"
 USUARIO = "admin"
 PASSWORD = "1234"
 
-# --- Rutas ---
-
 @app.route("/")
 def home():
     return redirect(url_for("login"))
@@ -40,7 +38,6 @@ def logout():
     session.pop("user", None)
     return redirect(url_for("login"))
 
-# --- Ejecutar ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
