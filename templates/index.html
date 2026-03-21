@@ -80,22 +80,9 @@
   </style>
 </head>
 <body>
-  <h1>Mercado Culiacán</h1>
+  <!-- Logo de la tienda -->
+  {% if config.get('logo') %}
+    <img src="{{ config.get('logo') }}" alt="Logo" width="150" style="display:block; margin:0 auto 20px;">
+  {% endif %}
 
-  <h2>Productos</h2>
-  <ul>
-    {% for id, producto in productos.items() %}
-      <li>
-        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
-        <strong>{{ producto.nombre }}</strong><br>
-        ${{ producto.precio }}
-      </li>
-    {% endfor %}
-  </ul>
-
-  <h2>Agregar Producto</h2>
-  <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
-    <input type="text" name="nombre" placeholder="Nombre del producto" required>
-    <input type="text" name="precio" placeholder="Precio" required>
-    <input type="file" name="imagen" required>
-    <button type="submit">Agregar
+  <h1>Mercado Culiacán</
