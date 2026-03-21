@@ -16,7 +16,6 @@ cloudinary.config(
 
 DB_FILE = "productos.json"
 
-# CARGAR PRODUCTOS
 def cargar_productos():
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
@@ -30,27 +29,23 @@ def guardar_productos(data):
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# HOME
 @app.route('/')
 def index():
     productos = cargar_productos()
     activos = [p for p in productos if p.get('activo', True)]
     return render_template('index.html', productos=activos)
 
-# RUTA DE CATEGORÍAS
 @app.route('/categoria/<nombre>')
 def categoria(nombre):
     productos = cargar_productos()
     filtrados = [p for p in productos if p.get('categoria') == nombre and p.get('activo', True)]
     return render_template('categoria.html', productos=filtrados, categoria=nombre)
 
-# ADMIN
 @app.route('/admin')
 def admin():
     productos = cargar_productos()
     return render_template('admin.html', productos=productos)
 
-# AGREGAR PRODUCTO
 @app.route('/guardar_producto', methods=['POST'])
 def guardar_producto():
     productos = cargar_productos()
@@ -58,12 +53,10 @@ def guardar_producto():
     precio = request.form.get('precio')
     categoria_prod = request.form.get('categoria')
     archivo = request.files.get('archivo')
-
     url_imagen = ""
     if archivo:
         upload = cloudinary.uploader.upload(archivo)
         url_imagen = upload['secure_url']
-
     nuevo = {
         "id": len(productos),
         "nombre": nombre,
@@ -72,12 +65,10 @@ def guardar_producto():
         "imagen": url_imagen,
         "activo": True
     }
-
     productos.append(nuevo)
     guardar_productos(productos)
     return redirect('/admin')
 
-# ACTIVAR / DESACTIVAR
 @app.route('/toggle/<int:id>')
 def toggle(id):
     productos = cargar_productos()
@@ -87,18 +78,20 @@ def toggle(id):
     guardar_productos(productos)
     return redirect('/admin')
 
-# WHATSAPP (PEDIDOS AL GRUPO)
 @app.route('/pedido', methods=['POST'])
 def pedido():
-    nombre = request.form.get('nombre')
-    colonia = request.form.get('colonia')
-    direccion = request.form.get('direccion')
-    total = request.form.get('total')
-    envio = request.form.get('envio')
+    nombre = request.form.get('nombre', 'Cliente')
+    colonia = request.form.get('colonia', 'N/A')
+    direccion = request.form.get('direccion', 'N/A')
+    total = request.form.get('total', '0')
+    envio = request.form.get('envio', '40')
 
-    mensaje = f"NUEVO PEDIDO:\n\nCliente: {nombre}\nColonia: {colonia}\nDirección: {direccion}\nTotal: ${total}\nEnvío: ${envio}"
+    texto = f"NUEVO PEDIDO:\n\nCliente: {nombre}\nColonia: {colonia}\nDirección: {direccion}\nTotal: ${total}\nEnvío: ${envio}"
     
-    # Enlace de tu grupo de WhatsApp
-    link_grupo = f"https://chat.whatsapp.com/HtBWXyZmMAxJImgPY5SRXU?text={mensaje}"
+    # Este es tu enlace corregido
+    link_grupo = f"https://chat.whatsapp.com/HtBWXyZmMAxJImgPY5SRXU?text={texto}"
+    return redirect(link_grupo)
 
-    return redirect(
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
