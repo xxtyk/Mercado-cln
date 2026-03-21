@@ -19,33 +19,44 @@ DB_FILE = "productos.json"
 # CARGAR PRODUCTOS
 def cargar_productos():
     if os.path.exists(DB_FILE):
-        with open(DB_FILE, "r") as f:
-            return json.load(f)
+        with open(DB_FILE, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except:
+                return []
     return []
 
 def guardar_productos(data):
-    with open(DB_FILE, "w") as f:
-        json.dump(data, f)
-
-productos = cargar_productos()
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
 # HOME
 @app.route('/')
 def index():
-    activos = [p for p in productos if p['activo']]
+    productos = cargar_productos()
+    activos = [p for p in productos if p.get('activo', True)]
     return render_template('index.html', productos=activos)
+
+# RUTA DE CATEGORÍAS
+@app.route('/categoria/<nombre>')
+def categoria(nombre):
+    productos = cargar_productos()
+    filtrados = [p for p in productos if p.get('categoria') == nombre and p.get('activo', True)]
+    return render_template('categoria.html', productos=filtrados, categoria=nombre)
 
 # ADMIN
 @app.route('/admin')
 def admin():
+    productos = cargar_productos()
     return render_template('admin.html', productos=productos)
 
 # AGREGAR PRODUCTO
 @app.route('/guardar_producto', methods=['POST'])
 def guardar_producto():
+    productos = cargar_productos()
     nombre = request.form.get('nombre')
     precio = request.form.get('precio')
-    categoria = request.form.get('categoria')
+    categoria_prod = request.form.get('categoria')
     archivo = request.files.get('archivo')
 
     url_imagen = ""
@@ -57,7 +68,7 @@ def guardar_producto():
         "id": len(productos),
         "nombre": nombre,
         "precio": int(precio),
-        "categoria": categoria,
+        "categoria": categoria_prod,
         "imagen": url_imagen,
         "activo": True
     }
@@ -69,13 +80,14 @@ def guardar_producto():
 # ACTIVAR / DESACTIVAR
 @app.route('/toggle/<int:id>')
 def toggle(id):
+    productos = cargar_productos()
     for p in productos:
         if p['id'] == id:
-            p['activo'] = not p['activo']
+            p['activo'] = not p.get('activo', True)
     guardar_productos(productos)
     return redirect('/admin')
 
-# WHATSAPP
+# WHATSAPP (PEDIDOS AL GRUPO)
 @app.route('/pedido', methods=['POST'])
 def pedido():
     nombre = request.form.get('nombre')
@@ -84,23 +96,9 @@ def pedido():
     total = request.form.get('total')
     envio = request.form.get('envio')
 
-    mensaje = f"""
-PEDIDO:
-Total: ${total}
-Envío: ${envio}
+    mensaje = f"NUEVO PEDIDO:\n\nCliente: {nombre}\nColonia: {colonia}\nDirección: {direccion}\nTotal: ${total}\nEnvío: ${envio}"
+    
+    # Enlace de tu grupo de WhatsApp
+    link_grupo = f"https://chat.whatsapp.com/HtBWXyZmMAxJImgPY5SRXU?text={mensaje}"
 
-Cliente:
-{nombre}
-Colonia: {colonia}
-Dirección: {direccion}
-"""
-
-    numero = "5216670000000"  # CAMBIA TU NUMERO
-    link = f"https://wa.me/{numero}?text={mensaje}"
-
-    return redirect(link)
-
-# RENDER
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    return redirect(
