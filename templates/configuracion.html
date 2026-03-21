@@ -1,89 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configuración - Mercado Culiacán</title>
-  <style>
-    html,body{margin:0;padding:0;font-family:Arial;height:100%;background:#f0f0f0;}
-    #panel-configuracion{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px;box-sizing:border-box;background:#fff;}
-    h2{text-align:center;margin-bottom:20px;}
-    form{display:flex;flex-direction:column;align-items:center;width:100%;max-width:300px;margin-bottom:20px;}
-    label{display:flex;flex-direction:column;margin-bottom:10px;width:100%;font-size:16px;}
-    input[type="text"], input[type="file"], input[type="checkbox"]{margin-top:5px;padding:10px;font-size:16px;}
-    button{padding:10px;width:100%;margin-top:10px;background:#007bff;color:white;border:none;border-radius:5px;cursor:pointer;}
-    button:hover{background:#0056b3;}
-    table{width:100%;border-collapse:collapse;margin-top:20px;}
-    th,td{border:1px solid #ccc;padding:5px;text-align:center;}
-    a{color:#007bff;text-decoration:none;}
-    a:hover{color:#0056b3;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Administrador - Mercado Culiacán</title>
+<style>
+body{margin:0;font-family:Arial;background:#f8f8f8;}
+#panel{display:flex;flex-direction:column;align-items:center;padding:20px;}
+h1{text-align:center;}
+button{margin:10px 0;padding:15px 20px;width:90%;max-width:300px;font-size:18px;border:none;border-radius:8px;background:#007bff;color:white;cursor:pointer;}
+button:hover{background:#0056b3;}
+section{width:100%;max-width:400px;margin-top:20px;padding:15px;background:white;border-radius:8px;display:none;flex-direction:column;}
+label{display:flex;flex-direction:column;margin-bottom:10px;}
+input,select,textarea{margin-top:5px;padding:10px;font-size:16px;}
+</style>
+<script>
+function mostrar(seccion){
+    const secciones = document.querySelectorAll('section');
+    secciones.forEach(s => s.style.display='none');
+    document.getElementById(seccion).style.display='flex';
+}
+</script>
 </head>
 <body>
-  <div id="panel-configuracion">
-    <h2>Configuración</h2>
-    
-    <form action="/guardar_configuracion" method="POST" enctype="multipart/form-data">
-      <label>Nombre de usuario:
-        <input type="text" name="usuario" value="{{ config.get('usuario','') }}">
-      </label>
-      <label><input type="checkbox" name="notificaciones" {% if config.get('notificaciones') %}checked{% endif %}> Notificaciones activas</label>
-      <label>Logo:
-        <input type="file" name="logo">
-      </label>
-      <button type="submit">Guardar configuración</button>
-    </form>
+<div id="panel">
+  <h1>Panel Administrador</h1>
 
-    {% if config.get('logo') %}
-      <p>Logo actual:</p>
-      <img src="{{ config.get('logo') }}" alt="Logo" width="150">
-    {% endif %}
+  <!-- Botones principales -->
+  <button onclick="mostrar('vista_catalogo')">1. Ver catálogo (como cliente)</button>
+  <button onclick="mostrar('config_categorias')">2. Configurar Categorías</button>
+  <button onclick="mostrar('config_productos')">3. Configurar Productos</button>
+  <button onclick="mostrar('config_logo')">4. Configurar Logo de Inicio</button>
 
-    <!-- Agregar Categoría -->
-    <form action="/agregar_categoria" method="POST">
-      <label>Agregar Categoría:
-        <input type="text" name="nombre_categoria" placeholder="Nombre categoría">
-      </label>
-      <button type="submit">Agregar Categoría</button>
-    </form>
+  <!-- Secciones -->
+  <section id="vista_catalogo">
+    <h2>Vista del catálogo</h2>
+    <a href="/">Ver catálogo como cliente</a>
+  </section>
 
-    <!-- Agregar Producto -->
-    <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
-      <label>Nombre producto:
-        <input type="text" name="nombre">
-      </label>
-      <label>Precio:
-        <input type="text" name="precio">
-      </label>
-      <label>Categoría:
-        <select name="categoria">
-          {% for id, nombre in categorias.items() %}
-            <option value="{{ nombre }}">{{ nombre }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label>Imagen:
-        <input type="file" name="imagen">
-      </label>
-      <button type="submit">Agregar Producto</button>
-    </form>
-
-    <!-- Productos existentes -->
-    <h3>Productos existentes</h3>
-    <table>
-      <tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Disponible</th><th>Acción</th></tr>
-      {% for id, p in productos.items() %}
-      <tr>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.categoria }}</td>
-        <td>${{ p.precio }}</td>
-        <td>{{ "Sí" if p.disponible else "No" }}</td>
-        <td><a href="{{ url_for('toggle_producto', producto_id=id) }}">Cambiar</a></td>
-      </tr>
-      {% endfor %}
-    </table>
-
-    <a href="/">Volver al catálogo</a>
-  </div>
-</body>
-</html>
+  <section id="config_categorias">
+    <h2>Configurar Categorías</h2>
+    <form action="/agregar_categoria" method="POST" enctype="multipart/form-data">
