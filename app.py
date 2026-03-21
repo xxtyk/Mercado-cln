@@ -29,14 +29,7 @@ def guardar(data):
 @app.route('/')
 def index():
     productos = cargar()
-    categoria = request.args.get('categoria')
-
-    if categoria:
-        productos = [p for p in productos if p['categoria'] == categoria]
-
-    categorias = list(set([p['categoria'] for p in cargar()]))
-
-    return render_template('index.html', productos=productos, categorias=categorias)
+    return render_template('index.html', productos=productos)
 
 # LOGIN
 @app.route('/login', methods=['GET', 'POST'])
@@ -45,10 +38,9 @@ def login():
         if request.form['usuario'] == USUARIO and request.form['password'] == PASSWORD:
             session['admin'] = True
             return redirect('/admin')
-
     return render_template('login.html')
 
-# ADMIN
+# ADMIN PRODUCTOS
 @app.route('/admin')
 def admin():
     if not session.get('admin'):
@@ -96,6 +88,17 @@ def guardar_pedido():
         json.dump(pedidos, f, indent=4)
 
     return {"status": "ok"}
+
+# VER PEDIDOS
+@app.route('/pedidos')
+def pedidos():
+    if not session.get('admin'):
+        return redirect('/login')
+
+    with open(PEDIDOS, "r") as f:
+        pedidos = json.load(f)
+
+    return render_template('pedidos.html', pedidos=pedidos)
 
 if __name__ == '__main__':
     app.run(debug=True)
