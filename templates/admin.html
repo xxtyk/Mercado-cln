@@ -1,26 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Mercado CLN</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* LA "HOJA" O TARJETA PRINCIPAL */
+        .admin-card {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px; /* Tamaño ideal para celular */
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* EL ENCABEZADO CON TUS COLORES (AZUL OSCURO) */
+        .admin-header {
+            background-color: #0d1b2a; /* Azul oscuro como tu logo */
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .admin-header p {
+            margin: 5px 0 0;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        /* EL FORMULARIO POR DENTRO */
+        .admin-form {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0d1b2a; /* Resaltar con azul oscuro */
+        }
+
+        /* EL BOTÓN DE AGREGAR (AZUL FUERTE) */
+        .btn-submit {
+            background-color: #0d1b2a; /* Azul oscuro */
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #1a2a3a; /* Un azul un poco más claro al pasar el dedo */
+        }
+
+        /* ENLACE PARA REGRESAR A LA TIENDA */
+        .back-link {
+            text-align: center;
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .back-link a {
+            color: #0d1b2a;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
 <body>
 
-<h1>Panel Admin</h1>
+    <div class="admin-card">
+        <div class="admin-header">
+            <h1>Panel de Control</h1>
+            <p>Mercado en Línea Culiacán</p>
+        </div>
 
-<form action="/agregar" method="POST">
-<input name="nombre" placeholder="Nombre" required>
-<input name="precio" placeholder="Precio" required>
-<input name="imagen" placeholder="URL imagen" required>
-<input name="categoria" placeholder="Categoria" required>
-<button>Agregar</button>
-</form>
+        <form class="admin-form" action="/admin_hector" method="POST">
+            <div class="form-group">
+                <label for="nombre">Nombre del Producto:</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Ej. Shampoo Negro 1 Litro" required>
+            </div>
 
-<hr>
+            <div class="form-group">
+                <label for="precio">Precio (MXN):</label>
+                <input type="number" id="precio" name="precio" placeholder="Ej. 160" required step="0.01">
+            </div>
 
-{% for p in productos %}
-<div>
-    <p>{{p.nombre}} - ${{p.precio}} ({{p.categoria}})</p>
-    <img src="{{p.imagen}}" width="80">
-    <a href="/eliminar/{{loop.index0}}">Eliminar</a>
-</div>
-{% endfor %}
+            <div class="form-group">
+                <label for="imagen">Enlace de la Imagen (ImgBB):</label>
+                <input type="url" id="imagen" name="imagen" placeholder="https://i.ibb.co/..." required>
+            </div>
+
+            <button type="submit" class="btn-submit">+ Agregar Nuevo Producto</button>
+        </form>
+
+        <div class="back-link">
+            <a href="/">← Regresar a la Tienda</a>
+        </div>
+    </div>
 
 </body>
 </html>
