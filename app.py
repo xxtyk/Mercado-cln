@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import json
 import os
 
 app = Flask(__name__)
+app.secret_key = "12345"
+
+USUARIO = "admin"
+PASSWORD = "1234"
 
 DB = "productos.json"
 
@@ -19,15 +23,31 @@ def guardar(data):
     with open(DB, "w") as f:
         json.dump(data, f, indent=4)
 
-# TIENDA (clientes)
+# TIENDA
 @app.route('/')
 def index():
     productos = cargar()
     return render_template('index.html', productos=productos)
 
-# PANEL ADMIN
+# LOGIN
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = request.form['usuario']
+        pwd = request.form['password']
+
+        if user == USUARIO and pwd == PASSWORD:
+            session['admin'] = True
+            return redirect('/admin')
+
+    return render_template('login.html')
+
+# ADMIN
 @app.route('/admin')
 def admin():
+    if not session.get('admin'):
+        return redirect('/login')
+
     productos = cargar()
     return render_template('admin.html', productos=productos)
 
