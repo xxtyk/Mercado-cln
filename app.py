@@ -27,16 +27,12 @@ if cloudinary:
 PRODUCTOS_FILE = "productos.json"
 CATEGORIAS_FILE = "categorias.json"
 
-# Crear archivos si no existen
-for archivo in [PRODUCTOS_FILE, CATEGORIAS_FILE]:
-    if not os.path.exists(archivo):
-        with open(archivo, "w") as f:
-            json.dump([], f)
-
 # ------------------------------
 # FUNCIONES DE CARGA / GUARDADO
 # ------------------------------
 def cargar_json(file_path):
+    if not os.path.exists(file_path):
+        return []
     try:
         with open(file_path, "r") as f:
             contenido = f.read().strip()
@@ -47,11 +43,8 @@ def cargar_json(file_path):
         return []
 
 def guardar_json(data, file_path):
-    try:
-        with open(file_path, "w") as f:
-            json.dump(data, f, indent=4)
-    except:
-        pass
+    with open(file_path, "w") as f:
+        json.dump(data, f, indent=4)
 
 # ------------------------------
 # RUTAS PRINCIPALES
@@ -76,6 +69,20 @@ def admin():
     categorias = cargar_json(CATEGORIAS_FILE)
     productos = cargar_json(PRODUCTOS_FILE)
     return render_template('admin.html', categorias=categorias, productos=productos)
+
+# ------------------------------
+# AGREGAR CATEGORÍA
+# ------------------------------
+@app.route('/editar_categoria', methods=['GET','POST'])
+def editar_categoria():
+    if request.method == 'POST':
+        nombre = request.form.get("nombre")
+        categorias = cargar_json(CATEGORIAS_FILE)
+        if nombre and nombre not in categorias:
+            categorias.append(nombre)
+            guardar_json(categorias, CATEGORIAS_FILE)
+        return redirect(url_for('admin'))
+    return render_template('editar_categoria.html')
 
 # ------------------------------
 # AGREGAR PRODUCTO
@@ -111,20 +118,6 @@ def agregar_producto():
     return render_template('cargar_producto.html', categorias=categorias)
 
 # ------------------------------
-# EDITAR CATEGORÍA
-# ------------------------------
-@app.route('/editar_categoria', methods=['GET','POST'])
-def editar_categoria():
-    if request.method == 'POST':
-        nombre = request.form.get("nombre")
-        categorias = cargar_json(CATEGORIAS_FILE)
-        if nombre not in categorias:
-            categorias.append(nombre)
-        guardar_json(categorias, CATEGORIAS_FILE)
-        return redirect(url_for('admin'))
-    return render_template('editar_categoria.html')
-
-# ------------------------------
 # ELIMINAR PRODUCTO
 # ------------------------------
 @app.route('/eliminar_producto/<int:index>')
@@ -144,7 +137,6 @@ def eliminar_categoria(nombre):
     categorias = [c for c in categorias if c != nombre]
     guardar_json(categorias, CATEGORIAS_FILE)
 
-    # También eliminar productos de esa categoría
     productos = cargar_json(PRODUCTOS_FILE)
     productos = [p for p in productos if p.get("categoria") != nombre]
     guardar_json(productos, PRODUCTOS_FILE)
