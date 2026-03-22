@@ -1,80 +1,87 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado en línea Culiacán</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-        .header {
-            background: #000;
-            color: #fff;
-            padding: 16px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .subtitulo {
-            padding: 14px 16px 6px;
-            color: #555;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 12px;
-        }
-        .card {
-            background: #fff;
-            border-radius: 14px;
-            overflow: hidden;
-            text-decoration: none;
-            color: #000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            display: block;
-        }
-        .card p {
-            margin: 0;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .vacio {
-            padding: 16px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">Mercado en línea Culiacán</div>
-    <div class="subtitulo">CATEGORÍAS</div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado en Línea Culiacán</title>
 
-    {% if categorias %}
-    <div class="grid">
-        {% for categoria in categorias %}
-        <a class="card" href="{{ url_for('categoria', nombre=categoria.nombre) }}">
-            {% if categoria.foto %}
-                <img src="{{ url_for('static', filename=categoria.foto) }}" alt="{{ categoria.nombre }}">
-            {% else %}
-                <img src="https://via.placeholder.com/400x300?text=Categoria" alt="{{ categoria.nombre }}">
-            {% endif %}
-            <p>{{ categoria.nombre }}</p>
-        </a>
-        {% endfor %}
-    </div>
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f4f4f4;
+}
+
+.header {
+    background: black;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.menu {
+    display: flex;
+    justify-content: space-around;
+    background: #222;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: black;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.card p {
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">Mercado en Línea Culiacán</div>
+
+<div class="menu">
+    <div>Inicio</div>
+    <div>Mis pedidos</div>
+    <div>Publicidad</div>
+</div>
+
+<div class="grid">
+{% for categoria in categorias %}
+<a class="card" href="/categoria/{{ categoria.nombre }}">
+    {% if categoria.foto %}
+    <img src="/static/{{ categoria.foto }}">
     {% else %}
-    <div class="vacio">Todavía no hay categorías cargadas.</div>
+    <img src="https://via.placeholder.com/300x200">
     {% endif %}
+    <p>{{ categoria.nombre }}</p>
+</a>
+{% endfor %}
+</div>
+
 </body>
 </html>
