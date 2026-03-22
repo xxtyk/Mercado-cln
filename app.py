@@ -42,9 +42,13 @@ def init_app():
 def cargar_productos():
     if not os.path.exists(DATA_FILE):
         return []
+
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         try:
-            return json.load(f)
+            data = json.load(f)
+            if isinstance(data, list):
+                return data
+            return []
         except:
             return []
 
@@ -55,22 +59,32 @@ def guardar_productos(productos):
 def obtener_categorias():
     productos = cargar_productos()
     categorias_dict = {}
+
     for p in productos:
+        if not isinstance(p, dict):
+            continue
+
         nombre_categoria = str(p.get("categoria", "")).strip()
         if nombre_categoria and nombre_categoria not in categorias_dict:
             categorias_dict[nombre_categoria] = {
                 "nombre": nombre_categoria,
                 "foto": p.get("foto", "")
             }
+
     return list(categorias_dict.values())
 
 def obtener_categorias_admin():
     productos = cargar_productos()
     categorias = {}
+
     for p in productos:
+        if not isinstance(p, dict):
+            continue
+
         nombre = str(p.get("categoria", "")).strip()
         if nombre and nombre not in categorias:
             categorias[nombre] = p.get("foto", "")
+
     return categorias
 
 def obtener_carrito():
@@ -103,7 +117,6 @@ def agregar_carrito():
 
     session["carrito"] = carrito
     session.modified = True
-
     return redirect(request.referrer or url_for("index"))
 
 @app.route("/carrito")
@@ -127,7 +140,7 @@ def index():
 @app.route("/categoria/<nombre>")
 def categoria(nombre):
     productos = cargar_productos()
-    filtrados = [p for p in productos if p.get("categoria") == nombre]
+    filtrados = [p for p in productos if isinstance(p, dict) and p.get("categoria") == nombre]
     return render_template("categoria.html", productos=filtrados, nombre_categoria=nombre)
 
 @app.route("/checkout")
@@ -135,6 +148,7 @@ def checkout():
     carrito = obtener_carrito()
     if not carrito:
         return redirect(url_for("carrito"))
+
     subtotal = sum(item["total"] for item in carrito)
     return render_template("checkout.html", carrito=carrito, subtotal=subtotal, vendedores=VENDEDORES)
 
@@ -232,7 +246,7 @@ def admin():
     if not session.get("admin"):
         return redirect(url_for("login"))
 
-    productos = cargar_productos()
+    productos = [p for p in cargar_productos() if isinstance(p, dict)]
     categorias = obtener_categorias_admin()
     return render_template("admin.html", productos=productos, categorias=categorias)
 
@@ -256,7 +270,7 @@ def editar_categoria():
             foto.save(ruta)
             foto_path = f"uploads/{filename}"
 
-        productos = cargar_productos()
+        productos = [p for p in cargar_productos() if isinstance(p, dict)]
         existe = False
 
         for p in productos:
@@ -303,7 +317,7 @@ def agregar_producto():
         foto.save(ruta)
         foto_path = f"uploads/{filename}"
 
-    productos = cargar_productos()
+    productos = [p for p in cargar_productos() if isinstance(p, dict)]
     productos.append({
         "nombre": nombre,
         "precio": precio,
