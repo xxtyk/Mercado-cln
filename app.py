@@ -1,21 +1,27 @@
-import os, json
+import os
+import json
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "12345"
 
+# Rutas base
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# Crear carpetas y archivo si no existen
 def init_app():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
     if not os.path.exists(DATA_FILE):
         with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump({"categorias": {}, "productos": []}, f, ensure_ascii=False, indent=4)
+            json.dump({"categorias": {}, "productos": []}, f, indent=4)
 
+# Cargar datos
 def cargar():
     try:
         with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -28,10 +34,12 @@ def cargar():
     except:
         return {"categorias": {}, "productos": []}
 
+# Guardar datos
 def guardar(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        json.dump(data, f, indent=4)
 
+# Guardar imagen
 def guardar_foto(file):
     if not file or not file.filename:
         return ""
@@ -40,31 +48,48 @@ def guardar_foto(file):
     file.save(ruta)
     return "uploads/" + nombre
 
+# -------------------------------
+# CLIENTE (INICIO)
+# -------------------------------
 @app.route("/")
 def index():
     data = cargar()
     categorias = []
+
     for nombre, foto in data["categorias"].items():
-        categorias.append({"nombre": nombre, "foto": foto})
+        categorias.append({
+            "nombre": nombre,
+            "foto": foto
+        })
+
     return render_template("index.html", categorias=categorias)
 
+# -------------------------------
+# VER PRODUCTOS POR CATEGORIA
+# -------------------------------
 @app.route("/categoria/<nombre>")
 def categoria(nombre):
     data = cargar()
     productos = [p for p in data["productos"] if p.get("categoria", "").lower() == nombre.lower()]
+
     return render_template("producto.html", productos=productos, nombre_categoria=nombre)
 
+# -------------------------------
+# ADMIN PANEL
+# -------------------------------
 @app.route("/admin")
 def admin():
     data = cargar()
     return render_template("admin.html", categorias=data["categorias"], productos=data["productos"])
 
+# -------------------------------
+# CREAR / EDITAR CATEGORIA
+# -------------------------------
 @app.route("/editar_categoria", methods=["GET", "POST"])
 def editar_categoria():
     if request.method == "POST":
         nombre = request.form.get("nombre_categoria", "").strip()
-        foto
-foto = request.files.get("foto_categoria")
+        foto = request.files.get("foto_categoria")
 
         if not nombre:
             flash("Escribe un nombre de categoría")
@@ -85,7 +110,9 @@ foto = request.files.get("foto_categoria")
 
     return render_template("categoria.html")
 
-
+# -------------------------------
+# AGREGAR PRODUCTO
+# -------------------------------
 @app.route("/agregar_producto", methods=["GET", "POST"])
 def agregar_producto():
     data = cargar()
@@ -108,15 +135,14 @@ def agregar_producto():
 
         data["productos"].append(nuevo)
         guardar(data)
+
         return redirect(url_for("admin"))
 
-    return render_template(
-        "admin.html",
-        categorias=list(data["categorias"].keys()),
-        productos=data["productos"]
-    )
+    return render_template("producto.html", categorias=data["categorias"])
 
-
+# -------------------------------
+# INICIO SERVIDOR
+# -------------------------------
 if __name__ == "__main__":
     init_app()
     port = int(os.environ.get("PORT", 5000))
