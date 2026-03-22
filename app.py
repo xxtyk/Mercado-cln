@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = "12345"
 
 # ==============================
-# CONFIGURACIÓN DE CARPETAS (Mantenemos tu lógica)
+# CONFIGURACIÓN DE CARPETAS
 # ==============================
 def inicializar_entorno():
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -26,6 +26,16 @@ def inicializar_entorno():
 app.config['UPLOAD_FOLDER'] = inicializar_entorno()
 DB_FILE = "productos.json"
 
+# Función auxiliar para leer el JSON sin errores
+def cargar_datos():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {"categorias": [], "productos": []}
+    return {"categorias": [], "productos": []}
+
 # ==============================
 # RUTAS
 # ==============================
@@ -36,38 +46,50 @@ def inicio():
 
 @app.route('/admin')
 def admin():
-    return render_template("admin.html")
+    datos = cargar_datos()
+    categorias = datos.get("categorias", [])
+    return render_template("admin.html", categorias=categorias)
 
 @app.route('/editar_categoria', methods=['GET', 'POST'])
 def editar_categoria():
     if request.method == 'POST':
-        nombre_categoria = request.form.get('categoria') # Verifica que en el HTML el name sea 'categoria'
+        # .strip() quita espacios y .capitalize() pone la primera en Mayúscula
+        nombre_categoria = request.form.get('categoria', '').strip().capitalize()
         
         if nombre_categoria:
-            try:
-                if os.path.exists(DB_FILE):
-                    with open(DB_FILE, "r") as f:
-                        datos = json.load(f)
-                else:
-                    datos = {"categorias": []}
-            except Exception:
-                datos = {"categorias": []}
-
+            datos = cargar_datos()
             if "categorias" not in datos:
                 datos["categorias"] = []
 
-            # Solo agregar si no existe ya
             if nombre_categoria not in datos["categorias"]:
                 datos["categorias"].append(nombre_categoria)
                 with open(DB_FILE, "w") as f:
                     json.dump(datos, f, indent=4)
                 flash(f"Categoría '{nombre_categoria}' guardada.", "success")
             else:
-                flash("La categoría ya existe.", "warning")
+                flash(f"La categoría '{nombre_categoria}' ya existe.", "warning")
 
         return redirect(url_for('admin'))
     
     return render_template("categoria.html")
+
+# NUEVA RUTA PARA BORRAR CATEGORÍAS
+@app.route('/eliminar_categoria/<nombre>')
+def eliminar_categoria(nombre):
+    datos = cargar_datos()
+    if "categorias" in datos and nombre in datos["categorias"]:
+        datos["categorias"].remove(nombre)
+        with open(DB_FILE, "w") as f:
+            json.dump(datos, f, indent=4)
+        flash(f"Categoría '{nombre}' eliminada.", "danger")
+    return redirect(url_for('admin'))
+
+# RUTA PARA EL FORMULARIO DE PRODUCTOS (Corrigiendo el menú vacío)
+@app.route('/producto')
+def producto():
+    datos = cargar_datos()
+    categorias = datos.get("categorias", [])
+    return render_template("producto.html", categorias=categorias)
 
 # ==============================
 # SERVIDOR
