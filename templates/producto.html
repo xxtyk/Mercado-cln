@@ -21,8 +21,8 @@ body {
 
 .grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
+    gap: 12px;
     padding: 10px;
 }
 
@@ -35,7 +35,7 @@ body {
 
 .card img {
     width: 100%;
-    height: 150px;
+    height: 180px;
     object-fit: cover;
 }
 
@@ -45,11 +45,22 @@ body {
 
 .nombre {
     font-weight: bold;
+    font-size: 18px;
 }
 
 .precio {
     color: green;
     font-weight: bold;
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+input, textarea, select, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
 }
 
 .btn {
@@ -57,10 +68,12 @@ body {
     margin-top: 10px;
     background: #25D366;
     color: white;
-    padding: 10px;
+    padding: 12px;
     text-align: center;
     border-radius: 8px;
     text-decoration: none;
+    border: none;
+    font-weight: bold;
 }
 </style>
 </head>
@@ -82,9 +95,31 @@ body {
         <div class="nombre">{{ p.nombre }}</div>
         <div class="precio">$ {{ p.precio }}</div>
 
-        <a class="btn" href="https://wa.me/526679771409?text=Quiero {{ p.nombre }}">
-            Comprar
-        </a>
+        <form action="/finalizar_pedido" method="POST">
+            <input type="hidden" name="producto" value="{{ p.nombre }}">
+            <input type="hidden" name="precio" value="{{ p.precio }}">
+
+            <input type="text" name="nombre" placeholder="Nombre" required>
+            <input type="text" name="colonia" placeholder="Colonia" required>
+            <input type="text" name="calle" placeholder="Calle" required>
+            <input type="text" name="celular" placeholder="Celular" required>
+
+            <textarea name="nota" placeholder="Nota"></textarea>
+
+            <select name="entrega" required>
+                <option value="domicilio">A domicilio (+40)</option>
+                <option value="bodega">Recoger en bodega</option>
+            </select>
+
+            <select name="vendedor" required>
+                <option value="">Selecciona vendedor</option>
+                {% for v in vendedores %}
+                <option value="{{ v }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+
+            <button class="btn" type="submit">Finalizar pedido</button>
+        </form>
     </div>
 </div>
 {% endfor %}
