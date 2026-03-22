@@ -3,29 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cargar Producto</title>
+<title>Agregar Producto - Mercado CLN</title>
 <style>
-body { font-family:'Segoe UI', sans-serif; background:#121212; color:white; margin:0; padding:0; }
-.container { padding:20px; width:95%; margin:auto; }
-input, select, textarea { width:100%; padding:15px; margin:10px 0; background:#1e1e1e; color:white; border:none; border-bottom:2px solid #00d4ff; border-radius:5px; }
-button { position:fixed; bottom:10px; left:50%; transform:translateX(-50%); background:#00d4ff; color:black; padding:15px 50px; border:none; border-radius:10px; font-weight:bold; font-size:1.1rem; cursor:pointer; }
-button:hover { background:#00b3cc; }
+body { font-family:'Segoe UI', sans-serif; background:#121212; color:white; margin:0; padding:20px; }
+h2 { text-align:center; color:#00d4ff; margin-bottom:20px; }
+form { background:#1e1e1e; padding:20px; border-radius:15px; width:95%; margin:auto; }
+input, select, button, textarea { width:100%; padding:18px; margin:10px 0; font-size:1.1rem; border:none; border-radius:10px; }
+input, select, textarea { background:#2c2c2c; color:white; border-bottom:2px solid #00d4ff; }
+textarea { resize:none; height:80px; }
+button.guardar { background:green; color:white; font-weight:bold; }
+a { color:#00d4ff; text-decoration:none; display:block; text-align:center; margin-top:15px; }
 </style>
 </head>
 <body>
-<div class="container">
+
+<h2>Agregar Producto</h2>
 <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
-<input type="text" name="nombre" placeholder="Nombre del Producto" required>
-<input type="text" name="precio" placeholder="Precio" required>
-<input type="text" name="descripcion" placeholder="Descripción" required>
-<select name="categoria" required>
-{% for c in categorias %}
-<option value="{{ c }}">{{ c }}</option>
-{% endfor %}
-</select>
-<input type="file" name="imagen" accept="image/*" required>
-<button type="submit">GUARDAR</button>
+    <input type="text" name="nombre" placeholder="Nombre del Producto" required>
+    <input type="text" name="precio" placeholder="Precio" required>
+    <textarea name="descripcion" placeholder="Descripción" required></textarea>
+    <select name="categoria" required>
+        {% for c in categorias %}
+        <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+    </select>
+    <input type="file" name="imagen" accept="image/*" required>
+    <button type="submit" class="guardar">Guardar Producto</button>
 </form>
-</div>
+
+<a href="/admin">← Volver al Panel</a>
+
 </body>
 </html>
