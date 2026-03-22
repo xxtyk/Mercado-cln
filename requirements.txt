@@ -1,6 +1,5 @@
 Flask
-gunicorn
-Werkzeug
+requests
 
 
 
