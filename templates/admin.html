@@ -3,96 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Mercado CLN</title>
+    <title>Panel Admin - Mercado CLN</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; padding: 10px; margin: 0; }
-        .container { width: 95%; margin: auto; padding-top: 20px; }
-        h2 { color: #00d4ff; text-align: center; font-size: 1.8rem; }
-        
-        /* Formulario Gigante para Celular */
-        form { background: #1e1e1e; padding: 20px; border-radius: 15px; border: 1px solid #333; }
-        label { display: block; margin-top: 15px; color: #888; font-weight: bold; }
-        input { 
-            width: 100%; 
-            padding: 15px; 
-            margin-top: 5px; 
-            border-radius: 8px; 
-            border: 1px solid #444; 
-            background: #252525; 
+        body { 
+            font-family: sans-serif; 
+            background: #121212; 
             color: white; 
-            font-size: 1.1rem;
-            box-sizing: border-box; /* Para que no se salga de la pantalla */
-        }
-        
-        button { 
-            width: 100%; 
-            padding: 20px; 
-            background: #27ae60; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            font-weight: bold; 
-            font-size: 1.3rem; 
-            margin-top: 25px;
-            cursor: pointer;
+            margin: 0; 
+            padding: 15px;
+            text-align: center;
         }
 
-        /* Lista de productos para borrar */
-        .lista { margin-top: 40px; }
-        .item { 
-            background: #252525; 
-            padding: 15px; 
-            margin-bottom: 10px; 
-            border-radius: 10px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-left: 5px solid #00d4ff;
+        h2 { color: #00d4ff; margin-bottom: 25px; font-size: 1.8rem; }
+
+        .contenedor {
+            width: 98%;
+            margin: auto;
         }
-        .btn-borrar { 
-            background: #e74c3c; 
-            color: white; 
-            padding: 10px 15px; 
-            text-decoration: none; 
-            border-radius: 5px; 
+
+        /* Formulario Macizo para el Celular */
+        .formulario {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid #333;
+        }
+
+        .formulario input {
+            width: 100%;
+            padding: 18px;
+            margin: 12px 0;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            border: 1px solid #444;
+            background: #2c2c2c;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .guardar {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 20px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            cursor: pointer;
             font-weight: bold;
+            margin-top: 10px;
         }
-        .volver { display: block; text-align: center; margin-top: 30px; color: #00d4ff; text-decoration: none; font-weight: bold; }
+
+        /* Lista de Productos */
+        .producto {
+            background: #1e1e1e;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            border: 1px solid #333;
+        }
+
+        .producto img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .borrar {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .volver {
+            display: block;
+            margin-top: 30px;
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Panel de Control</h2>
-        
-        <form action="/agregar" method="POST" enctype="multipart/form-data">
-            <label>Nombre del Servicio:</label>
-            <input type="text" name="nombre" placeholder="Ej: Lavado de Minisplit" required>
-            
-            <label>Precio ($):</label>
-            <input type="number" name="precio" placeholder="Ej: 800" required>
-            
-            <label>Foto (Selecciona de tu galería):</label>
-            <input type="file" name="imagen" accept="image/*" required>
-            
-            <button type="submit">PUBLICAR AHORA</button>
-        </form>
+<div class="contenedor">
+    <h2>Panel de Administración</h2>
 
-        <div class="lista">
-            <h3>Servicios Publicados:</h3>
-            {% for p in productos %}
-            <div class="item">
-                <div>
-                    <strong>{{ p.nombre }}</strong><br>
-                    <span style="color: #2ecc71;">${{ p.precio }}</span>
-                </div>
-                <a href="{{ url_for('eliminar', index=loop.index0) }}" class="btn-borrar" onclick="return confirm('¿Quieres quitar este servicio?')">Borrar</a>
-            </div>
-            {% endfor %}
-        </div>
+    <form class="formulario" action="/agregar" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre del Producto" required>
+        <input type="text" name="precio" placeholder="Precio (Ej: 160)" required>
+        <input type="file" name="imagen" accept="image/*" required>
+        <button type="submit" class="guardar">GUARDAR PRODUCTO</button>
+    </form>
 
-        <a href="/" class="volver">← Volver al Catálogo</a>
+    <hr style="border: 0.5px solid #333; margin: 40px 0;">
+
+    <h3>Productos en catálogo:</h3>
+    
+    {% for p in productos %}
+    <div class="producto">
+        <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
+        <h3>{{ p.nombre }}</h3>
+        <p style="color: #2ecc71; font-size: 1.3rem; font-weight: bold;">$ {{ p.precio }}</p>
+        <a href="{{ url_for('eliminar', index=loop.index0) }}" class="borrar" onclick="return confirm('¿Borrar este producto?')">ELIMINAR</a>
     </div>
+    {% else %}
+    <p>No hay productos todavía.</p>
+    {% endfor %}
+
+    <a href="/" class="volver">← Volver al Catálogo</a>
+</div>
 
 </body>
 </html>
