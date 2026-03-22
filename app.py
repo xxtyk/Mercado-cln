@@ -4,8 +4,15 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 app = Flask(__name__)
 app.secret_key = "12345"  # Necesario para flash
 
-# Carpeta para guardar archivos subidos
-UPLOAD_FOLDER = "static/uploads"
+# ==============================
+# Crear carpetas automáticamente
+# ==============================
+# Carpeta estática
+if not os.path.exists("static"):
+    os.makedirs("static")
+
+# Carpeta uploads dentro de static
+UPLOAD_FOLDER = os.path.join("static", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -31,14 +38,16 @@ def inicio():
             if categoria:
                 # Aquí puedes guardar la categoría en JSON o base de datos
                 flash(f"Categoría '{categoria}' agregada correctamente.")
-            return redirect(url_for('inicio'))  # <- CORRECCIÓN AQUÍ
+            return redirect(url_for('inicio'))
 
     # GET: solo renderiza la página
     return render_template("index.html")
 
+
 @app.route('/admin')
 def admin():
     return render_template("admin.html")
+
 
 # ==============================
 # SERVIDOR
