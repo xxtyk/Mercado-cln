@@ -14,7 +14,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
 
 # =========================
-# 🔐 GREEN API (SEGURO)
+# 🔐 GREEN API
 # =========================
 
 GREEN_API_URL = os.getenv("GREEN_API_URL")
@@ -61,13 +61,12 @@ def obtener_categorias():
     categorias_dict = {}
 
     for p in productos:
-        nombre_categoria = p.get("categoria", "").strip()
-        if nombre_categoria:
-            if nombre_categoria not in categorias_dict:
-                categorias_dict[nombre_categoria] = {
-                    "nombre": nombre_categoria,
-                    "foto": p.get("foto", "")
-                }
+        nombre_categoria = str(p.get("categoria", "")).strip()
+        if nombre_categoria and nombre_categoria not in categorias_dict:
+            categorias_dict[nombre_categoria] = {
+                "nombre": nombre_categoria,
+                "foto": p.get("foto", "")
+            }
 
     return list(categorias_dict.values())
 
@@ -137,7 +136,11 @@ def index():
 def categoria(nombre):
     productos = cargar_productos()
     filtrados = [p for p in productos if p.get("categoria") == nombre]
-    return render_template("categoria.html", productos=filtrados, nombre_categoria=nombre)
+    return render_template(
+        "categoria.html",
+        productos=filtrados,
+        nombre_categoria=nombre
+    )
 
 # =========================
 # 🧾 CHECKOUT
@@ -146,17 +149,32 @@ def categoria(nombre):
 @app.route("/checkout")
 def checkout():
     carrito = obtener_carrito()
+
     if not carrito:
         return redirect(url_for("carrito"))
 
     subtotal = sum(item["total"] for item in carrito)
-    return render_template("checkout.html", carrito=carrito, subtotal=subtotal, vendedores=VENDEDORES)
+    return render_template(
+        "checkout.html",
+        carrito=carrito,
+        subtotal=subtotal,
+        vendedores=VENDEDORES
+    )
 
 # =========================
 # 📤 ENVIAR A GREEN API
 # =========================
 
 def enviar_green_api(mensaje):
+    if not GREEN_API_URL:
+        raise ValueError("Falta GREEN_API_URL")
+    if not GREEN_API_INSTANCE:
+        raise ValueError("Falta GREEN_API_INSTANCE")
+    if not GREEN_API_TOKEN:
+        raise ValueError("Falta GREEN_API_TOKEN")
+    if not GREEN_API_CHAT_ID:
+        raise ValueError("Falta GREEN_API_CHAT_ID")
+
     url = f"{GREEN_API_URL}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
 
     payload = {
@@ -164,8 +182,9 @@ def enviar_green_api(mensaje):
         "message": mensaje
     }
 
-    response = requests.post(url, json=payload)
+    response = requests.post(url, json=payload, timeout=30)
     response.raise_for_status()
+    return response.json()
 
 # =========================
 # 🚀 FINALIZAR PEDIDO
@@ -173,13 +192,13 @@ def enviar_green_api(mensaje):
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
-    nombre = request.form.get("nombre")
-    colonia = request.form.get("colonia")
-    calle = request.form.get("calle")
-    celular = request.form.get("celular")
-    nota = request.form.get("nota")
-    entrega = request.form.get("entrega")
-    vendedor = request.form.get("vendedor")
+    nombre = request.form.get("nombre", "").strip()
+    colonia = request.form.get("colonia", "").strip()
+    calle = request.form.get("calle", "").strip()
+    celular = request.form.get("celular", "").strip()
+    nota = request.form.get("nota", "").strip()
+    entrega = request.form.get("entrega", "").strip()
+    vendedor = request.form.get("vendedor", "").strip()
 
     carrito = obtener_carrito()
 
@@ -209,13 +228,13 @@ def finalizar_pedido():
 🚚 Envío: ${envio}
 🧾 Total: ${total}
 📦 Status: {status}
-👨‍💼 Vendedor: {vendedor}
+👨‍💼 Vendedor: {vendedor if vendedor else 'Mercado en Línea Culiacán'}
 📝 Nota: {nota if nota else '-'}"""
 
     try:
         enviar_green_api(mensaje)
     except Exception as e:
-        return f"Error GREEN API: {e}"
+        return f"Error GREEN API: {e}", 500
 
     session["carrito"] = []
     session.modified = True
@@ -227,4 +246,5 @@ def finalizar_pedido():
 # =========================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
