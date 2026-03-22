@@ -6,9 +6,9 @@
 <title>Mercado CLN - Categorías</title>
 <style>
 body { font-family:'Segoe UI', sans-serif; background:#121212; color:white; margin:0; padding:20px; }
-h1 { text-align:center; color:#00d4ff; }
-.contenedor { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; margin-top:20px; }
-.categoria { background:#1e1e1e; width:160px; height:160px; display:flex; align-items:center; justify-content:center; border-radius:20px; font-size:1.2rem; cursor:pointer; transition:0.3s; }
+h1 { text-align:center; color:#00d4ff; margin-bottom:20px; }
+.contenedor { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+.categoria { background:#1e1e1e; width:45%; height:120px; display:flex; align-items:center; justify-content:center; border-radius:20px; font-size:1.2rem; cursor:pointer; transition:0.3s; text-align:center; }
 .categoria:hover { background:#00d4ff; color:black; }
 a { text-decoration:none; color:inherit; }
 .boton-agregar { display:inline-block; margin-top:40px; padding:20px; background:#00d4ff; color:black; font-weight:bold; border-radius:15px; font-size:1.2rem; text-decoration:none; }
@@ -16,6 +16,7 @@ a { text-decoration:none; color:inherit; }
 </style>
 </head>
 <body>
+
 <h1>Categorías</h1>
 <div class="contenedor">
 {% for c in categorias %}
@@ -26,5 +27,6 @@ a { text-decoration:none; color:inherit; }
 <a href="/admin" class="boton-agregar">+ Agregar mi primera categoría</a>
 {% endfor %}
 </div>
+
 </body>
 </html>
