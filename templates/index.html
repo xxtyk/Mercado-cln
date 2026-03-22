@@ -1,58 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mercado Culiacán</title>
-<style>
-body{font-family:Arial;margin:20px;background:#f8f8f8;}
-h1,h2{text-align:center;}
-.categorias{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:20px;}
-.categoria{padding:10px 15px;background:#007bff;color:white;border-radius:5px;cursor:pointer;}
-.categoria:hover{background:#0056b3;}
-ul{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
-li{border:1px solid #ccc;padding:10px;width:150px;text-align:center;border-radius:8px;background:white;box-shadow:2px2px5px rgba(0,0,0,0.1);}
-li img{max-width:100%;border-radius:5px;}
-button{background:#007bff;color:white;border:none;padding:10px;border-radius:5px;cursor:pointer;margin-top:5px;}
-button:hover{background:#0056b3;}
-.download{display:block;text-align:center;margin:15px;color:#007bff;}
-.download:hover{color:#0056b3;}
-.alert{background:#fffae6;padding:10px;text-align:center;margin-bottom:10px;border-radius:5px;color:#8a6d3b;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado en Línea Culiacán - Aires Acondicionados</title>
+    <style>
+        :root {
+            --azul: #1a3b93;
+            --gris: #b1b1b1;
+            --negro-fondo: #111111;
+            --blanco: #ffffff;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--negro-fondo); margin: 0; padding: 0; color: var(--gris); }
+        
+        header { background-color: rgba(0,0,0,0.8); padding: 30px; text-align: center; border-bottom: 3px solid var(--azul); position: sticky; top: 0; z-index: 100; }
+        
+        .logo { max-height: 120px; width: auto; }
+        
+        h1 { color: var(--azul); font-size: 1.5rem; margin-top: 15px; margin-bottom: 5px; }
+        .subtitulo { color: var(--blanco); font-size: 1rem; margin-top: 0; margin-bottom: 20px; font-weight: bold; }
+
+        .contenedor-productos { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 25px; }
+        
+        .tarjeta-producto { background: #1a1a1a; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #333; transition: transform 0.3s; }
+        .tarjeta-producto:hover { transform: translateY(-5px); border-color: var(--azul); }
+        
+        .imagen-producto { width: 100%; height: 200px; object-fit: cover; }
+        
+        .info-producto { padding: 15px; text-align: center; }
+        
+        .nombre-producto { color: var(--blanco); font-size: 1.1rem; font-weight: bold; margin-bottom: 10px; }
+        .precio { font-size: 1.3rem; color: var(--azul); font-weight: bold; margin-bottom: 15px; }
+        
+        .btn-whatsapp { background-color: #25d366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: bold; font-size: 16px; border: none; cursor: pointer; transition: background-color 0.3s; }
+        .btn-whatsapp:hover { background-color: #1ebe5d; }
+    </style>
 </head>
 <body>
 
-{% if config.get('logo') %}
-<img src="{{ config.get('logo') }}" alt="Logo" width="150" style="display:block;margin:0 auto 20px;">
-{% endif %}
+    <header>
+        <img src="/static/logo.png" alt="Mercado CLN" class="logo">
+        <h1 style="display: none;">MERCADO EN LINEA CULIACÁN</h1> <p class="subtitulo">Servicios y Equipos de Aire Acondicionado</p>
+    </form>
+    </header>
 
-<h1>Mercado Culiacán</h1>
+    <div class="contenedor-productos">
+        {% for p in productos %}
+        <div class="tarjeta-producto">
+            <img src="{{ p.imagen }}" alt="{{ p.nombre }}" class="imagen-producto">
+            <div class="info-producto">
+                <div class="nombre-producto">{{ p.nombre }}</div>
+                <div class="precio">${{ p.precio }}</div>
+                <a href="https://wa.me/5216672323232?text=Hola Hector, me interesa el servicio de {{ p.nombre }} de ${{ p.precio }} en Mercado CLN." target="_blank" class="btn-whatsapp">💬 Pedir por WhatsApp</a>
+            </div>
+        </div>
+        {% else %}
+        <p style="text-align: center; color: #999; grid-column: 1 / -1; margin-top: 50px;">No hay servicios publicados todavía. ¡Ve al panel de admin!</p>
+        {% endfor %}
+    </div>
 
-<div class="alert">⚠️ Recuerda: el pago es a CONTRA ENTREGA</div>
-<a class="download" href="#">📱 Descarga nuestra app para compras más rápidas</a>
-
-<h2>Categorías</h2>
-<div class="categorias">
-  {% for id, nombre in categorias.items() %}
-    <a class="categoria" href="#cat-{{ id }}">{{ nombre }}</a>
-  {% endfor %}
-</div>
-
-{% for cat_id, cat_nombre in categorias.items() %}
-<h2 id="cat-{{ cat_id }}">{{ cat_nombre }}</h2>
-<ul>
-  {% for id, producto in productos.items() %}
-    {% if producto.categoria == cat_nombre and producto.disponible %}
-    <li>
-      <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
-      <strong>{{ producto.nombre }}</strong><br>
-      ${{ producto.precio }}<br>
-      <a href="{{ url_for('pedido', producto_id=id) }}">Comprar</a>
-    </li>
-    {% endif %}
-  {% endfor %}
-</ul>
-{% endfor %}
+    <footer style="margin-top: 50px; color: var(--gris); text-align: center; padding: 20px; font-size: 12px; border-top: 1px solid #333;">
+        <p>&copy; 2026 Mercado en Línea Culiacán | Diseñado con pasión en Culiacán</p>
+    </footer>
 
 </body>
 </html>
