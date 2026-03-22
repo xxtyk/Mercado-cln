@@ -27,6 +27,7 @@ if cloudinary:
 PRODUCTOS_FILE = "productos.json"
 CATEGORIAS_FILE = "categorias.json"
 
+# Crear archivos si no existen
 for archivo in [PRODUCTOS_FILE, CATEGORIAS_FILE]:
     if not os.path.exists(archivo):
         with open(archivo, "w") as f:
@@ -150,7 +151,7 @@ def eliminar_categoria(nombre):
     return redirect(url_for('admin'))
 
 # ------------------------------
-# SERVIDOR RENDER
+# SERVIDOR
 # ------------------------------
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
