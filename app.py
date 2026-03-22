@@ -1,7 +1,7 @@
 import os
 import json
 from urllib.parse import quote
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
 app.secret_key = "12345"
@@ -36,8 +36,31 @@ VENDEDORES = [
 def cargar_productos():
     if not os.path.exists(DATA_FILE):
         return []
+
     with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        try:
+            return json.load(f)
+        except:
+            return []
+
+# =========================
+# 📂 SACAR CATEGORÍAS DESDE PRODUCTOS
+# =========================
+
+def obtener_categorias():
+    productos = cargar_productos()
+    categorias_dict = {}
+
+    for p in productos:
+        nombre_categoria = p.get("categoria", "").strip()
+        if nombre_categoria:
+            if nombre_categoria not in categorias_dict:
+                categorias_dict[nombre_categoria] = {
+                    "nombre": nombre_categoria,
+                    "foto": p.get("foto", "")
+                }
+
+    return list(categorias_dict.values())
 
 # =========================
 # 🛒 CARRITO
@@ -50,10 +73,10 @@ def obtener_carrito():
 
 @app.route("/agregar_carrito", methods=["POST"])
 def agregar_carrito():
-    producto = request.form.get("producto")
-    precio = float(request.form.get("precio"))
-    foto = request.form.get("foto")
-    cantidad = int(request.form.get("cantidad"))
+    producto = request.form.get("producto", "").strip()
+    precio = float(request.form.get("precio", 0) or 0)
+    foto = request.form.get("foto", "").strip()
+    cantidad = int(request.form.get("cantidad", 1) or 1)
 
     carrito = obtener_carrito()
 
@@ -77,7 +100,7 @@ def agregar_carrito():
     session["carrito"] = carrito
     session.modified = True
 
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("index"))
 
 @app.route("/carrito")
 def carrito():
@@ -88,6 +111,7 @@ def carrito():
 @app.route("/vaciar_carrito")
 def vaciar_carrito():
     session["carrito"] = []
+    session.modified = True
     return redirect(url_for("carrito"))
 
 # =========================
@@ -96,8 +120,8 @@ def vaciar_carrito():
 
 @app.route("/")
 def index():
-    productos = cargar_productos()
-    return render_template("index.html", productos=productos)
+    categorias = obtener_categorias()
+    return render_template("index.html", categorias=categorias)
 
 # =========================
 # 📂 CATEGORÍA
@@ -110,20 +134,36 @@ def categoria(nombre):
     return render_template("categoria.html", productos=filtrados, nombre_categoria=nombre)
 
 # =========================
+# 🧾 CHECKOUT
+# =========================
+
+@app.route("/checkout")
+def checkout():
+    carrito = obtener_carrito()
+    if not carrito:
+        return redirect(url_for("carrito"))
+
+    subtotal = sum(item["total"] for item in carrito)
+    return render_template("checkout.html", carrito=carrito, subtotal=subtotal, vendedores=VENDEDORES)
+
+# =========================
 # 🚀 FINALIZAR PEDIDO
 # =========================
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
-    nombre = request.form.get("nombre")
-    colonia = request.form.get("colonia")
-    calle = request.form.get("calle")
-    celular = request.form.get("celular")
-    nota = request.form.get("nota")
-    entrega = request.form.get("entrega")
-    vendedor = request.form.get("vendedor")
+    nombre = request.form.get("nombre", "").strip()
+    colonia = request.form.get("colonia", "").strip()
+    calle = request.form.get("calle", "").strip()
+    celular = request.form.get("celular", "").strip()
+    nota = request.form.get("nota", "").strip()
+    entrega = request.form.get("entrega", "").strip()
+    vendedor = request.form.get("vendedor", "").strip()
 
     carrito = obtener_carrito()
+
+    if not carrito:
+        return redirect(url_for("carrito"))
 
     subtotal = sum(item["total"] for item in carrito)
     envio = 40 if entrega == "domicilio" else 0
@@ -150,7 +190,7 @@ def finalizar_pedido():
         mensaje += "📦 Status: Recoger en bodega\n"
 
     mensaje += f"👨‍💼 Vendedor: {vendedor}\n"
-    mensaje += f"📝 Nota: {nota}"
+    mensaje += f"📝 Nota: {nota if nota else '-'}"
 
     mensaje = quote(mensaje)
 
@@ -158,6 +198,7 @@ def finalizar_pedido():
     link = f"https://wa.me/{numero}?text={mensaje}"
 
     session["carrito"] = []
+    session.modified = True
 
     return redirect(link)
 
