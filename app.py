@@ -1,46 +1,65 @@
+from flask import Flask, render_template, request, redirect
+import json
 import os
-from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
-app.secret_key = "mi_clave_super_secreta"  # Cambia esto si quieres más seguridad
 
-# Usuario de prueba
-USUARIO = "admin"
-PASSWORD = "1234"
+# archivo donde se guardan productos
+DB = "productos.json"
 
-@app.route("/")
-def home():
-    return redirect(url_for("login"))
+# crear archivo si no existe
+if not os.path.exists(DB):
+    with open(DB, "w") as f:
+        json.dump([], f)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+# funciones
+def cargar_productos():
+    with open(DB, "r") as f:
+        return json.load(f)
 
-        if username == USUARIO and password == PASSWORD:
-            session["user"] = username
-            return redirect(url_for("panel"))
-        else:
-            return render_template("login.html", error="Usuario o contraseña incorrectos")
-    return render_template("login.html")
+def guardar_productos(data):
+    with open(DB, "w") as f:
+        json.dump(data, f, indent=4)
 
-@app.route("/panel")
-def panel():
-    if "user" in session:
-        return render_template("panel.html", user=session["user"])
-    else:
-        return redirect(url_for("login"))
+# INICIO (TIENDA)
+@app.route('/')
+def inicio():
+    productos = cargar_productos()
+    return render_template('index.html', productos=productos)
 
-@app.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
+# AGREGAR PRODUCTO
+@app.route('/agregar', methods=['GET', 'POST'])
+def agregar():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        precio = request.form['precio']
+        descripcion = request.form.get('descripcion', '')
+        categoria = request.form.get('categoria', '')
 
-@app.route("/tienda")
-def cliente():
-    return "<h1>Tienda Mercado en Línea Culiacán</h1><p>Vista para clientes.</p>"
+        imagen = request.files['imagen']
+        url_imagen = ""
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+        if imagen:
+            ruta = "static/" + imagen.filename
+            imagen.save(ruta)
+            url_imagen = ruta
+
+        producto = {
+            "nombre": nombre,
+            "precio": precio,
+            "descripcion": descripcion,
+            "categoria": categoria,
+            "imagen": url_imagen
+        }
+
+        datos = cargar_productos()
+        datos.append(producto)
+        guardar_productos(datos)
+
+        return redirect('/')
+
+    return render_template('agregar.html')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
