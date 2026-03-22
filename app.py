@@ -7,7 +7,7 @@ import cloudinary.uploader
 app = Flask(__name__)
 
 # ==============================
-# ☁️ CONFIGURACIÓN CLOUDINARY
+# ☁️ CLOUDINARY
 # ==============================
 cloudinary.config(
     cloud_name="dosyi726x",
@@ -20,84 +20,79 @@ cloudinary.config(
 # ==============================
 PRODUCTOS_FILE = "productos.json"
 CATEGORIAS_FILE = "categorias.json"
+CONFIG_FILE = "config.json"
+
+# Crear archivos si no existen
+for file in [PRODUCTOS_FILE, CATEGORIAS_FILE, CONFIG_FILE]:
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            if file == CONFIG_FILE:
+                json.dump({"logo": ""}, f)
+            else:
+                json.dump([], f)
 
 # ==============================
-# 🔹 FUNCIONES ÚTILES
+# 📦 FUNCIONES DE CARGA/GUARDADO
 # ==============================
 def cargar_productos():
-    if not os.path.exists(PRODUCTOS_FILE):
-        with open(PRODUCTOS_FILE, "w") as f:
-            json.dump([], f)
-    with open(PRODUCTOS_FILE, "r") as f:
-        try:
-            productos = json.load(f)
-        except:
-            productos = []
-    for p in productos:
-        if "imagen" not in p or not p["imagen"]:
-            p["imagen"] = "https://via.placeholder.com/300"
-    return productos
+    try:
+        with open(PRODUCTOS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []
 
 def guardar_productos(productos):
     with open(PRODUCTOS_FILE, "w") as f:
         json.dump(productos, f, indent=4)
 
 def cargar_categorias():
-    if not os.path.exists(CATEGORIAS_FILE):
-        with open(CATEGORIAS_FILE, "w") as f:
-            json.dump([], f)
-    with open(CATEGORIAS_FILE, "r") as f:
-        try:
-            categorias = json.load(f)
-        except:
-            categorias = []
-    return categorias
+    try:
+        with open(CATEGORIAS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return []
 
 def guardar_categorias(categorias):
     with open(CATEGORIAS_FILE, "w") as f:
         json.dump(categorias, f, indent=4)
 
+def cargar_config():
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {"logo": ""}
+
+def guardar_config(config):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f, indent=4)
+
 # ==============================
 # 🏠 RUTAS
 # ==============================
-
-# Ruta principal: lista de categorías
 @app.route('/')
 def inicio():
     categorias = cargar_categorias()
-    return render_template("index.html", categorias=categorias)
+    config = cargar_config()
+    return render_template("index.html", categorias=categorias, config=config)
 
-# Página de productos por categoría
 @app.route('/categoria/<nombre>')
 def ver_categoria(nombre):
     productos = cargar_productos()
-    productos_filtrados = [p for p in productos if p["categoria"] == nombre]
-    return render_template("categoria.html", categoria=nombre, productos=productos_filtrados)
+    categoria_productos = [p for p in productos if p.get("categoria") == nombre]
+    config = cargar_config()
+    return render_template("categoria.html", productos=categoria_productos, categoria=nombre, config=config)
 
-# Panel Admin
 @app.route('/admin')
 def admin():
     productos = cargar_productos()
     categorias = cargar_categorias()
-    return render_template("admin.html", productos=productos, categorias=categorias)
+    config = cargar_config()
+    return render_template("admin.html", productos=productos, categorias=categorias, config=config)
 
-# Formulario cargar producto
-@app.route('/cargar_producto')
-def cargar_producto():
-    categorias = cargar_categorias()
-    return render_template("cargar_producto.html", categorias=categorias)
-
-# Agregar categoría
-@app.route('/editar_categoria', methods=['POST'])
-def editar_categoria():
-    nombre = request.form.get("nombre")
-    categorias = cargar_categorias()
-    if nombre not in categorias:
-        categorias.append(nombre)
-        guardar_categorias(categorias)
-    return redirect(url_for('admin'))
-
-# Agregar producto
+# ==============================
+# ➕ AGREGAR PRODUCTO
+# ==============================
 @app.route('/agregar_producto', methods=['POST'])
 def agregar_producto():
     nombre = request.form.get("nombre")
@@ -105,8 +100,8 @@ def agregar_producto():
     descripcion = request.form.get("descripcion")
     categoria = request.form.get("categoria")
     archivo = request.files.get("imagen")
-
     imagen_url = ""
+
     if archivo:
         resultado = cloudinary.uploader.upload(archivo)
         imagen_url = resultado.get("secure_url")
@@ -123,13 +118,41 @@ def agregar_producto():
     guardar_productos(productos)
     return redirect(url_for('admin'))
 
-# Eliminar producto
+# ==============================
+# ➕ AGREGAR CATEGORÍA
+# ==============================
+@app.route('/editar_categoria', methods=['POST'])
+def editar_categoria():
+    nombre = request.form.get("nombre")
+    categorias = cargar_categorias()
+    if nombre and nombre not in categorias:
+        categorias.append(nombre)
+        guardar_categorias(categorias)
+    return redirect(url_for('admin'))
+
+# ==============================
+# 🗑️ ELIMINAR PRODUCTO
+# ==============================
 @app.route('/eliminar_producto/<int:index>')
 def eliminar_producto(index):
     productos = cargar_productos()
     if 0 <= index < len(productos):
         productos.pop(index)
         guardar_productos(productos)
+    return redirect(url_for('admin'))
+
+# ==============================
+# 🔹 SUBIR LOGO
+# ==============================
+@app.route('/config_logo', methods=['POST'])
+def config_logo():
+    archivo = request.files.get("logo")
+    if archivo:
+        resultado = cloudinary.uploader.upload(archivo)
+        logo_url = resultado.get("secure_url")
+        config = cargar_config()
+        config["logo"] = logo_url
+        guardar_config(config)
     return redirect(url_for('admin'))
 
 # ==============================
