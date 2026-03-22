@@ -1,105 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ nombre_categoria }}</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-        .header {
-            background: #000;
-            color: #fff;
-            padding: 16px;
-            font-size: 22px;
-            font-weight: bold;
-        }
-        .header a {
-            color: #fff;
-            text-decoration: none;
-            margin-right: 8px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 12px;
-        }
-        .card {
-            background: #fff;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            display: block;
-        }
-        .info {
-            padding: 10px;
-        }
-        .nombre {
-            font-weight: bold;
-            font-size: 16px;
-        }
-        .precio {
-            color: green;
-            margin-top: 6px;
-            font-weight: bold;
-        }
-        .descripcion {
-            margin-top: 6px;
-            color: #555;
-            font-size: 14px;
-            min-height: 34px;
-        }
-        .btn {
-            display: block;
-            margin-top: 10px;
-            padding: 9px;
-            background: #25D366;
-            color: #fff;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-        .vacio {
-            padding: 16px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <a href="{{ url_for('index') }}">←</a>{{ nombre_categoria }}
-    </div>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ nombre_categoria }}</title>
 
-    {% if productos %}
-    <div class="grid">
-        {% for p in productos %}
-        <div class="card">
-            {% if p.foto %}
-                <img src="{{ url_for('static', filename=p.foto) }}" alt="{{ p.nombre }}">
-            {% else %}
-                <img src="https://via.placeholder.com/400x300?text=Producto" alt="{{ p.nombre }}">
-            {% endif %}
-            <div class="info">
-                <div class="nombre">{{ p.nombre }}</div>
-                <div class="precio">$ {{ p.precio }}</div>
-                <div class="descripcion">{{ p.descripcion }}</div>
-                <a class="btn" href="https://wa.me/526679771409?text=Hola%20quiero%20{{ p.nombre }}">Comprar</a>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f4f4f4;
+}
+
+.header {
+    background: black;
+    color: white;
+    padding: 15px;
+    font-size: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+}
+
+.info {
+    padding: 10px;
+}
+
+.nombre {
+    font-weight: bold;
+}
+
+.precio {
+    color: green;
+    font-weight: bold;
+}
+
+.btn {
+    display: block;
+    margin-top: 10px;
+    background: #25D366;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">← {{ nombre_categoria }}</div>
+
+<div class="grid">
+{% for p in productos %}
+<div class="card">
+    {% if p.foto %}
+    <img src="/static/{{ p.foto }}">
     {% else %}
-    <div class="vacio">Todavía no hay productos en esta categoría.</div>
+    <img src="https://via.placeholder.com/300x200">
     {% endif %}
+
+    <div class="info">
+        <div class="nombre">{{ p.nombre }}</div>
+        <div class="precio">$ {{ p.precio }}</div>
+
+        <a class="btn" href="https://wa.me/526679771409?text=Quiero {{ p.nombre }}">
+            Comprar
+        </a>
+    </div>
+</div>
+{% endfor %}
+</div>
+
 </body>
 </html>
