@@ -2,19 +2,19 @@ import os
 import json
 from flask import Flask, render_template, request, redirect, url_for
 
-# Importar Cloudinary solo si está instalado
+# Cloudinary
 try:
     import cloudinary
     import cloudinary.uploader
 except ImportError:
     cloudinary = None
-    print("⚠️ Cloudinary no está instalado")
+    print("⚠️ Cloudinary no instalado")
 
 app = Flask(__name__)
 
-# ==============================
+# ------------------------------
 # ☁️ CONFIGURACIÓN CLOUDINARY
-# ==============================
+# ------------------------------
 if cloudinary:
     cloudinary.config(
         cloud_name="dosyi726x",
@@ -22,18 +22,19 @@ if cloudinary:
         api_secret="JHn-OlPaUEdfqvCk1DvgTeSUhyQ"
     )
 
-# ==============================
-# 📁 BASE DE DATOS
-# ==============================
+# ------------------------------
+# 📁 ARCHIVO DE PRODUCTOS
+# ------------------------------
 DB_FILE = "productos.json"
 
+# Crear productos.json automáticamente si no existe
 if not os.path.exists(DB_FILE):
     with open(DB_FILE, "w") as f:
-        f.write("[]")  # asegura JSON vacío válido
+        f.write("[]")  # JSON vacío válido
 
-# ==============================
-# 📦 CARGAR PRODUCTOS
-# ==============================
+# ------------------------------
+# CARGAR PRODUCTOS
+# ------------------------------
 def cargar_productos():
     try:
         with open(DB_FILE, "r") as f:
@@ -41,6 +42,7 @@ def cargar_productos():
             if not contenido:
                 return []
             productos = json.loads(contenido)
+            # asegurar que siempre haya imagen
             for p in productos:
                 if not p.get("imagen"):
                     p["imagen"] = "https://via.placeholder.com/300"
@@ -49,9 +51,9 @@ def cargar_productos():
         print("ERROR PRODUCTOS:", e)
         return []
 
-# ==============================
-# 💾 GUARDAR PRODUCTOS
-# ==============================
+# ------------------------------
+# GUARDAR PRODUCTOS
+# ------------------------------
 def guardar_productos(productos):
     try:
         with open(DB_FILE, "w") as f:
@@ -59,25 +61,26 @@ def guardar_productos(productos):
     except Exception as e:
         print("ERROR GUARDAR:", e)
 
-# ==============================
-# 🏠 RUTA PRINCIPAL
-# ==============================
+# ------------------------------
+# RUTA PRINCIPAL / CATÁLOGO
+# ------------------------------
 @app.route('/')
 def inicio():
     productos = cargar_productos()
+    # Asegúrate que el archivo HTML se llame exactamente index.html en /templates
     return render_template("index.html", productos=productos)
 
-# ==============================
-# ⚙️ ADMIN
-# ==============================
+# ------------------------------
+# ADMIN
+# ------------------------------
 @app.route('/admin')
 def admin():
     productos = cargar_productos()
     return render_template("admin.html", productos=productos)
 
-# ==============================
-# ➕ AGREGAR PRODUCTO
-# ==============================
+# ------------------------------
+# AGREGAR PRODUCTO
+# ------------------------------
 @app.route('/agregar', methods=['POST'])
 def agregar():
     nombre = request.form.get("nombre")
@@ -100,9 +103,9 @@ def agregar():
 
     return redirect(url_for('admin'))
 
-# ==============================
-# 🗑️ ELIMINAR PRODUCTO
-# ==============================
+# ------------------------------
+# ELIMINAR PRODUCTO
+# ------------------------------
 @app.route('/eliminar/<int:index>')
 def eliminar(index):
     productos = cargar_productos()
@@ -111,9 +114,9 @@ def eliminar(index):
         guardar_productos(productos)
     return redirect(url_for('admin'))
 
-# ==============================
-# 🚀 SERVIDOR (RENDER)
-# ==============================
+# ------------------------------
+# SERVIDOR (RENDER)
+# ------------------------------
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
