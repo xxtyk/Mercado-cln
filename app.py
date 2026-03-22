@@ -1,6 +1,6 @@
 import os
 import json
-from urllib.parse import quote
+import requests
 from flask import Flask, render_template, request, redirect, url_for, session
 
 app = Flask(__name__)
@@ -12,6 +12,15 @@ app.secret_key = "12345"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
+
+# =========================
+# 🔐 GREEN API (SEGURO)
+# =========================
+
+GREEN_API_URL = os.getenv("GREEN_API_URL")
+GREEN_API_INSTANCE = os.getenv("GREEN_API_INSTANCE")
+GREEN_API_TOKEN = os.getenv("GREEN_API_TOKEN")
+GREEN_API_CHAT_ID = os.getenv("GREEN_API_CHAT_ID")
 
 # =========================
 # 👨‍💼 VENDEDORES
@@ -30,7 +39,7 @@ VENDEDORES = [
 ]
 
 # =========================
-# 📦 CARGAR PRODUCTOS
+# 📦 PRODUCTOS
 # =========================
 
 def cargar_productos():
@@ -44,7 +53,7 @@ def cargar_productos():
             return []
 
 # =========================
-# 📂 SACAR CATEGORÍAS DESDE PRODUCTOS
+# 📂 CATEGORÍAS
 # =========================
 
 def obtener_categorias():
@@ -80,15 +89,12 @@ def agregar_carrito():
 
     carrito = obtener_carrito()
 
-    encontrado = False
     for item in carrito:
         if item["producto"] == producto:
             item["cantidad"] += cantidad
             item["total"] = item["cantidad"] * item["precio"]
-            encontrado = True
             break
-
-    if not encontrado:
+    else:
         carrito.append({
             "producto": producto,
             "precio": precio,
@@ -147,18 +153,33 @@ def checkout():
     return render_template("checkout.html", carrito=carrito, subtotal=subtotal, vendedores=VENDEDORES)
 
 # =========================
+# 📤 ENVIAR A GREEN API
+# =========================
+
+def enviar_green_api(mensaje):
+    url = f"{GREEN_API_URL}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+
+    payload = {
+        "chatId": GREEN_API_CHAT_ID,
+        "message": mensaje
+    }
+
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+
+# =========================
 # 🚀 FINALIZAR PEDIDO
 # =========================
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
-    nombre = request.form.get("nombre", "").strip()
-    colonia = request.form.get("colonia", "").strip()
-    calle = request.form.get("calle", "").strip()
-    celular = request.form.get("celular", "").strip()
-    nota = request.form.get("nota", "").strip()
-    entrega = request.form.get("entrega", "").strip()
-    vendedor = request.form.get("vendedor", "").strip()
+    nombre = request.form.get("nombre")
+    colonia = request.form.get("colonia")
+    calle = request.form.get("calle")
+    celular = request.form.get("celular")
+    nota = request.form.get("nota")
+    entrega = request.form.get("entrega")
+    vendedor = request.form.get("vendedor")
 
     carrito = obtener_carrito()
 
@@ -168,39 +189,38 @@ def finalizar_pedido():
     subtotal = sum(item["total"] for item in carrito)
     envio = 40 if entrega == "domicilio" else 0
     total = subtotal + envio
+    status = "A domicilio" if entrega == "domicilio" else "Recoger en bodega"
 
-    mensaje = "🛒 *Mercado en Línea Culiacán*\n"
-    mensaje += "-----------------------\n"
-    mensaje += f"👤 Nombre: {nombre}\n"
-    mensaje += f"📞 Celular: {celular}\n"
-    mensaje += f"📍 Colonia: {colonia}\n"
-    mensaje += f"🏠 Calle: {calle}\n\n"
+    mensaje = f"""🛒 Mercado en Línea Culiacán
+-----------------------
+👤 Nombre: {nombre}
+📞 Celular: {celular}
+📍 Colonia: {colonia}
+🏠 Calle: {calle}
 
-    mensaje += "🛍 Pedido:\n"
+🛍 Pedido:"""
+
     for item in carrito:
-        mensaje += f"- {item['producto']} x{item['cantidad']} = ${item['total']}\n"
+        mensaje += f"\n- {item['producto']} x{item['cantidad']} = ${item['total']}"
 
-    mensaje += f"\n💰 Subtotal: ${subtotal}\n"
-    mensaje += f"🚚 Envío: ${envio}\n"
-    mensaje += f"🧾 Total: ${total}\n\n"
+    mensaje += f"""
 
-    if entrega == "domicilio":
-        mensaje += "📦 Status: A domicilio\n"
-    else:
-        mensaje += "📦 Status: Recoger en bodega\n"
+💰 Subtotal: ${subtotal}
+🚚 Envío: ${envio}
+🧾 Total: ${total}
+📦 Status: {status}
+👨‍💼 Vendedor: {vendedor}
+📝 Nota: {nota if nota else '-'}"""
 
-    mensaje += f"👨‍💼 Vendedor: {vendedor}\n"
-    mensaje += f"📝 Nota: {nota if nota else '-'}"
-
-    mensaje = quote(mensaje)
-
-    numero = "526679771409"
-    link = f"https://wa.me/{numero}?text={mensaje}"
+    try:
+        enviar_green_api(mensaje)
+    except Exception as e:
+        return f"Error GREEN API: {e}"
 
     session["carrito"] = []
     session.modified = True
 
-    return redirect(link)
+    return redirect(url_for("index"))
 
 # =========================
 # ▶ RUN
