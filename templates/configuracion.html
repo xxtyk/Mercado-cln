@@ -1,43 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Administrador - Mercado Culiacán</title>
-<style>
-body{margin:0;font-family:Arial;background:#f8f8f8;}
-#panel{display:flex;flex-direction:column;align-items:center;padding:20px;}
-h1{text-align:center;}
-button{margin:10px 0;padding:15px 20px;width:90%;max-width:300px;font-size:18px;border:none;border-radius:8px;background:#007bff;color:white;cursor:pointer;}
-button:hover{background:#0056b3;}
-section{width:100%;max-width:400px;margin-top:20px;padding:15px;background:white;border-radius:8px;display:none;flex-direction:column;}
-label{display:flex;flex-direction:column;margin-bottom:10px;}
-input,select,textarea{margin-top:5px;padding:10px;font-size:16px;}
-</style>
-<script>
-function mostrar(seccion){
-    const secciones = document.querySelectorAll('section');
-    secciones.forEach(s => s.style.display='none');
-    document.getElementById(seccion).style.display='flex';
-}
-</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - Mercado CLN</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        .card { background: white; max-width: 400px; margin: 50px auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        .btn-save { background-color: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-bottom: 15px; }
+        .btn-back { display: inline-block; color: #007bff; text-decoration: none; font-weight: bold; margin-top: 10px; }
+        input[type="text"] { width: 90%; padding: 10px; margin: 15px 0; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
 </head>
 <body>
-<div id="panel">
-  <h1>Panel Administrador</h1>
 
-  <!-- Botones principales -->
-  <button onclick="mostrar('vista_catalogo')">1. Ver catálogo (como cliente)</button>
-  <button onclick="mostrar('config_categorias')">2. Configurar Categorías</button>
-  <button onclick="mostrar('config_productos')">3. Configurar Productos</button>
-  <button onclick="mostrar('config_logo')">4. Configurar Logo de Inicio</button>
+    <div class="card">
+        <h2>Configuración</h2>
+        
+        <form action="/guardar_config" method="POST">
+            <label>Nombre de usuario:</label><br>
+            <input type="text" name="usuario" value="admin" placeholder="Ej: Hector">
+            
+            <div style="margin-bottom: 20px;">
+                <input type="checkbox" id="notif" name="notificaciones" checked>
+                <label for="notif">Notificaciones activas</label>
+            </div>
 
-  <!-- Secciones -->
-  <section id="vista_catalogo">
-    <h2>Vista del catálogo</h2>
-    <a href="/">Ver catálogo como cliente</a>
-  </section>
+            <button type="submit" class="btn-save">Guardar cambios</button>
+        </form>
 
-  <section id="config_categorias">
-    <h2>Configurar Categorías</h2>
-    <form action="/agregar_categoria" method="POST" enctype="multipart/form-data">
+        <a href="/" class="btn-back">⬅ Volver al catálogo</a>
+    </div>
+
+    <footer style="margin-top: 50px; color: #888; font-size: 12px;">
+        <p>&copy; 2026 Mercado en Línea Culiacán</p>
+    </footer>
+
+</body>
+</html>
