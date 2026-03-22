@@ -1,1 +1,23 @@
+import os
+import json
 
+CONFIG_FILE = "config.json"
+
+# Crear si no existe
+if not os.path.exists(CONFIG_FILE):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump({"logo": ""}, f)
+
+# Funciones para manejar la configuración
+def cargar_config():
+    if not os.path.exists(CONFIG_FILE):
+        return {"logo": ""}
+    with open(CONFIG_FILE, "r") as f:
+        try:
+            return json.load(f)
+        except:
+            return {"logo": ""}
+
+def guardar_config(config):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(config, f, indent=4)
