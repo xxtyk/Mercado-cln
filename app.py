@@ -1,5 +1,6 @@
 import os
 import json
+from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
@@ -11,6 +12,17 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+VENDEDORES = [
+    "Silvia",
+    "Hector",
+    "Juan",
+    "Cristian",
+    "Amayrani",
+    "Brisa",
+    "Natalia",
+    "Claudia"
+]
 
 
 def init_app():
@@ -49,13 +61,11 @@ def guardar_foto(file):
     return "uploads/" + nombre
 
 
-# 👉 ENTRA AL PANEL
 @app.route("/")
 def inicio():
     return redirect(url_for("admin"))
 
 
-# 👉 PANEL ADMIN
 @app.route("/admin")
 def admin():
     data = cargar()
@@ -66,7 +76,6 @@ def admin():
     )
 
 
-# 👉 TIENDA
 @app.route("/tienda")
 def tienda():
     data = cargar()
@@ -81,7 +90,6 @@ def tienda():
     return render_template("index.html", categorias=categorias)
 
 
-# 👉 PRODUCTOS POR CATEGORIA
 @app.route("/categoria/<nombre>")
 def categoria(nombre):
     data = cargar()
@@ -93,11 +101,11 @@ def categoria(nombre):
     return render_template(
         "producto.html",
         productos=productos,
-        nombre_categoria=nombre
+        nombre_categoria=nombre,
+        vendedores=VENDEDORES
     )
 
 
-# 👉 CREAR CATEGORIA
 @app.route("/editar_categoria", methods=["GET", "POST"])
 def editar_categoria():
     if request.method == "POST":
@@ -124,7 +132,6 @@ def editar_categoria():
     return render_template("categoria.html")
 
 
-# 👉 AGREGAR PRODUCTO
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
     data = cargar()
@@ -152,6 +159,40 @@ def agregar_producto():
     guardar(data)
 
     return redirect(url_for("admin"))
+
+
+@app.route("/finalizar_pedido", methods=["POST"])
+def finalizar_pedido():
+    nombre = request.form.get("nombre", "").strip()
+    colonia = request.form.get("colonia", "").strip()
+    calle = request.form.get("calle", "").strip()
+    celular = request.form.get("celular", "").strip()
+    nota = request.form.get("nota", "").strip()
+    producto = request.form.get("producto", "").strip()
+    precio = int(request.form.get("precio", "0"))
+    vendedor = request.form.get("vendedor", "").strip()
+    entrega = request.form.get("entrega", "").strip()
+
+    if not nombre or not colonia or not calle or not celular or not producto or not vendedor:
+        flash("Faltan datos del pedido")
+        return redirect(request.referrer or url_for("tienda"))
+
+    if entrega == "domicilio":
+        cobrar = f"{precio} + 40"
+    else:
+        cobrar = f"{precio}"
+
+    mensaje = f"""Nombre: {nombre}
+Colonia: {colonia}
+Calle: {calle}
+Celular: {celular}
+Cobrar: {cobrar}
+Producto: {producto}
+Nota: {nota}
+Vendedor: {vendedor}"""
+
+    link = "https://wa.me/?text=" + quote(mensaje)
+    return redirect(link)
 
 
 if __name__ == "__main__":
