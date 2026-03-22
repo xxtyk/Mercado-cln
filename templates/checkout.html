@@ -1,1 +1,116 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar pedido</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background: black;
+            color: white;
+            padding: 15px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .contenedor {
+            padding: 12px;
+        }
+
+        .resumen, .formulario {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .titulo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .producto {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .subtotal {
+            font-size: 20px;
+            font-weight: bold;
+            color: green;
+            margin-top: 10px;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #25D366;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">Finalizar pedido</div>
+
+    <div class="contenedor">
+        <div class="resumen">
+            <div class="titulo">Mercado en Línea Culiacán</div>
+
+            {% for item in carrito %}
+            <div class="producto">
+                {{ item.producto }} x{{ item.cantidad }} = ${{ item.total }}
+            </div>
+            {% endfor %}
+
+            <div class="subtotal">Subtotal: ${{ subtotal }}</div>
+            <p>El envío se calcula según el tipo de entrega.</p>
+        </div>
+
+        <div class="formulario">
+            <form action="/finalizar_pedido" method="POST">
+                <input type="text" name="nombre" placeholder="Nombre" required>
+                <input type="text" name="celular" placeholder="Celular" required>
+                <input type="text" name="colonia" placeholder="Colonia" required>
+                <input type="text" name="calle" placeholder="Calle y número" required>
+                <textarea name="nota" placeholder="Nota o referencia"></textarea>
+
+                <select name="entrega" required>
+                    <option value="domicilio">A domicilio (+40)</option>
+                    <option value="bodega">Recoger en bodega</option>
+                </select>
+
+                <select name="vendedor" required>
+                    <option value="">¿Quién te atendió?</option>
+                    {% for v in vendedores %}
+                    <option value="{{ v }}">{{ v }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">Enviar pedido por WhatsApp</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>
