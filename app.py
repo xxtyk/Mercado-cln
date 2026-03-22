@@ -50,7 +50,22 @@ def guardar_foto(file):
 
 
 @app.route("/")
-def index():
+def inicio():
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin")
+def admin():
+    data = cargar()
+    return render_template(
+        "admin.html",
+        categorias=data["categorias"],
+        productos=data["productos"]
+    )
+
+
+@app.route("/tienda")
+def tienda():
     data = cargar()
     categorias = []
 
@@ -78,75 +93,10 @@ def categoria(nombre):
     )
 
 
-@app.route("/admin")
-def admin():
-    data = cargar()
-    return render_template(
-        "admin.html",
-        categorias=data["categorias"],
-        productos=data["productos"]
-    )
-
-
 @app.route("/editar_categoria", methods=["GET", "POST"])
 def editar_categoria():
     if request.method == "POST":
         nombre = request.form.get("nombre_categoria", "").strip()
         foto = request.files.get("foto_categoria")
 
-        if not nombre:
-            flash("Escribe un nombre de categoría")
-            return redirect(url_for("editar_categoria"))
-
-        data = cargar()
-
-        ruta_foto = data["categorias"].get(nombre, "")
-        nueva = guardar_foto(foto)
-
-        if nueva:
-            ruta_foto = nueva
-
-        data["categorias"][nombre] = ruta_foto
-        guardar(data)
-
-        return redirect(url_for("admin"))
-
-    return render_template("categoria.html")
-
-
-@app.route("/agregar_producto", methods=["GET", "POST"])
-def agregar_producto():
-    data = cargar()
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        precio = request.form.get("precio", "").strip()
-        descripcion = request.form.get("descripcion", "").strip()
-        categoria = request.form.get("categoria", "").strip()
-        foto = request.files.get("foto_producto")
-
-        if not nombre or not precio or not categoria:
-            flash("Faltan datos del producto")
-            return redirect(url_for("admin"))
-
-        nuevo = {
-            "id": len(data["productos"]) + 1,
-            "nombre": nombre,
-            "precio": precio,
-            "descripcion": descripcion,
-            "categoria": categoria,
-            "foto": guardar_foto(foto)
-        }
-
-        data["productos"].append(nuevo)
-        guardar(data)
-
-        return redirect(url_for("admin"))
-
-    return redirect(url_for("admin"))
-
-
-if __name__ == "__main__":
-    init_app()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+        if
