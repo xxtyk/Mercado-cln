@@ -64,3 +64,60 @@ def editar_categoria():
     if request.method == "POST":
         nombre = request.form.get("nombre_categoria", "").strip()
         foto
+foto = request.files.get("foto_categoria")
+
+        if not nombre:
+            flash("Escribe un nombre de categoría")
+            return redirect(url_for("editar_categoria"))
+
+        data = cargar()
+
+        ruta_foto = data["categorias"].get(nombre, "")
+        nueva = guardar_foto(foto)
+
+        if nueva:
+            ruta_foto = nueva
+
+        data["categorias"][nombre] = ruta_foto
+        guardar(data)
+
+        return redirect(url_for("admin"))
+
+    return render_template("categoria.html")
+
+
+@app.route("/agregar_producto", methods=["GET", "POST"])
+def agregar_producto():
+    data = cargar()
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        precio = request.form.get("precio")
+        descripcion = request.form.get("descripcion")
+        categoria = request.form.get("categoria")
+        foto = request.files.get("foto_producto")
+
+        nuevo = {
+            "id": len(data["productos"]) + 1,
+            "nombre": nombre,
+            "precio": precio,
+            "descripcion": descripcion,
+            "categoria": categoria,
+            "foto": guardar_foto(foto)
+        }
+
+        data["productos"].append(nuevo)
+        guardar(data)
+        return redirect(url_for("admin"))
+
+    return render_template(
+        "admin.html",
+        categorias=list(data["categorias"].keys()),
+        productos=data["productos"]
+    )
+
+
+if __name__ == "__main__":
+    init_app()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
