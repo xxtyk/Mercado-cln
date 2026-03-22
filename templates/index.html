@@ -8,47 +8,60 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #f4f4f4;
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
 }
 
+/* HEADER */
 .header {
     background: black;
     color: white;
-    padding: 15px;
+    padding: 12px;
     text-align: center;
-    font-size: 22px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.logo {
+    height: 45px;
+}
+
+/* MENSAJE */
+.mensaje {
+    background: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
     font-weight: bold;
 }
 
-.menu {
-    display: flex;
-    justify-content: space-around;
-    background: #222;
-    color: white;
-    padding: 10px;
-    font-size: 14px;
-}
-
+/* GRID */
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 10px;
+    gap: 12px;
+    padding: 12px;
 }
 
+/* CARD */
 .card {
     background: white;
-    border-radius: 12px;
+    border-radius: 15px;
     overflow: hidden;
     text-decoration: none;
     color: black;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    transition: transform 0.1s;
+}
+
+.card:active {
+    transform: scale(0.97);
 }
 
 .card img {
     width: 100%;
-    height: 150px;
+    height: 140px;
     object-fit: cover;
 }
 
@@ -57,17 +70,31 @@ body {
     padding: 10px;
     font-weight: bold;
 }
+
+/* BOTÓN FLOTANTE */
+.carrito {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #25D366;
+    color: white;
+    border-radius: 50px;
+    padding: 14px 18px;
+    font-size: 16px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">Mercado en Línea Culiacán</div>
+<div class="header">
+    Mercado en Línea Culiacán
+</div>
 
-<div class="menu">
-    <div>Inicio</div>
-    <div>Mis pedidos</div>
-    <div>Publicidad</div>
+<div class="mensaje">
+    🚀 Para mayor velocidad descarga la aplicación para pedir más rápido
 </div>
 
 <div class="grid">
@@ -82,6 +109,8 @@ body {
 </a>
 {% endfor %}
 </div>
+
+<a href="/carrito" class="carrito">🛒</a>
 
 </body>
 </html>
