@@ -1,30 +1,25 @@
 import os
 import json
 import requests
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "12345"
 
-# =========================
-# 📁 ARCHIVOS
-# =========================
+USUARIO = "admin"
+PASSWORD = "1234"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 
-# =========================
-# 🔐 GREEN API
-# =========================
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 GREEN_API_URL = os.getenv("GREEN_API_URL")
 GREEN_API_INSTANCE = os.getenv("GREEN_API_INSTANCE")
 GREEN_API_TOKEN = os.getenv("GREEN_API_TOKEN")
 GREEN_API_CHAT_ID = os.getenv("GREEN_API_CHAT_ID")
-
-# =========================
-# 👨‍💼 VENDEDORES
-# =========================
 
 VENDEDORES = [
     "Mercado en Línea Culiacán",
@@ -38,28 +33,28 @@ VENDEDORES = [
     "Claudia"
 ]
 
-# =========================
-# 📦 PRODUCTOS
-# =========================
+def init_app():
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    if not os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f, ensure_ascii=False, indent=4)
 
 def cargar_productos():
     if not os.path.exists(DATA_FILE):
         return []
-
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         try:
             return json.load(f)
         except:
             return []
 
-# =========================
-# 📂 CATEGORÍAS
-# =========================
+def guardar_productos(productos):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(productos, f, ensure_ascii=False, indent=4)
 
 def obtener_categorias():
     productos = cargar_productos()
     categorias_dict = {}
-
     for p in productos:
         nombre_categoria = str(p.get("categoria", "")).strip()
         if nombre_categoria and nombre_categoria not in categorias_dict:
@@ -67,12 +62,16 @@ def obtener_categorias():
                 "nombre": nombre_categoria,
                 "foto": p.get("foto", "")
             }
-
     return list(categorias_dict.values())
 
-# =========================
-# 🛒 CARRITO
-# =========================
+def obtener_categorias_admin():
+    productos = cargar_productos()
+    categorias = {}
+    for p in productos:
+        nombre = str(p.get("categoria", "")).strip()
+        if nombre and nombre not in categorias:
+            categorias[nombre] = p.get("foto", "")
+    return categorias
 
 def obtener_carrito():
     if "carrito" not in session:
@@ -119,51 +118,25 @@ def vaciar_carrito():
     session.modified = True
     return redirect(url_for("carrito"))
 
-# =========================
-# 🏠 INICIO
-# =========================
-
 @app.route("/")
+@app.route("/tienda")
 def index():
     categorias = obtener_categorias()
     return render_template("index.html", categorias=categorias)
-
-# =========================
-# 📂 CATEGORÍA
-# =========================
 
 @app.route("/categoria/<nombre>")
 def categoria(nombre):
     productos = cargar_productos()
     filtrados = [p for p in productos if p.get("categoria") == nombre]
-    return render_template(
-        "categoria.html",
-        productos=filtrados,
-        nombre_categoria=nombre
-    )
-
-# =========================
-# 🧾 CHECKOUT
-# =========================
+    return render_template("categoria.html", productos=filtrados, nombre_categoria=nombre)
 
 @app.route("/checkout")
 def checkout():
     carrito = obtener_carrito()
-
     if not carrito:
         return redirect(url_for("carrito"))
-
     subtotal = sum(item["total"] for item in carrito)
-    return render_template(
-        "checkout.html",
-        carrito=carrito,
-        subtotal=subtotal,
-        vendedores=VENDEDORES
-    )
-
-# =========================
-# 📤 ENVIAR A GREEN API
-# =========================
+    return render_template("checkout.html", carrito=carrito, subtotal=subtotal, vendedores=VENDEDORES)
 
 def enviar_green_api(mensaje):
     if not GREEN_API_URL:
@@ -176,7 +149,6 @@ def enviar_green_api(mensaje):
         raise ValueError("Falta GREEN_API_CHAT_ID")
 
     url = f"{GREEN_API_URL}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-
     payload = {
         "chatId": GREEN_API_CHAT_ID,
         "message": mensaje
@@ -185,10 +157,6 @@ def enviar_green_api(mensaje):
     response = requests.post(url, json=payload, timeout=30)
     response.raise_for_status()
     return response.json()
-
-# =========================
-# 🚀 FINALIZAR PEDIDO
-# =========================
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
@@ -238,12 +206,117 @@ def finalizar_pedido():
 
     session["carrito"] = []
     session.modified = True
-
     return redirect(url_for("index"))
 
-# =========================
-# ▶ RUN
-# =========================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        usuario = request.form.get("usuario", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if usuario == USUARIO and password == PASSWORD:
+            session["admin"] = True
+            return redirect(url_for("admin"))
+        else:
+            flash("Usuario o contraseña incorrectos")
+
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("admin", None)
+    return redirect(url_for("login"))
+
+@app.route("/admin")
+def admin():
+    if not session.get("admin"):
+        return redirect(url_for("login"))
+
+    productos = cargar_productos()
+    categorias = obtener_categorias_admin()
+    return render_template("admin.html", productos=productos, categorias=categorias)
+
+@app.route("/editar_categoria", methods=["GET", "POST"])
+def editar_categoria():
+    if not session.get("admin"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        nombre_categoria = request.form.get("nombre_categoria", "").strip()
+        foto = request.files.get("foto_categoria")
+
+        if not nombre_categoria:
+            flash("Escribe el nombre de la categoría")
+            return redirect(url_for("editar_categoria"))
+
+        foto_path = ""
+        if foto and foto.filename:
+            filename = secure_filename(foto.filename)
+            ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            foto.save(ruta)
+            foto_path = f"uploads/{filename}"
+
+        productos = cargar_productos()
+        existe = False
+
+        for p in productos:
+            if p.get("categoria") == nombre_categoria:
+                if foto_path:
+                    p["foto"] = foto_path
+                existe = True
+
+        if not existe:
+            productos.append({
+                "nombre": f"Categoría {nombre_categoria}",
+                "precio": "0",
+                "descripcion": "",
+                "categoria": nombre_categoria,
+                "foto": foto_path
+            })
+
+        guardar_productos(productos)
+        flash("Categoría guardada correctamente")
+        return redirect(url_for("admin"))
+
+    categorias = obtener_categorias_admin()
+    return render_template("producto.html", categorias=categorias)
+
+@app.route("/agregar_producto", methods=["POST"])
+def agregar_producto():
+    if not session.get("admin"):
+        return redirect(url_for("login"))
+
+    nombre = request.form.get("nombre", "").strip()
+    precio = request.form.get("precio", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+    categoria = request.form.get("categoria", "").strip()
+    foto = request.files.get("foto_producto")
+
+    if not nombre or not precio or not categoria:
+        flash("Faltan datos del producto")
+        return redirect(url_for("admin"))
+
+    foto_path = ""
+    if foto and foto.filename:
+        filename = secure_filename(foto.filename)
+        ruta = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        foto.save(ruta)
+        foto_path = f"uploads/{filename}"
+
+    productos = cargar_productos()
+    productos.append({
+        "nombre": nombre,
+        "precio": precio,
+        "descripcion": descripcion,
+        "categoria": categoria,
+        "foto": foto_path
+    })
+
+    guardar_productos(productos)
+    flash("Producto guardado correctamente")
+    return redirect(url_for("admin"))
+
+init_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
