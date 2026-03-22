@@ -1,101 +1,15 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configuración - Mercado Culiacán</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-    }
+# Para borrar (el botón rojo del código de arriba)
+@app.route('/eliminar/<int:id>')
+def eliminar(id):
+    productos = cargar_productos()
+    if 0 <= id < len(productos):
+        productos.pop(id)
+        with open('productos.json', 'w') as f:
+            json.dump(productos, f, indent=4)
+    return redirect(url_for('admin'))
 
-    #panel-configuracion {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-      background-color: #ffffff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    label {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 15px;
-      width: 100%;
-      font-size: 16px;
-    }
-
-    input[type="text"], input[type="checkbox"] {
-      margin-top: 5px;
-      padding: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      padding: 12px 25px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 10px;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    a {
-      display: inline-block;
-      margin-top: 20px;
-      text-decoration: none;
-      color: #007bff;
-    }
-
-    a:hover {
-      color: #0056b3;
-    }
-  </style>
-</head>
-<body>
-  <div id="panel-configuracion">
-    <h2>Configuración</h2>
-    <form action="/guardar_configuracion" method="POST">
-      <label>Nombre de usuario:
-        <input type="text" name="usuario" placeholder="Escribe tu nombre" value="{{ config.get('usuario', '') }}">
-      </label>
-      <label>
-        <input type="checkbox" name="notificaciones" {% if config.get('notificaciones') %}checked{% endif %}>
-        Notificaciones activas
-      </label>
-      <button type="submit">Guardar cambios</button>
-    </form>
-    <a href="/">Volver al catálogo</a>
-  </div>
-</body>
-</html>
+# Para que el panel de admin muestre la lista de productos
+@app.route('/admin')
+def admin():
+    productos = cargar_productos()
+    return render_template('admin.html', productos=productos)
