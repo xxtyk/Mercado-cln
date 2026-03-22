@@ -5,21 +5,37 @@ app = Flask(__name__)
 app.secret_key = "12345"  # Necesario para flash
 
 # ==============================
-# Crear carpetas automáticamente
+# CONFIGURACIÓN DE CARPETAS SEGURA
 # ==============================
-# Carpeta estática
-if not os.path.exists("static"):
-    os.makedirs("static")
+import shutil
 
-# Carpeta uploads dentro de static
-UPLOAD_FOLDER = os.path.join("static", "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+def inicializar_entorno():
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    static_dir = os.path.join(base_dir, 'static')
+    uploads_dir = os.path.join(static_dir, 'uploads')
+
+    # 1. Si 'static' existe pero NO es carpeta, lo borramos
+    if os.path.exists(static_dir) and not os.path.isdir(static_dir):
+        os.remove(static_dir)
+
+    # 2. Si 'static' no existe, lo creamos
+    os.makedirs(static_dir, exist_ok=True)
+
+    # 3. Si 'uploads' existe pero es un archivo, lo borramos
+    if os.path.exists(uploads_dir) and not os.path.isdir(uploads_dir):
+        print(f"Borrando archivo estorbando: {uploads_dir}")
+        os.remove(uploads_dir)
+
+    # 4. Crear carpeta uploads
+    os.makedirs(uploads_dir, exist_ok=True)
+    return uploads_dir
+
+# Guardamos la ruta en la configuración de Flask
+app.config['UPLOAD_FOLDER'] = inicializar_entorno()
 
 # ==============================
 # RUTAS
 # ==============================
-
 @app.route('/', methods=['GET', 'POST'])
 def inicio():
     if request.method == 'POST':
