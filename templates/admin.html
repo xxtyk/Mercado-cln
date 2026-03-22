@@ -2,55 +2,78 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - Mercado CLN</title>
-
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
-
-        h2 {
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #121212; 
+            color: white; 
+            margin: 0; 
+            padding: 20px;
             text-align: center;
-            margin-top: 20px;
         }
 
+        h2 { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            color: #00d4ff;
+        }
+
+        /* Contenedor general del formulario y productos */
         .contenedor {
-            width: 90%;
-            max-width: 400px;
+            width: 95%;
+            max-width: 500px;
             margin: auto;
         }
 
+        /* Formulario */
         .formulario {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            background: #1e1e1e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            font-size: 1.2rem;
         }
 
-        input, button {
+        .formulario input {
             width: 100%;
-            padding: 10px;
-            margin: 5px 0;
+            padding: 18px;
+            margin: 10px 0;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            border: 1px solid #333;
+            background: #2c2c2c;
+            color: white;
         }
 
         .guardar {
             background: green;
             color: white;
             border: none;
-        }
-
-        .producto {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
+            padding: 18px;
+            width: 100%;
             border-radius: 10px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .guardar:hover { background: #00cc44; }
+
+        /* Productos listados */
+        .producto {
+            background: #1e1e1e;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 15px;
             text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #333;
         }
 
-        img {
+        .producto img {
             width: 100%;
             border-radius: 10px;
         }
@@ -60,43 +83,41 @@
             color: white;
             border: none;
             margin-top: 10px;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
         }
+        .borrar:hover { background: #cc0000; }
 
-        a {
-            text-decoration: none;
-        }
+        a { text-decoration: none; }
     </style>
 </head>
-
 <body>
 
 <h2>Panel de Administración</h2>
 
 <div class="contenedor">
 
-    <!-- FORMULARIO -->
+    <!-- FORMULARIO AGREGAR -->
     <form class="formulario" action="/agregar" method="POST" enctype="multipart/form-data">
         <input type="text" name="nombre" placeholder="Nombre del servicio" required>
         <input type="text" name="precio" placeholder="Precio" required>
         <input type="file" name="imagen" accept="image/*" required>
-
         <button type="submit" class="guardar">Guardar Servicio</button>
     </form>
 
     <!-- LISTA DE PRODUCTOS -->
     {% for p in productos %}
     <div class="producto">
-        <img src="{{ p.imagen }}" alt="Imagen">
+        <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
         <h3>{{ p.nombre }}</h3>
         <p>$ {{ p.precio }}</p>
-
         <a href="/eliminar/{{ loop.index0 }}">
             <button class="borrar">Borrar</button>
         </a>
     </div>
-    {% endfor %}
-
-</div>
-
-</body>
-</html>
+    {% endfor
