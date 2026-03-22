@@ -3,121 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Mercado CLN</title>
+    <title>Panel Mercado CLN</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #121212; 
+        body { font-family: sans-serif; background: #121212; color: white; padding: 10px; margin: 0; }
+        .container { width: 95%; margin: auto; padding-top: 20px; }
+        h2 { color: #00d4ff; text-align: center; font-size: 1.8rem; }
+        
+        /* Formulario Gigante para Celular */
+        form { background: #1e1e1e; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        label { display: block; margin-top: 15px; color: #888; font-weight: bold; }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin-top: 5px; 
+            border-radius: 8px; 
+            border: 1px solid #444; 
+            background: #252525; 
             color: white; 
-            margin: 0; 
-            padding: 20px;
-            text-align: center;
+            font-size: 1.1rem;
+            box-sizing: border-box; /* Para que no se salga de la pantalla */
         }
-
-        h2 { 
-            text-align: center; 
-            margin-bottom: 30px; 
-            color: #00d4ff;
-        }
-
-        /* Contenedor general del formulario y productos */
-        .contenedor {
-            width: 95%;
-            max-width: 500px;
-            margin: auto;
-        }
-
-        /* Formulario */
-        .formulario {
-            background: #1e1e1e;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            font-size: 1.2rem;
-        }
-
-        .formulario input {
-            width: 100%;
-            padding: 18px;
-            margin: 10px 0;
-            font-size: 1.2rem;
-            border-radius: 10px;
-            border: 1px solid #333;
-            background: #2c2c2c;
-            color: white;
-        }
-
-        .guardar {
-            background: green;
-            color: white;
-            border: none;
-            padding: 18px;
-            width: 100%;
-            border-radius: 10px;
-            font-size: 1.3rem;
+        
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: bold; 
+            font-size: 1.3rem; 
+            margin-top: 25px;
             cursor: pointer;
+        }
+
+        /* Lista de productos para borrar */
+        .lista { margin-top: 40px; }
+        .item { 
+            background: #252525; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+            border-radius: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-left: 5px solid #00d4ff;
+        }
+        .btn-borrar { 
+            background: #e74c3c; 
+            color: white; 
+            padding: 10px 15px; 
+            text-decoration: none; 
+            border-radius: 5px; 
             font-weight: bold;
-            transition: 0.3s;
         }
-        .guardar:hover { background: #00cc44; }
-
-        /* Productos listados */
-        .producto {
-            background: #1e1e1e;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-
-        .producto img {
-            width: 100%;
-            border-radius: 10px;
-        }
-
-        .borrar {
-            background: red;
-            color: white;
-            border: none;
-            margin-top: 10px;
-            padding: 12px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        .borrar:hover { background: #cc0000; }
-
-        a { text-decoration: none; }
+        .volver { display: block; text-align: center; margin-top: 30px; color: #00d4ff; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<h2>Panel de Administración</h2>
+    <div class="container">
+        <h2>Panel de Control</h2>
+        
+        <form action="/agregar" method="POST" enctype="multipart/form-data">
+            <label>Nombre del Servicio:</label>
+            <input type="text" name="nombre" placeholder="Ej: Lavado de Minisplit" required>
+            
+            <label>Precio ($):</label>
+            <input type="number" name="precio" placeholder="Ej: 800" required>
+            
+            <label>Foto (Selecciona de tu galería):</label>
+            <input type="file" name="imagen" accept="image/*" required>
+            
+            <button type="submit">PUBLICAR AHORA</button>
+        </form>
 
-<div class="contenedor">
+        <div class="lista">
+            <h3>Servicios Publicados:</h3>
+            {% for p in productos %}
+            <div class="item">
+                <div>
+                    <strong>{{ p.nombre }}</strong><br>
+                    <span style="color: #2ecc71;">${{ p.precio }}</span>
+                </div>
+                <a href="{{ url_for('eliminar', index=loop.index0) }}" class="btn-borrar" onclick="return confirm('¿Quieres quitar este servicio?')">Borrar</a>
+            </div>
+            {% endfor %}
+        </div>
 
-    <!-- FORMULARIO AGREGAR -->
-    <form class="formulario" action="/agregar" method="POST" enctype="multipart/form-data">
-        <input type="text" name="nombre" placeholder="Nombre del servicio" required>
-        <input type="text" name="precio" placeholder="Precio" required>
-        <input type="file" name="imagen" accept="image/*" required>
-        <button type="submit" class="guardar">Guardar Servicio</button>
-    </form>
-
-    <!-- LISTA DE PRODUCTOS -->
-    {% for p in productos %}
-    <div class="producto">
-        <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
-        <h3>{{ p.nombre }}</h3>
-        <p>$ {{ p.precio }}</p>
-        <a href="/eliminar/{{ loop.index0 }}">
-            <button class="borrar">Borrar</button>
-        </a>
+        <a href="/" class="volver">← Volver al Catálogo</a>
     </div>
-    {% endfor
+
+</body>
+</html>
