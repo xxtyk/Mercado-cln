@@ -13,83 +13,58 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 DATA_FILE = os.path.join(BASE_DIR, "productos.json")
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
 # -----------------------------------
-# FUNCIONES AUXILIARES
+# INICIALIZAR
 # -----------------------------------
-def inicializar_entorno():
+def inicializar():
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
 
     if not os.path.exists(DATA_FILE):
-        datos_iniciales = {
-            "categorias": {},
-            "productos": []
-        }
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(datos_iniciales, f, ensure_ascii=False, indent=4)
+        with open(DATA_FILE, "w") as f:
+            json.dump({
+                "categorias": {},
+                "productos": []
+            }, f, indent=4)
 
-
-def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def cargar_datos():
+# -----------------------------------
+# FUNCIONES
+# -----------------------------------
+def cargar():
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            datos = json.load(f)
-            if "categorias" not in datos:
-                datos["categorias"] = {}
-            if "productos" not in datos:
-                datos["productos"] = []
-            return datos
-    except (FileNotFoundError, json.JSONDecodeError):
+        with open(DATA_FILE, "r") as f:
+            return json.load(f)
+    except:
         return {"categorias": {}, "productos": []}
 
+def guardar(data):
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
-def guardar_datos(datos):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(datos, f, ensure_ascii=False, indent=4)
+def allowed(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-def guardar_imagen(archivo):
-    if not archivo or archivo.filename == "":
-        return ""
-
-    if not allowed_file(archivo.filename):
-        return ""
-
-    nombre_seguro = secure_filename(archivo.filename)
-    ruta_guardado = os.path.join(app.config["UPLOAD_FOLDER"], nombre_seguro)
-
-    # evitar sobreescribir si ya existe
-    if os.path.exists(ruta_guardado):
-        nombre, extension = os.path.splitext(nombre_seguro)
-        contador = 1
-        while os.path.exists(ruta_guardado):
-            nombre_seguro = f"{nombre}_{contador}{extension}"
-            ruta_guardado = os.path.join(app.config["UPLOAD_FOLDER"], nombre_seguro)
-            contador += 1
-
-    archivo.save(ruta_guardado)
-
-    # esto es lo que se guarda para usarlo con url_for('static', filename=...)
-    return f"uploads/{nombre_seguro}"
-
+def guardar_foto(file):
+    if file and allowed(file.filename):
+        nombre = secure_filename(file.filename)
+        ruta = os.path.join(app.config["UPLOAD_FOLDER"], nombre)
+        file.save(ruta)
+        return f"uploads/{nombre}"
+    return ""
 
 # -----------------------------------
-# RUTA PRINCIPAL / TIENDA
+# INICIO (CLIENTES)
 # -----------------------------------
 @app.route("/")
-def inicio():
-    datos = cargar_datos()
+def index():
+    data = cargar()
 
     categorias = []
-    for nombre, foto in datos["categorias"].items():
+    for nombre, foto in data["categorias"].items():
         categorias.append({
             "nombre": nombre,
             "foto": foto
@@ -97,117 +72,100 @@ def inicio():
 
     return render_template("index.html", categorias=categorias)
 
-
 # -----------------------------------
-# VER PRODUCTOS DE UNA CATEGORÍA
+# VER PRODUCTOS POR CATEGORÍA
 # -----------------------------------
-@app.route("/categoria/<nombre_categoria>")
-def ver_categoria(nombre_categoria):
-    datos = cargar_datos()
+@app.route("/categoria/<nombre>")
+def categoria(nombre):
+    data = cargar()
 
-    productos_filtrados = [
-        p for p in datos["productos"]
-        if p.get("categoria", "").strip().lower() == nombre_categoria.strip().lower()
+    productos = [
+        p for p in data["productos"]
+        if p["categoria"] == nombre
     ]
 
     return render_template(
-        "categoria_productos.html",
-        nombre_categoria=nombre_categoria,
-        productos=productos_filtrados
+        "producto.html",
+        productos=productos,
+        nombre_categoria=nombre
     )
-
 
 # -----------------------------------
 # PANEL ADMIN
 # -----------------------------------
 @app.route("/admin")
 def admin():
-    datos = cargar_datos()
+    data = cargar()
     return render_template(
         "admin.html",
-        categorias=datos["categorias"],
-        productos=datos["productos"]
+        categorias=data["categorias"]
     )
 
-
 # -----------------------------------
-# EDITAR / AGREGAR CATEGORÍA CON FOTO
+# AGREGAR CATEGORÍA
 # -----------------------------------
 @app.route("/editar_categoria", methods=["GET", "POST"])
 def editar_categoria():
     if request.method == "POST":
-        nombre_categoria = request.form.get("nombre_categoria", "").strip()
+        nombre = request.form.get("nombre_categoria")
         foto = request.files.get("foto_categoria")
 
-        if not nombre_categoria:
-            flash("Debes escribir un nombre de categoría.", "error")
+        if not nombre:
+            flash("Escribe un nombre")
             return redirect(url_for("editar_categoria"))
 
-        datos = cargar_datos()
+        data = cargar()
 
-        foto_guardada = ""
-        if foto and foto.filename != "":
-            foto_guardada = guardar_imagen(foto)
+        ruta_foto = ""
+        if foto:
+            ruta_foto = guardar_foto(foto)
 
-        # si ya existe y no suben nueva foto, conserva la anterior
-        foto_anterior = datos["categorias"].get(nombre_categoria, "")
-        if not foto_guardada:
-            foto_guardada = foto_anterior
+        data["categorias"][nombre] = ruta_foto
+        guardar(data)
 
-        datos["categorias"][nombre_categoria] = foto_guardada
-        guardar_datos(datos)
-
-        flash(f"Categoría '{nombre_categoria}' guardada correctamente.", "success")
         return redirect(url_for("admin"))
 
     return render_template("categoria.html")
 
-
 # -----------------------------------
-# AGREGAR PRODUCTO CON FOTO
+# AGREGAR PRODUCTO
 # -----------------------------------
 @app.route("/agregar_producto", methods=["GET", "POST"])
 def agregar_producto():
-    datos = cargar_datos()
+    data = cargar()
 
     if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        precio = request.form.get("precio", "").strip()
-        descripcion = request.form.get("descripcion", "").strip()
-        categoria = request.form.get("categoria", "").strip()
+        nombre = request.form.get("nombre")
+        precio = request.form.get("precio")
+        descripcion = request.form.get("descripcion")
+        categoria = request.form.get("categoria")
         foto = request.files.get("foto_producto")
 
-        if not nombre or not precio or not categoria:
-            flash("Nombre, precio y categoría son obligatorios.", "error")
-            return redirect(url_for("agregar_producto"))
+        ruta_foto = ""
+        if foto:
+            ruta_foto = guardar_foto(foto)
 
-        foto_guardada = ""
-        if foto and foto.filename != "":
-            foto_guardada = guardar_imagen(foto)
-
-        nuevo_producto = {
-            "id": len(datos["productos"]) + 1,
+        nuevo = {
+            "id": len(data["productos"]) + 1,
             "nombre": nombre,
             "precio": precio,
             "descripcion": descripcion,
             "categoria": categoria,
-            "foto": foto_guardada
+            "foto": ruta_foto
         }
 
-        datos["productos"].append(nuevo_producto)
-        guardar_datos(datos)
+        data["productos"].append(nuevo)
+        guardar(data)
 
-        flash("Producto guardado correctamente.", "success")
         return redirect(url_for("admin"))
 
-    categorias = list(datos["categorias"].keys())
+    categorias = list(data["categorias"].keys())
     return render_template("agregar_producto.html", categorias=categorias)
 
-
 # -----------------------------------
-# INICIALIZACIÓN
+# RUN
 # -----------------------------------
 if __name__ == "__main__":
-    inicializar_entorno()
+    inicializar()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
