@@ -14,7 +14,6 @@
             text-align: center;
         }
 
-        /* Botón PANEL */
         .btn-panel {
             background-color: #00d4ff;
             color: black;
@@ -77,31 +76,30 @@
 </head>
 <body>
 
-    <!-- BOTÓN PANEL -->
-    <a href="/admin" class="btn-panel">PANEL</a>
+<a href="/admin" class="btn-panel">PANEL</a>
 
-    <h1>Mercado CLN: Aire Acondicionado</h1>
+<h1>Mercado CLN: Aire Acondicionado</h1>
 
-    <div class="contenedor">
-        {% for p in productos %}
-        <div class="producto">
-            <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
-            <h3>{{ p.nombre }}</h3>
-            <p class="precio">${{ p.precio }}</p>
-            <a href="https://wa.me/526679771409?text=Hola Hector, me interesa el servicio de: {{ p.nombre }} que vi en Mercado CLN" target="_blank" class="btn-whatsapp">
-                Solicitar por WhatsApp
-            </a>
-        </div>
-        {% else %}
-        <div class="vacio">
-            <p>No hay servicios publicados todavía. ¡Ve al panel de admin!</p>
-        </div>
-        {% endfor %}
+<div class="contenedor">
+    {% for p in productos %}
+    <div class="producto">
+        <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
+        <h3>{{ p.nombre }}</h3>
+        <p class="precio">${{ p.precio }}</p>
+        <a href="https://wa.me/526679771409?text=Hola Hector, me interesa el producto: {{ p.nombre }} que vi en Mercado CLN" target="_blank" class="btn-whatsapp">
+            Solicitar por WhatsApp
+        </a>
     </div>
+    {% else %}
+    <div class="vacio">
+        <p>No hay productos publicados todavía. ¡Ve al panel de admin!</p>
+    </div>
+    {% endfor %}
+</div>
 
-    <footer style="margin-top: 50px; font-size: 0.8rem; color: #555;">
-        <p>&copy; 2026 Mercado en Línea Culiacán</p>
-    </footer>
+<footer style="margin-top: 50px; font-size: 0.8rem; color: #555;">
+    <p>&copy; 2026 Mercado en Línea Culiacán</p>
+</footer>
 
 </body>
 </html>
