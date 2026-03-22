@@ -2,7 +2,7 @@ import os
 import json
 from flask import Flask, render_template, request, redirect, url_for
 
-# Cloudinary
+# Importar Cloudinary
 try:
     import cloudinary
     import cloudinary.uploader
@@ -23,17 +23,17 @@ if cloudinary:
     )
 
 # ------------------------------
-# 📁 ARCHIVO DE PRODUCTOS
+# ARCHIVO DE PRODUCTOS
 # ------------------------------
 DB_FILE = "productos.json"
 
-# Crear productos.json automáticamente si no existe
+# Crear productos.json si no existe
 if not os.path.exists(DB_FILE):
     with open(DB_FILE, "w") as f:
         f.write("[]")  # JSON vacío válido
 
 # ------------------------------
-# CARGAR PRODUCTOS
+# FUNCIONES DE PRODUCTOS
 # ------------------------------
 def cargar_productos():
     try:
@@ -42,33 +42,29 @@ def cargar_productos():
             if not contenido:
                 return []
             productos = json.loads(contenido)
-            # asegurar que siempre haya imagen
+            # asegurar imagen válida
             for p in productos:
                 if not p.get("imagen"):
                     p["imagen"] = "https://via.placeholder.com/300"
             return productos
     except Exception as e:
-        print("ERROR PRODUCTOS:", e)
+        print("ERROR CARGANDO PRODUCTOS:", e)
         return []
 
-# ------------------------------
-# GUARDAR PRODUCTOS
-# ------------------------------
 def guardar_productos(productos):
     try:
         with open(DB_FILE, "w") as f:
             json.dump(productos, f, indent=4)
     except Exception as e:
-        print("ERROR GUARDAR:", e)
+        print("ERROR GUARDANDO PRODUCTOS:", e)
 
 # ------------------------------
-# RUTA PRINCIPAL / CATÁLOGO
+# RUTA PRINCIPAL - CATÁLOGO
 # ------------------------------
 @app.route('/')
 def inicio():
     productos = cargar_productos()
-    # Asegúrate que el archivo HTML se llame exactamente index.html en /templates
-    return render_template("index.html", productos=productos)
+    return render_template('index.html', productos=productos)
 
 # ------------------------------
 # ADMIN
@@ -76,7 +72,7 @@ def inicio():
 @app.route('/admin')
 def admin():
     productos = cargar_productos()
-    return render_template("admin.html", productos=productos)
+    return render_template('admin.html', productos=productos)
 
 # ------------------------------
 # AGREGAR PRODUCTO
@@ -94,7 +90,7 @@ def agregar():
             resultado = cloudinary.uploader.upload(archivo)
             imagen_url = resultado.get("secure_url")
         except Exception as e:
-            print("ERROR SUBIDA CLOUDINARY:", e)
+            print("ERROR SUBIENDO A CLOUDINARY:", e)
 
     productos = cargar_productos()
     nuevo = {"nombre": nombre, "precio": precio, "imagen": imagen_url}
@@ -115,8 +111,8 @@ def eliminar(index):
     return redirect(url_for('admin'))
 
 # ------------------------------
-# SERVIDOR (RENDER)
+# SERVIDOR RENDER
 # ------------------------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host="0.0.0.0", port=port)
