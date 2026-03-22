@@ -1,97 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mercado CLN - Servicios de Aire Acondicionado</title>
-
-<!-- Favicon y Apple Icon -->
-{% if config.logo %}
-<link rel="icon" href="{{ config.logo }}" type="image/png">
-<link rel="apple-touch-icon" href="{{ config.logo }}">
-{% endif %}
-
-<style>
-body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-    background-color: #121212; 
-    color: white; 
-    margin: 0; 
-    padding: 20px; 
-    text-align: center; 
-}
-header { margin-bottom: 30px; }
-header img { width: 120px; border-radius: 10px; margin-bottom: 10px; }
-h1 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8rem; }
-.contenedor { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-.categoria { background: #1e1e1e; width: 140px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor:pointer; transition:0.3s; text-align:center; }
-.categoria:hover { transform: scale(1.05); }
-.categoria img { width:100%; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
-.btn-agregar { display:inline-block; padding:15px 25px; background:#00d4ff; color:white; font-weight:bold; border-radius:12px; margin-top:20px; text-decoration:none; transition:0.3s; }
-.btn-agregar:hover { background:#008dbf; }
-
-/* Formularios de administración */
-.admin-card { background:#1e1e1e; padding:20px; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,0.5); margin:20px auto; width:300px; }
-input, button { width:100%; padding:10px; margin-top:10px; border-radius:8px; border:none; }
-button { background:#00d4ff; color:#000; font-weight:bold; cursor:pointer; transition:0.3s; }
-button:hover { background:#008dbf; }
-ul { list-style:none; padding:0; margin-top:10px; }
-li { background:#333; padding:5px 10px; border-radius:5px; margin-bottom:5px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado en línea Culiacán</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+        }
+        .header {
+            background: #000;
+            color: #fff;
+            padding: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .subtitulo {
+            padding: 14px 16px 6px;
+            color: #555;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 12px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            text-decoration: none;
+            color: #000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        .card p {
+            margin: 0;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .vacio {
+            padding: 16px;
+            color: #666;
+        }
+    </style>
 </head>
 <body>
+    <div class="header">Mercado en línea Culiacán</div>
+    <div class="subtitulo">CATEGORÍAS</div>
 
-<header>
-    {% if config.logo %}
-    <img src="{{ config.logo }}" alt="Logo Mercado CLN">
-    {% endif %}
-    <h1>Mercado CLN - Aire Acondicionado</h1>
-</header>
-
-<!-- Contenedor de categorías -->
-<div class="contenedor">
     {% if categorias %}
-        {% for c in categorias %}
-        <div class="categoria" onclick="window.location.href='/categoria/{{ c }}'">
-            <img src="https://via.placeholder.com/150?text={{ c }}" alt="{{ c }}">
-            <h3>{{ c }}</h3>
-        </div>
+    <div class="grid">
+        {% for categoria in categorias %}
+        <a class="card" href="{{ url_for('categoria', nombre=categoria.nombre) }}">
+            {% if categoria.foto %}
+                <img src="{{ url_for('static', filename=categoria.foto) }}" alt="{{ categoria.nombre }}">
+            {% else %}
+                <img src="https://via.placeholder.com/400x300?text=Categoria" alt="{{ categoria.nombre }}">
+            {% endif %}
+            <p>{{ categoria.nombre }}</p>
+        </a>
         {% endfor %}
+    </div>
     {% else %}
-        <a href="/admin" class="btn-agregar">+ Agregar mi primera categoría</a>
+    <div class="vacio">Todavía no hay categorías cargadas.</div>
     {% endif %}
-</div>
-
-<!-- Formulario Subir Logotipo -->
-<div class="admin-card">
-    <h2>Subir Logotipo</h2>
-    <form method="POST" enctype="multipart/form-data" action="{{ url_for('inicio') }}">
-        <input type="file" name="logotipo" required>
-        <button type="submit">Subir Logotipo</button>
-    </form>
-</div>
-
-<!-- Formulario Agregar Categoría -->
-<div class="admin-card">
-    <h2>Agregar Categoría</h2>
-    <form method="POST" action="{{ url_for('inicio') }}">
-        <input type="text" name="categoria" placeholder="Nombre de la categoría" required>
-        <button type="submit">Agregar Categoría</button>
-    </form>
-</div>
-
-<!-- Mensajes de confirmación -->
-<div class="admin-card">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-</div>
-
 </body>
 </html>
