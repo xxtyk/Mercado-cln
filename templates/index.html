@@ -3,29 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mercado CLN - Categorías</title>
+<title>Mercado CLN - Servicios de Aire Acondicionado</title>
+
+<!-- Favicon y Apple Icon -->
+{% if config.logo %}
+<link rel="icon" href="{{ config.logo }}" type="image/png">
+<link rel="apple-touch-icon" href="{{ config.logo }}">
+{% endif %}
+
 <style>
-body { font-family:'Segoe UI', sans-serif; background:#121212; color:white; margin:0; padding:20px; }
-h1 { text-align:center; color:#00d4ff; margin-bottom:20px; }
-.contenedor { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
-.categoria { background:#1e1e1e; width:45%; height:120px; display:flex; align-items:center; justify-content:center; border-radius:20px; font-size:1.2rem; cursor:pointer; transition:0.3s; text-align:center; }
-.categoria:hover { background:#00d4ff; color:black; }
-a { text-decoration:none; color:inherit; }
-.boton-agregar { display:inline-block; margin-top:40px; padding:20px; background:#00d4ff; color:black; font-weight:bold; border-radius:15px; font-size:1.2rem; text-decoration:none; }
-.boton-agregar:hover { background:#009ecf; }
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #121212; 
+    color: white; 
+    margin: 0; 
+    padding: 20px; 
+    text-align: center; 
+}
+header { margin-bottom: 30px; }
+header img { width: 120px; border-radius: 10px; margin-bottom: 10px; }
+h1 { color: #00d4ff; margin-bottom: 20px; font-size: 1.8rem; }
+.contenedor { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+.categoria { background: #1e1e1e; width: 140px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor:pointer; transition:0.3s; text-align:center; }
+.categoria:hover { transform: scale(1.05); }
+.categoria img { width:100%; height:100px; object-fit:cover; border-radius:10px; margin-bottom:10px; }
+.btn-agregar { display:inline-block; padding:15px 25px; background:#00d4ff; color:white; font-weight:bold; border-radius:12px; margin-top:20px; text-decoration:none; transition:0.3s; }
+.btn-agregar:hover { background:#008dbf; }
 </style>
 </head>
 <body>
 
-<h1>Categorías</h1>
+<header>
+    {% if config.logo %}
+    <img src="{{ config.logo }}" alt="Logo Mercado CLN">
+    {% endif %}
+    <h1>Mercado CLN - Aire Acondicionado</h1>
+</header>
+
 <div class="contenedor">
-{% for c in categorias %}
-<a href="/categoria/{{ c }}">
-    <div class="categoria">{{ c }}</div>
-</a>
-{% else %}
-<a href="/admin" class="boton-agregar">+ Agregar mi primera categoría</a>
-{% endfor %}
+    {% if categorias %}
+        {% for c in categorias %}
+        <div class="categoria" onclick="window.location.href='/categoria/{{ c }}'">
+            <img src="https://via.placeholder.com/150?text={{ c }}" alt="{{ c }}">
+            <h3>{{ c }}</h3>
+        </div>
+        {% endfor %}
+    {% else %}
+        <a href="/admin" class="btn-agregar">+ Agregar mi primera categoría</a>
+    {% endif %}
 </div>
 
 </body>
