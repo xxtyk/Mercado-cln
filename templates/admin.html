@@ -1,70 +1,97 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Admin - Mercado CLN</title>
-<style>
-body { font-family:'Segoe UI', sans-serif; background:#121212; color:white; margin:0; padding:20px; }
-h2 { text-align:center; color:#00d4ff; margin-bottom:20px; }
-.contenedor { width:95%; margin:auto; }
-form { background:#1e1e1e; padding:20px; border-radius:15px; margin-bottom:30px; }
-input, select, button { width:100%; padding:18px; margin:10px 0; font-size:1.1rem; border:none; border-radius:10px; }
-input, select { background:#2c2c2c; color:white; border-bottom:2px solid #00d4ff; }
-button.guardar { background:green; color:white; font-weight:bold; cursor:pointer; }
-button.borrar { background:red; color:white; margin-top:10px; cursor:pointer; }
-.producto { background:#1e1e1e; padding:15px; margin-bottom:10px; border-radius:15px; text-align:center; }
-img { width:100%; border-radius:15px; margin-bottom:10px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .box {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        h1, h2 {
+            margin-top: 0;
+        }
+        input, select, textarea, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #000;
+            color: #fff;
+            border: 0;
+            border-radius: 8px;
+        }
+        .link {
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        ul {
+            padding-left: 18px;
+        }
+    </style>
 </head>
 <body>
+    <div class="box">
+        <h1>Panel de administración</h1>
 
-<h2>Panel de Administración</h2>
-<div class="contenedor">
+        <a class="link" href="{{ url_for('index') }}">Ver tienda</a><br>
+        <a class="link" href="{{ url_for('editar_categoria') }}">Agregar categoría</a>
 
-<!-- FORMULARIO CONFIGURAR LOGO -->
-<form action="/config_logo" method="POST" enctype="multipart/form-data">
-    <input type="file" name="logo" accept="image/png, image/jpeg" required>
-    <button type="submit" class="guardar">Subir Logotipo</button>
-</form>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for msg in messages %}
+              <p>{{ msg }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-<!-- Mostrar logo actual -->
-{% if config.logo %}
-    <div style="text-align:center; margin-bottom:20px;">
-        <img src="{{ config.logo }}" alt="Logo actual" style="width:120px; border-radius:10px;">
+        <h2>Agregar producto</h2>
+        <form action="{{ url_for('agregar_producto') }}" method="POST" enctype="multipart/form-data">
+            <input type="text" name="nombre" placeholder="Nombre del producto" required>
+            <input type="text" name="precio" placeholder="Precio" required>
+            <textarea name="descripcion" placeholder="Descripción"></textarea>
+
+            <select name="categoria" required>
+                <option value="">Selecciona una categoría</option>
+                {% for nombre_categoria, foto in categorias.items() %}
+                <option value="{{ nombre_categoria }}">{{ nombre_categoria }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="file" name="foto_producto" accept="image/*">
+            <button type="submit">Guardar producto</button>
+        </form>
+
+        <h2>Categorías</h2>
+        <ul>
+            {% for nombre_categoria, foto in categorias.items() %}
+            <li>{{ nombre_categoria }}</li>
+            {% else %}
+            <li>No hay categorías todavía.</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Productos</h2>
+        <ul>
+            {% for p in productos %}
+            <li>{{ p.nombre }} - {{ p.categoria }} - ${{ p.precio }}</li>
+            {% else %}
+            <li>No hay productos todavía.</li>
+            {% endfor %}
+        </ul>
     </div>
-{% endif %}
-
-<!-- FORMULARIO AGREGAR CATEGORÍA -->
-<form action="/editar_categoria" method="POST">
-    <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
-    <button type="submit" class="guardar">Agregar Categoría</button>
-</form>
-
-<!-- FORMULARIO AGREGAR PRODUCTO -->
-<form action="/agregar_producto" method="POST" enctype="multipart/form-data">
-    <input type="text" name="nombre" placeholder="Nombre del Producto" required>
-    <input type="text" name="precio" placeholder="Precio" required>
-    <input type="text" name="descripcion" placeholder="Descripción" required>
-    <select name="categoria" required>
-        {% for c in categorias %}
-        <option value="{{ c }}">{{ c }}</option>
-        {% endfor %}
-    </select>
-    <input type="file" name="imagen" accept="image/*" required>
-    <button type="submit" class="guardar">Guardar Producto</button>
-</form>
-
-<!-- LISTA DE PRODUCTOS -->
-{% for p in productos %}
-<div class="producto">
-    <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
-    <h3>{{ p.nombre }}</h3>
-    <p>${{ p.precio }}</p>
-    <a href="/eliminar_producto/{{ loop.index0 }}"><button class="borrar">Borrar</button></a>
-</div>
-{% endfor %}
-
-</div>
 </body>
 </html>
