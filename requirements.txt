@@ -1,6 +1,6 @@
-flask
+Flask
 gunicorn
-cloudinary
+Werkzeug
 
 
 
