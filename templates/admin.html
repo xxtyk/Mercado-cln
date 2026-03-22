@@ -1,15 +1,77 @@
-# Para borrar (el botón rojo del código de arriba)
-@app.route('/eliminar/<int:id>')
-def eliminar(id):
-    productos = cargar_productos()
-    if 0 <= id < len(productos):
-        productos.pop(id)
-        with open('productos.json', 'w') as f:
-            json.dump(productos, f, indent=4)
-    return redirect(url_for('admin'))
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Mercado CLN</title>
+    <style>
+        body { font-family: Arial; background: #f2f2f2; }
 
-# Para que el panel de admin muestre la lista de productos
-@app.route('/admin')
-def admin():
-    productos = cargar_productos()
-    return render_template('admin.html', productos=productos)
+        .form {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 300px;
+            border-radius: 10px;
+        }
+
+        input, button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+        }
+
+        .producto {
+            background: white;
+            margin: 10px auto;
+            padding: 10px;
+            width: 300px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        img { width: 100%; border-radius: 10px; }
+
+        .borrar {
+            background: red;
+            color: white;
+            border: none;
+        }
+
+        .guardar {
+            background: green;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2 style="text-align:center;">Panel de Servicios</h2>
+
+<!-- FORMULARIO -->
+<form class="form" action="/agregar" method="POST" enctype="multipart/form-data">
+    <input type="text" name="nombre" placeholder="Servicio (Ej: Mantenimiento Minisplit)" required>
+    <input type="text" name="precio" placeholder="Precio" required>
+    <input type="file" name="imagen" accept="image/*" required>
+
+    <button type="submit" class="guardar">Guardar</button>
+</form>
+
+<hr>
+
+<!-- LISTA -->
+<div>
+    {% for p in productos %}
+    <div class="producto">
+        <img src="{{ p.imagen }}">
+        <h3>{{ p.nombre }}</h3>
+        <p>$ {{ p.precio }}</p>
+
+        <a href="/eliminar/{{ loop.index0 }}">
+            <button class="borrar">Borrar</button>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
