@@ -1,15 +1,30 @@
 import os
 import json
 from flask import Flask, render_template, request, redirect, url_for
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PRODUCTOS_FILE = os.path.join(BASE_DIR, "productos.json")
 CATEGORIAS_FILE = os.path.join(BASE_DIR, "categorias.json")
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-# ---------- FUNCIONES ----------
+def init_app():
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+    if not os.path.exists(PRODUCTOS_FILE):
+        with open(PRODUCTOS_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f, ensure_ascii=False, indent=4)
+
+    if not os.path.exists(CATEGORIAS_FILE):
+        with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f, ensure_ascii=False, indent=4)
+
+
 def cargar_json(ruta, valor_inicial):
     if not os.path.exists(ruta):
         with open(ruta, "w", encoding="utf-8") as f:
@@ -43,12 +58,21 @@ def guardar_categorias(categorias):
     guardar_json(CATEGORIAS_FILE, categorias)
 
 
-# ---------- RUTAS ----------
+def guardar_imagen(archivo):
+    if not archivo or not archivo.filename:
+        return ""
+
+    nombre_seguro = secure_filename(archivo.filename)
+    ruta_guardado = os.path.join(app.config["UPLOAD_FOLDER"], nombre_seguro)
+    archivo.save(ruta_guardado)
+    return f"uploads/{nombre_seguro}"
+
+
 @app.route("/")
 def index():
-    productos = cargar_productos()
     categorias = cargar_categorias()
-    return render_template("index.html", productos=productos, categorias=categorias)
+    productos = cargar_productos()
+    return render_template("index.html", categorias=categorias, productos=productos)
 
 
 @app.route("/admin")
@@ -58,10 +82,47 @@ def admin():
     return render_template("admin.html", productos=productos, categorias=categorias)
 
 
+@app.route("/categoria/<nombre_categoria>")
+def ver_categoria(nombre_categoria):
+    productos = cargar_productos()
+
+    productos_categoria = [
+        p for p in productos
+        if p.get("categoria", "").strip().lower() == nombre_categoria.strip().lower()
+    ]
+
+    return render_template(
+        "categoria.html",
+        nombre_categoria=nombre_categoria,
+        productos=productos_categoria
+    )
+
+
 @app.route("/vendedor/<vendedor_id>")
 def vendedor(vendedor_id):
     productos = cargar_productos()
     return render_template("vendedor.html", vendedor_id=vendedor_id, productos=productos)
+
+
+@app.route("/agregar_categoria", methods=["POST"])
+def agregar_categoria():
+    categorias = cargar_categorias()
+
+    nombre = request.form.get("nombre_categoria", "").strip()
+    foto_categoria = request.files.get("foto_categoria")
+
+    if nombre:
+        ruta_foto = guardar_imagen(foto_categoria)
+
+        nueva = {
+            "nombre": nombre,
+            "foto": ruta_foto
+        }
+
+        categorias.append(nueva)
+        guardar_categorias(categorias)
+
+    return redirect(url_for("admin"))
 
 
 @app.route("/agregar_producto", methods=["POST"])
@@ -71,13 +132,15 @@ def agregar_producto():
     nombre = request.form.get("nombre", "").strip()
     precio = request.form.get("precio", "").strip()
     categoria = request.form.get("categoria", "").strip()
-    foto = request.form.get("foto", "").strip()
+    foto_producto = request.files.get("foto")
+
+    ruta_foto = guardar_imagen(foto_producto)
 
     nuevo = {
         "nombre": nombre,
         "precio": precio,
         "categoria": categoria,
-        "foto": foto
+        "foto": ruta_foto
     }
 
     productos.append(nuevo)
@@ -86,33 +149,27 @@ def agregar_producto():
     return redirect(url_for("admin"))
 
 
-@app.route("/agregar_categoria", methods=["POST"])
-def agregar_categoria():
+@app.route("/editar_categoria/<int:index>", methods=["POST"])
+def editar_categoria(index):
     categorias = cargar_categorias()
 
-    nombre = request.form.get("nombre_categoria", "").strip()
+    if 0 <= index < len(categorias):
+        nombre = request.form.get("nombre_categoria", "").strip()
+        foto_categoria = request.files.get("foto_categoria")
 
-    if nombre:
-        existe = False
-        for c in categorias:
-            if isinstance(c, dict):
-                if c.get("nombre", "").strip().lower() == nombre.lower():
-                    existe = True
-                    break
-            elif isinstance(c, str):
-                if c.strip().lower() == nombre.lower():
-                    existe = True
-                    break
+        if nombre:
+            categorias[index]["nombre"] = nombre
 
-        if not existe:
-            categorias.append({
-                "nombre": nombre
-            })
-            guardar_categorias(categorias)
+        ruta_foto = guardar_imagen(foto_categoria)
+        if ruta_foto:
+            categorias[index]["foto"] = ruta_foto
+
+        guardar_categorias(categorias)
 
     return redirect(url_for("admin"))
 
 
 if __name__ == "__main__":
+    init_app()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
