@@ -1,42 +1,56 @@
 import os
 import json
 from flask import Flask, render_template, request, redirect, url_for, session
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = "12345"
+app.secret_key = os.environ.get("SECRET_KEY", "12345")
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+STATIC_FOLDER = os.path.join(BASE_DIR, "static")
+UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, "uploads")
 PRODUCTOS_FILE = os.path.join(BASE_DIR, "productos.json")
 CATEGORIAS_FILE = os.path.join(BASE_DIR, "categorias.json")
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 
 # ------------------------
 # INICIALIZAR ARCHIVOS
 # ------------------------
 def init_app():
+    os.makedirs(STATIC_FOLDER, exist_ok=True)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
     if not os.path.exists(PRODUCTOS_FILE):
         with open(PRODUCTOS_FILE, "w", encoding="utf-8") as f:
-            json.dump([], f)
+            json.dump([], f, ensure_ascii=False, indent=4)
 
     if not os.path.exists(CATEGORIAS_FILE):
         with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
-            json.dump([], f)
+            json.dump([], f, ensure_ascii=False, indent=4)
+
 
 def cargar_json(ruta):
     try:
         with open(ruta, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except:
+            data = json.load(f)
+            if isinstance(data, list):
+                return data
+            return []
+    except Exception:
         return []
+
 
 def guardar_json(ruta, data):
     with open(ruta, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+# IMPORTANTE:
+# Esto debe ir fuera del __main__
+# para que también funcione en Render/Gunicorn
+init_app()
+
 
 # ------------------------
 # INDEX (CLIENTE)
@@ -46,6 +60,7 @@ def index():
     categorias = cargar_json(CATEGORIAS_FILE)
     return render_template("index.html", categorias=categorias)
 
+
 # ------------------------
 # VER CATEGORIA
 # ------------------------
@@ -54,14 +69,28 @@ def ver_categoria(categoria_nombre):
     categorias = cargar_json(CATEGORIAS_FILE)
     productos = cargar_json(PRODUCTOS_FILE)
 
-    categoria = next((c for c in categorias if c["nombre"] == categoria_nombre), None)
+    categoria = next(
+        (c for c in categorias if str(c.get("nombre", "")).strip() == str(categoria_nombre).strip()),
+        None
+    )
 
-    productos_filtrados = [p for p in productos if p.get("categoria") == categoria_nombre]
+    if categoria is None:
+        return redirect(url_for("index"))
 
-    return render_template("categoria.html", categoria=categoria, productos=productos_filtrados)
+    productos_filtrados = [
+        p for p in productos
+        if str(p.get("categoria", "")).strip() == str(categoria_nombre).strip()
+    ]
+
+    return render_template(
+        "categoria.html",
+        categoria=categoria,
+        productos=productos_filtrados
+    )
+
 
 # ------------------------
-# AGREGAR AL CARRITO (ARREGLADO)
+# AGREGAR AL CARRITO
 # ------------------------
 @app.route("/agregar_carrito", methods=["POST"])
 def agregar_carrito():
@@ -72,55 +101,72 @@ def agregar_carrito():
         cantidad = int(cantidad)
         if cantidad < 1:
             cantidad = 1
-    except:
+    except Exception:
         cantidad = 1
 
     productos = cargar_json(PRODUCTOS_FILE)
     producto_encontrado = None
 
     for p in productos:
-        if str(p.get("id")) == str(producto_id):
+        if str(p.get("id", "")) == str(producto_id):
             producto_encontrado = p
             break
 
     if not producto_encontrado:
         return redirect(request.referrer or url_for("index"))
 
-    carrito = session.get("carrito", [])
+    carrito_actual = session.get("carrito", [])
+
+    # seguridad por si la sesión no trae lista
+    if not isinstance(carrito_actual, list):
+        carrito_actual = []
 
     encontrado = False
-    for item in carrito:
-        if str(item.get("id")) == str(producto_id):
-            item["cantidad"] += cantidad
+    for item in carrito_actual:
+        if str(item.get("id", "")) == str(producto_id):
+            item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
             encontrado = True
             break
 
     if not encontrado:
-        carrito.append({
+        try:
+            precio = float(producto_encontrado.get("precio", 0) or 0)
+        except Exception:
+            precio = 0.0
+
+        carrito_actual.append({
             "id": producto_encontrado.get("id"),
-            "nombre": producto_encontrado.get("nombre"),
-            "precio": float(producto_encontrado.get("precio", 0)),
+            "nombre": producto_encontrado.get("nombre", ""),
+            "precio": precio,
             "foto": producto_encontrado.get("foto", ""),
             "cantidad": cantidad
         })
 
-    session["carrito"] = carrito
+    session["carrito"] = carrito_actual
     session.modified = True
 
     return redirect(request.referrer or url_for("carrito"))
+
 
 # ------------------------
 # VER CARRITO
 # ------------------------
 @app.route("/carrito")
 def carrito():
-    carrito = session.get("carrito", [])
+    carrito_items = session.get("carrito", [])
+
+    if not isinstance(carrito_items, list):
+        carrito_items = []
 
     total = 0
-    for item in carrito:
-        total += float(item["precio"]) * int(item["cantidad"])
+    for item in carrito_items:
+        try:
+            total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+        except Exception:
+            pass
 
-    return render_template("carrito.html", carrito=carrito, total=total)
+    return render_template("carrito.html", carrito=carrito_items, total=total)
+
 
 # ------------------------
 # LIMPIAR CARRITO
@@ -128,12 +174,13 @@ def carrito():
 @app.route("/limpiar_carrito")
 def limpiar_carrito():
     session["carrito"] = []
+    session.modified = True
     return redirect(url_for("carrito"))
+
 
 # ------------------------
 # INICIO
 # ------------------------
 if __name__ == "__main__":
-    init_app()
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True)
