@@ -214,7 +214,7 @@
 <body>
 
     <div class="barra-superior">
-        <a href="{{ url_for('index') }}" class="flecha">←</a>
+        <a href="/" class="flecha">←</a>
         <div class="titulo">{{ categoria.nombre }}</div>
     </div>
 
@@ -233,7 +233,7 @@
             <div class="precio">${{ p.precio }}</div>
             <div class="descripcion">{{ p.descripcion }}</div>
 
-            <form method="POST" action="{{ url_for('agregar_carrito') }}">
+            <form method="POST" action="/agregar_carrito">
                 <input type="hidden" name="producto_id" value="{{ p.id }}">
 
                 <div class="fila-agregar">
@@ -250,7 +250,7 @@
     {% endif %}
 
     <div class="barra-carrito">
-        <a href="{{ url_for('carrito') }}" class="btn-ver-carrito">Ver carrito</a>
+        <a href="/carrito" class="btn-ver-carrito">Ver carrito</a>
     </div>
 
 </body>
