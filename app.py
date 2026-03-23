@@ -170,3 +170,26 @@ def agregar_carrito():
     carrito = session["carrito"]
     carrito.append(item)
     session["carrito"] = carrito
+    session.modified = True
+
+    return redirect(url_for("ver_carrito"))
+
+
+@app.route("/carrito")
+def ver_carrito():
+    carrito = session.get("carrito", [])
+    total = sum(item.get("total", 0) for item in carrito)
+    return render_template("carrito.html", carrito=carrito, total=total)
+
+
+@app.route("/vaciar_carrito")
+def vaciar_carrito():
+    session["carrito"] = []
+    session.modified = True
+    return redirect(url_for("ver_carrito"))
+
+
+if __name__ == "__main__":
+    init_app()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
