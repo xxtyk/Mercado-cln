@@ -42,7 +42,6 @@ def guardar(ruta, data):
 def subir_img(file):
     if not file or file.filename == "":
         return ""
-
     if "." not in file.filename:
         return ""
 
@@ -51,11 +50,9 @@ def subir_img(file):
         return ""
 
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
     nombre = f"{uuid.uuid4().hex}.{ext}"
     ruta = os.path.join(UPLOAD_FOLDER, nombre)
     file.save(ruta)
-
     return f"uploads/{nombre}"
 
 
@@ -82,7 +79,7 @@ def get_producto(id):
     return None
 
 
-def get_categoria(id):
+def get_categoria_por_id(id):
     for c in categorias():
         if str(c.get("id")) == str(id):
             return c
@@ -91,7 +88,7 @@ def get_categoria(id):
 
 def get_categoria_por_nombre(nombre):
     for c in categorias():
-        if c.get("nombre", "").lower().strip() == nombre.lower().strip():
+        if str(c.get("nombre")).lower() == str(nombre).lower():
             return c
     return None
 
@@ -108,33 +105,19 @@ def index():
     )
 
 
-# =========================
-# 🔥 CATEGORIA (ARREGLADO TOTAL)
-# =========================
-@app.route("/categoria/<id>")
-def ver_categoria(id):
-    lista = productos()
+# 🔥 ESTA ES LA CLAVE (ARREGLADA)
+@app.route("/categoria/<nombre>")
+def ver_categoria(nombre):
+    nombre = nombre.replace("%20", " ").lower()
+
     filtrados = []
-
-    id_limpio = str(id).strip().lower()
-
-    for p in lista:
-        cat_id = str(p.get("categoria_id", "")).strip()
-        cat_nombre = str(p.get("categoria_nombre", "")).strip().lower()
-
-        # 🔥 FUNCIONA CON ID Y NOMBRE (como tu URL)
-        if cat_id == id or cat_nombre == id_limpio:
+    for p in productos():
+        if str(p.get("categoria_nombre", "")).lower() == nombre:
             filtrados.append(p)
-
-    categoria_actual = get_categoria(id)
-
-    # 🔥 si no encontró por ID, busca por nombre
-    if not categoria_actual:
-        categoria_actual = get_categoria_por_nombre(id)
 
     return render_template(
         "categoria.html",
-        categoria=categoria_actual,
+        categoria={"nombre": nombre},
         categorias=categorias(),
         productos=filtrados
     )
@@ -229,4 +212,81 @@ def eliminar_del_carrito(i):
 @app.route("/vaciar_carrito", methods=["POST"])
 def vaciar():
     session["carrito"] = []
-    return redirect(url_for("car
+    return redirect(url_for("carrito"))
+
+
+# =========================
+# ADMIN
+# =========================
+@app.route("/admin")
+def admin():
+    return render_template(
+        "admin.html",
+        productos=productos(),
+        categorias=categorias()
+    )
+
+
+# =========================
+# CATEGORIAS
+# =========================
+@app.route("/agregar_categoria", methods=["POST"])
+def add_cat():
+    nombre = request.form.get("nombre_categoria")
+    foto = subir_img(request.files.get("foto_categoria"))
+
+    data = categorias()
+    data.append({
+        "id": uuid.uuid4().hex,
+        "nombre": nombre,
+        "foto": foto,
+        "activa": True
+    })
+
+    guardar_categorias(data)
+    return redirect(url_for("admin"))
+
+
+# =========================
+# PRODUCTOS
+# =========================
+@app.route("/agregar_producto", methods=["POST"])
+def add_prod():
+    nombre = request.form.get("nombre")
+    precio = request.form.get("precio")
+    categoria_id = request.form.get("categoria_id")
+    descripcion = request.form.get("descripcion")
+    foto = subir_img(request.files.get("foto"))
+
+    try:
+        precio = float(precio)
+    except:
+        return redirect(url_for("admin"))
+
+    categoria = get_categoria_por_id(categoria_id)
+    categoria_nombre = categoria["nombre"] if categoria else ""
+
+    data = productos()
+    data.append({
+        "id": uuid.uuid4().hex,
+        "nombre": nombre,
+        "precio": precio,
+        "categoria_id": categoria_id,
+        "categoria_nombre": categoria_nombre,  # 🔥 CLAVE
+        "descripcion": descripcion,
+        "foto": foto,
+        "activo": True
+    })
+
+    guardar_productos(data)
+    return redirect(url_for("admin"))
+
+
+# =========================
+# MAIN
+# =========================
+if __name__ == "__main__":
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    asegurar(PRODUCTOS_FILE, [])
+    asegurar(CATEGORIAS_FILE, [])
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
