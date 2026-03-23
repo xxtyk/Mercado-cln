@@ -1,1 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de pedido</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            margin:0;
+            background:#f2f2f2;
+        }
+        .topbar{
+            background:#151515;
+            color:white;
+            padding:22px;
+            font-size:20px;
+            font-weight:bold;
+        }
+        .contenedor{
+            max-width:700px;
+            margin:20px auto;
+            background:white;
+            padding:20px;
+            border-radius:14px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.08);
+        }
+        .resumen{
+            background:#f7f7f7;
+            border-radius:12px;
+            padding:15px;
+            margin-bottom:20px;
+        }
+        .item{
+            border-bottom:1px solid #ddd;
+            padding:10px 0;
+        }
+        .item:last-child{
+            border-bottom:none;
+        }
+        .totales{
+            margin-top:15px;
+            font-size:20px;
+            font-weight:bold;
+        }
+        input, textarea, select{
+            width:100%;
+            padding:14px;
+            margin-bottom:14px;
+            border:1px solid #ccc;
+            border-radius:10px;
+            font-size:16px;
+            box-sizing:border-box;
+            background:white;
+        }
+        textarea{
+            min-height:90px;
+            resize:none;
+        }
+        button{
+            width:100%;
+            background:#2f2f33;
+            color:white;
+            border:none;
+            padding:18px;
+            font-size:22px;
+            border-radius:12px;
+            cursor:pointer;
+        }
+        .bloque{
+            background:#fafafa;
+            border:1px solid #e5e5e5;
+            border-radius:12px;
+            padding:14px;
+            margin-bottom:14px;
+        }
+        .titulo-bloque{
+            font-weight:bold;
+            margin-bottom:10px;
+        }
+        .radio-linea{
+            margin-bottom:10px;
+        }
+        label{
+            font-size:16px;
+        }
+        .nota{
+            color:#666;
+            font-size:14px;
+            margin-top:-6px;
+            margin-bottom:12px;
+        }
+    </style>
 
+    <script>
+        function mostrarOtroVendedor() {
+            const vendedor = document.getElementById("vendedor").value;
+            const cont = document.getElementById("otro-vendedor-box");
+
+            if (vendedor === "otro") {
+                cont.style.display = "block";
+            } else {
+                cont.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="topbar">FICHA DE PEDIDO</div>
+
+    <div class="contenedor">
+        <div class="resumen">
+            {% for item in carrito %}
+                <div class="item">
+                    <strong>{{ item.producto }}</strong><br>
+                    Cantidad: {{ item.cantidad }}<br>
+                    Total: ${{ item.total }}
+                </div>
+            {% endfor %}
+
+            <div class="totales">
+                Total productos: ${{ subtotal }}
+            </div>
+            <div style="margin-top:8px; color:#444;">
+                Envío a domicilio: $40
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('enviar_pedido') }}">
+            <input type="text" name="nombre" placeholder="Nombre del cliente" required>
+            <input type="text" name="telefono" placeholder="Celular" required>
+            <input type="text" name="calle" placeholder="Calle y número" required>
+            <input type="text" name="colonia" placeholder="Colonia" required>
+
+            <div class="bloque">
+                <div class="titulo-bloque">Tipo de entrega</div>
+
+                <div class="radio-linea">
+                    <label>
+                        <input type="radio" name="tipo_entrega" value="recoger" checked>
+                        Recoger en punto de entrega
+                    </label>
+                </div>
+
+                <div class="radio-linea">
+                    <label>
+                        <input type="radio" name="tipo_entrega" value="domicilio">
+                        A domicilio (+$40)
+                    </label>
+                </div>
+            </div>
+
+            <select name="vendedor" id="vendedor" onchange="mostrarOtroVendedor()" required>
+                <option value="">Selecciona vendedor</option>
+                {% for vendedor in vendedores %}
+                    <option value="{{ vendedor }}">{{ vendedor }}</option>
+                {% endfor %}
+                <option value="otro">➕ Otro vendedor</option>
+            </select>
+
+            <div id="otro-vendedor-box" style="display:none;">
+                <input type="text" name="otro_vendedor" placeholder="Escribe nombre del vendedor">
+            </div>
+
+            <input type="text" name="metodo_pago" value="Contra entrega" readonly>
+            <div class="nota">Pago a contra entrega</div>
+
+            <textarea name="nota" placeholder="Nota: pasar después de las 6, marcar antes, etc."></textarea>
+
+            <button type="submit">ENVIAR PEDIDO</button>
+        </form>
+    </div>
+
+</body>
+</html>
