@@ -22,7 +22,9 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .flecha {
@@ -36,107 +38,174 @@
             font-size: 24px;
             color: #bdbdbd;
             font-weight: 500;
+            text-transform: uppercase;
         }
 
-        .grid {
-            padding: 8px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        .contenedor {
+            padding: 12px;
+            padding-bottom: 30px;
         }
 
         .card {
             background: white;
-            border-radius: 14px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-            display: flex;
-            flex-direction: column;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
         }
 
-        .card img {
+        .foto-producto {
             width: 100%;
-            height: 180px;
+            max-height: 260px;
             object-fit: cover;
-            display: block;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background: #ddd;
         }
 
-        .sin-imagen {
+        .sin-foto {
             width: 100%;
-            height: 180px;
-            background: #d9d9d9;
+            height: 220px;
+            border-radius: 10px;
+            background: #ddd;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #666;
-        }
-
-        .info {
-            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 18px;
         }
 
         .nombre {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            color: #222;
         }
 
         .precio {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
-            margin-bottom: 10px;
+            color: #111;
+            margin-bottom: 12px;
+        }
+
+        .descripcion {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .fila-agregar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .cantidad {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
+            width: 80px;
+            height: 42px;
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+            background: white;
         }
 
-        .boton {
-            width: 100%;
-            padding: 10px;
-            background: #25D366;
-            color: white;
+        .btn-agregar {
+            flex: 1;
+            height: 42px;
             border: none;
             border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 17px;
             font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-agregar:hover {
+            background: #222;
+        }
+
+        .sin-productos {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .barra-carrito {
+            position: fixed;
+            right: 14px;
+            bottom: 14px;
+            z-index: 20;
+        }
+
+        .btn-ver-carrito {
+            display: inline-block;
+            background: #1f1f1f;
+            color: white;
+            text-decoration: none;
+            padding: 14px 18px;
+            border-radius: 999px;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.20);
         }
     </style>
 </head>
 <body>
 
-<div class="barra-superior">
-    <a href="{{ url_for('index') }}" class="flecha">←</a>
-    <div class="titulo">{{ nombre_categoria }}</div>
-</div>
-
-<div class="grid">
-    {% for p in productos %}
-    <div class="card">
-        {% if p.foto %}
-            <img src="/static/{{ p.foto }}" alt="{{ p.nombre }}">
-        {% else %}
-            <div class="sin-imagen">Sin imagen</div>
-        {% endif %}
-
-        <div class="info">
-            <div class="nombre">{{ p.nombre }}</div>
-            <div class="precio">${{ p.precio }}</div>
-
-            <form action="/agregar_carrito" method="POST">
-                <input type="hidden" name="producto" value="{{ p.nombre }}">
-                <input type="hidden" name="precio" value="{{ p.precio }}">
-                <input type="hidden" name="foto" value="{{ p.foto }}">
-
-                <input class="cantidad" type="number" name="cantidad" value="1" min="1">
-
-                <button class="boton" type="submit">Agregar</button>
-            </form>
-        </div>
+    <div class="barra-superior">
+        <a href="{{ url_for('index') }}" class="flecha">←</a>
+        <div class="titulo">{{ nombre_categoria }}</div>
     </div>
-    {% endfor %}
-</div>
+
+    <div class="contenedor">
+        {% if productos and productos|length > 0 %}
+
+            {% for p in productos %}
+            <div class="card">
+                {% if p.foto %}
+                    <img src="{{ url_for('static', filename=p.foto) }}" alt="{{ p.nombre }}" class="foto-producto">
+                {% else %}
+                    <div class="sin-foto">Sin foto</div>
+                {% endif %}
+
+                <div class="nombre">{{ p.nombre }}</div>
+                <div class="precio">${{ p.precio }}</div>
+
+                {% if p.descripcion %}
+                    <div class="descripcion">{{ p.descripcion }}</div>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('agregar_carrito') }}">
+                    <input type="hidden" name="producto" value="{{ p.nombre }}">
+                    <input type="hidden" name="precio" value="{{ p.precio }}">
+                    <input type="hidden" name="foto" value="{{ p.foto }}">
+
+                    <div class="fila-agregar">
+                        <input class="cantidad" type="number" name="cantidad" value="1" min="1">
+                        <button type="submit" class="btn-agregar">Agregar</button>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+
+        {% else %}
+            <div class="sin-productos">
+                No hay productos en esta categoría por ahorita.
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="barra-carrito">
+        <a href="{{ url_for('ver_carrito') }}" class="btn-ver-carrito">Ver carrito</a>
+    </div>
 
 </body>
 </html>
