@@ -67,4 +67,76 @@
             background: #d9d9d9;
             display: flex;
             align-items: center;
-            justify
+            justify-content: center;
+            color: #666;
+        }
+
+        .info {
+            padding: 10px;
+        }
+
+        .nombre {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .precio {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .cantidad {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+        }
+
+        .boton {
+            width: 100%;
+            padding: 10px;
+            background: #25D366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="barra-superior">
+    <a href="{{ url_for('index') }}" class="flecha">←</a>
+    <div class="titulo">{{ nombre_categoria }}</div>
+</div>
+
+<div class="grid">
+    {% for p in productos %}
+    <div class="card">
+        {% if p.foto %}
+            <img src="/static/{{ p.foto }}" alt="{{ p.nombre }}">
+        {% else %}
+            <div class="sin-imagen">Sin imagen</div>
+        {% endif %}
+
+        <div class="info">
+            <div class="nombre">{{ p.nombre }}</div>
+            <div class="precio">${{ p.precio }}</div>
+
+            <form action="/agregar_carrito" method="POST">
+                <input type="hidden" name="producto" value="{{ p.nombre }}">
+                <input type="hidden" name="precio" value="{{ p.precio }}">
+                <input type="hidden" name="foto" value="{{ p.foto }}">
+
+                <input class="cantidad" type="number" name="cantidad" value="1" min="1">
+
+                <button class="boton" type="submit">Agregar</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+</body>
+</html>
