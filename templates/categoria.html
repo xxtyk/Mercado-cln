@@ -6,7 +6,9 @@
     <title>{{ categoria.nombre }}</title>
 
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             margin: 0;
@@ -17,151 +19,242 @@
         .barra-superior {
             background: #1f1f1f;
             color: white;
-            padding: 18px 16px;
+            padding: 16px 14px;
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
 
         .flecha {
-            font-size: 34px;
+            font-size: 30px;
             text-decoration: none;
             color: white;
+            line-height: 1;
         }
 
         .titulo {
-            font-size: 24px;
-            color: #bdbdbd;
+            font-size: 22px;
+            color: #d0d0d0;
             text-transform: uppercase;
+            font-weight: bold;
         }
 
         .contenedor {
-            padding: 12px;
-            padding-bottom: 90px;
+            padding: 10px;
+            padding-bottom: 95px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
 
         .card {
             background: white;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.10);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .foto-producto {
             width: 100%;
-            height: 150px;
+            height: 120px;
             object-fit: cover;
             border-radius: 10px;
             margin-bottom: 10px;
+            display: block;
         }
 
         .sin-foto {
-            height: 150px;
+            width: 100%;
+            height: 120px;
             background: #ddd;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
         }
 
         .nombre {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
+            color: #111;
+            line-height: 1.2;
+            min-height: 34px;
+            margin-bottom: 6px;
         }
 
         .precio {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
-            margin-bottom: 8px;
+            color: #000;
+            margin-bottom: 6px;
         }
 
         .descripcion {
             font-size: 13px;
+            color: #555;
             margin-bottom: 10px;
+            min-height: 30px;
+            line-height: 1.2;
+            word-break: break-word;
         }
 
         .fila-agregar {
             display: flex;
+            align-items: center;
             gap: 6px;
+            margin-top: auto;
         }
 
         .cantidad {
-            width: 55px;
+            width: 48px;
+            height: 34px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            padding: 4px;
+        }
+
+        .detalle {
+            flex: 1;
+            height: 34px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 14px;
+            min-width: 0;
         }
 
         .btn-agregar {
-            flex: 1;
+            height: 34px;
+            padding: 0 10px;
             background: #333;
             color: white;
             border: none;
             border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
         }
 
         .barra-carrito {
             position: fixed;
             right: 14px;
             bottom: 14px;
+            z-index: 20;
         }
 
         .btn-ver-carrito {
             background: #1f1f1f;
             color: white;
-            padding: 14px;
+            padding: 12px 16px;
             border-radius: 999px;
             text-decoration: none;
+            font-size: 15px;
+            display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+        }
+
+        .sin-productos {
+            padding: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        @media (max-width: 480px) {
+            .contenedor {
+                gap: 8px;
+                padding: 8px;
+                padding-bottom: 95px;
+            }
+
+            .card {
+                padding: 8px;
+            }
+
+            .foto-producto,
+            .sin-foto {
+                height: 110px;
+            }
+
+            .nombre {
+                font-size: 13px;
+            }
+
+            .precio {
+                font-size: 16px;
+            }
+
+            .descripcion {
+                font-size: 12px;
+            }
+
+            .cantidad {
+                width: 44px;
+            }
+
+            .detalle {
+                font-size: 13px;
+            }
+
+            .btn-agregar {
+                font-size: 13px;
+                padding: 0 8px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="barra-superior">
-    <a href="{{ url_for('index') }}" class="flecha">←</a>
-    <div class="titulo">{{ categoria.nombre }}</div>
-</div>
-
-{% if productos %}
-<div class="contenedor">
-    {% for p in productos %}
-    <div class="card">
-
-        {% if p.foto %}
-            <img src="{{ url_for('static', filename=p.foto) }}" class="foto-producto">
-        {% else %}
-            <div class="sin-foto">Sin foto</div>
-        {% endif %}
-
-        <div class="nombre">{{ p.nombre }}</div>
-        <div class="precio">${{ p.precio }}</div>
-        <div class="descripcion">{{ p.descripcion }}</div>
-
-        <!-- 🔥 FORMULARIO ARREGLADO -->
-        <form method="POST" action="{{ url_for('agregar_carrito') }}">
-            <input type="hidden" name="producto_id" value="{{ p.id }}">
-
-            <div class="fila-agregar">
-                <input class="cantidad" type="number" name="cantidad" value="1" min="1">
-                <input type="text" name="descripcion" placeholder="Detalle">
-                <button type="submit" class="btn-agregar">Agregar</button>
-            </div>
-        </form>
-
+    <div class="barra-superior">
+        <a href="{{ url_for('index') }}" class="flecha">←</a>
+        <div class="titulo">{{ categoria.nombre }}</div>
     </div>
-    {% endfor %}
-</div>
-{% else %}
-<p>No hay productos</p>
-{% endif %}
 
-<div class="barra-carrito">
-    <a href="{{ url_for('carrito') }}" class="btn-ver-carrito">Ver carrito</a>
-</div>
+    {% if productos %}
+    <div class="contenedor">
+        {% for p in productos %}
+        <div class="card">
+
+            {% if p.foto %}
+                <img src="{{ url_for('static', filename=p.foto) }}" class="foto-producto" alt="{{ p.nombre }}">
+            {% else %}
+                <div class="sin-foto">Sin foto</div>
+            {% endif %}
+
+            <div class="nombre">{{ p.nombre }}</div>
+            <div class="precio">${{ p.precio }}</div>
+            <div class="descripcion">{{ p.descripcion }}</div>
+
+            <form method="POST" action="{{ url_for('agregar_carrito') }}">
+                <input type="hidden" name="producto_id" value="{{ p.id }}">
+
+                <div class="fila-agregar">
+                    <input class="cantidad" type="number" name="cantidad" value="1" min="1">
+                    <input class="detalle" type="text" name="descripcion" placeholder="Detalle">
+                    <button type="submit" class="btn-agregar">Agregar</button>
+                </div>
+            </form>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="sin-productos">No hay productos</div>
+    {% endif %}
+
+    <div class="barra-carrito">
+        <a href="{{ url_for('carrito') }}" class="btn-ver-carrito">Ver carrito</a>
+    </div>
 
 </body>
 </html>
