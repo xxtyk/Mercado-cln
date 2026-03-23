@@ -1,9 +1,10 @@
 import os
 import json
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.secret_key = "12345"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PRODUCTOS_FILE = os.path.join(BASE_DIR, "productos.json")
@@ -71,8 +72,7 @@ def guardar_imagen(archivo):
 @app.route("/")
 def index():
     categorias = cargar_categorias()
-    productos = cargar_productos()
-    return render_template("index.html", categorias=categorias, productos=productos)
+    return render_template("index.html", categorias=categorias)
 
 
 @app.route("/admin")
@@ -88,7 +88,7 @@ def ver_categoria(nombre_categoria):
 
     productos_categoria = [
         p for p in productos
-        if p.get("categoria", "").strip().lower() == nombre_categoria.strip().lower()
+        if isinstance(p, dict) and p.get("categoria", "").strip().lower() == nombre_categoria.strip().lower()
     ]
 
     return render_template(
@@ -96,12 +96,6 @@ def ver_categoria(nombre_categoria):
         nombre_categoria=nombre_categoria,
         productos=productos_categoria
     )
-
-
-@app.route("/vendedor/<vendedor_id>")
-def vendedor(vendedor_id):
-    productos = cargar_productos()
-    return render_template("vendedor.html", vendedor_id=vendedor_id, productos=productos)
 
 
 @app.route("/agregar_categoria", methods=["POST"])
@@ -113,13 +107,30 @@ def agregar_categoria():
 
     if nombre:
         ruta_foto = guardar_imagen(foto_categoria)
-
-        nueva = {
+        categorias.append({
             "nombre": nombre,
             "foto": ruta_foto
-        }
+        })
+        guardar_categorias(categorias)
 
-        categorias.append(nueva)
+    return redirect(url_for("admin"))
+
+
+@app.route("/editar_categoria/<int:index>", methods=["POST"])
+def editar_categoria(index):
+    categorias = cargar_categorias()
+
+    if 0 <= index < len(categorias):
+        nombre = request.form.get("nombre_categoria", "").strip()
+        foto_categoria = request.files.get("foto_categoria")
+
+        if nombre:
+            categorias[index]["nombre"] = nombre
+
+        ruta_foto = guardar_imagen(foto_categoria)
+        if ruta_foto:
+            categorias[index]["foto"] = ruta_foto
+
         guardar_categorias(categorias)
 
     return redirect(url_for("admin"))
@@ -149,27 +160,6 @@ def agregar_producto():
     return redirect(url_for("admin"))
 
 
-@app.route("/editar_categoria/<int:index>", methods=["POST"])
-def editar_categoria(index):
-    categorias = cargar_categorias()
-
-    if 0 <= index < len(categorias):
-        nombre = request.form.get("nombre_categoria", "").strip()
-        foto_categoria = request.files.get("foto_categoria")
-
-        if nombre:
-            categorias[index]["nombre"] = nombre
-
-        ruta_foto = guardar_imagen(foto_categoria)
-        if ruta_foto:
-            categorias[index]["foto"] = ruta_foto
-
-        guardar_categorias(categorias)
-
-    return redirect(url_for("admin"))
-
-
-if __name__ == "__main__":
-    init_app()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+@app.route("/agregar_carrito", methods=["POST"])
+def agregar_carrito():
+    producto = request.form.get("producto", "").strip()
