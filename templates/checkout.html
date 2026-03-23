@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,110 +6,100 @@
     <title>Finalizar pedido</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
             margin: 0;
-            padding: 0;
+            font-family: Arial;
+            background: #f4f4f4;
         }
 
         .header {
             background: black;
             color: white;
             padding: 15px;
+            text-align: center;
             font-size: 22px;
             font-weight: bold;
         }
 
         .contenedor {
-            padding: 12px;
+            padding: 15px;
         }
 
-        .resumen, .formulario {
+        .card {
             background: white;
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 15px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
 
-        .titulo {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .producto {
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-
-        .subtotal {
-            font-size: 20px;
-            font-weight: bold;
-            color: green;
-            margin-top: 10px;
-        }
-
-        input, textarea, select, button {
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             margin-top: 10px;
-            box-sizing: border-box;
             font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            box-sizing: border-box;
         }
 
         button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
             background: #25D366;
             color: white;
             border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .total {
+            font-size: 26px;
+            color: green;
             font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">Finalizar pedido</div>
+<div class="header">Finalizar pedido</div>
 
-    <div class="contenedor">
-        <div class="resumen">
-            <div class="titulo">Mercado en Línea Culiacán</div>
+<div class="contenedor">
 
-            {% for item in carrito %}
-            <div class="producto">
-                {{ item.producto }} x{{ item.cantidad }} = ${{ item.total }}
-            </div>
-            {% endfor %}
-
-            <div class="subtotal">Subtotal: ${{ subtotal }}</div>
-            <p>El envío se calcula según el tipo de entrega.</p>
-        </div>
-
-        <div class="formulario">
-            <form action="/finalizar_pedido" method="POST">
-                <input type="text" name="nombre" placeholder="Nombre" required>
-                <input type="text" name="celular" placeholder="Celular" required>
-                <input type="text" name="colonia" placeholder="Colonia" required>
-                <input type="text" name="calle" placeholder="Calle y número" required>
-                <textarea name="nota" placeholder="Nota o referencia"></textarea>
-
-                <select name="entrega" required>
-                    <option value="domicilio">A domicilio (+40)</option>
-                    <option value="bodega">Recoger en bodega</option>
-                </select>
-
-                <select name="vendedor" required>
-                    <option value="">¿Quién te atendió?</option>
-                    {% for v in vendedores %}
-                    <option value="{{ v }}">{{ v }}</option>
-                    {% endfor %}
-                </select>
-
-                <button type="submit">Enviar pedido por WhatsApp</button>
-            </form>
-        </div>
+    <div class="card">
+        <h3>Total</h3>
+        <div class="total">${{ subtotal }}</div>
+        <p>+ $40 si eliges envío</p>
     </div>
+
+    <form action="/finalizar_pedido" method="POST">
+
+        <div class="card">
+            <h3>Datos del cliente</h3>
+
+            <input type="text" name="nombre" placeholder="Nombre" required>
+            <input type="text" name="celular" placeholder="Celular" required>
+            <input type="text" name="colonia" placeholder="Colonia">
+            <input type="text" name="calle" placeholder="Calle">
+
+            <select name="entrega">
+                <option value="domicilio">A domicilio (+$40)</option>
+                <option value="bodega">Recoger en bodega</option>
+            </select>
+
+            <select name="vendedor">
+                {% for v in vendedores %}
+                    <option value="{{ v }}">{{ v }}</option>
+                {% endfor %}
+            </select>
+
+            <textarea name="nota" placeholder="Nota (opcional)"></textarea>
+
+            <button type="submit">Finalizar pedido</button>
+        </div>
+
+    </form>
+
+</div>
 
 </body>
 </html>
