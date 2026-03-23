@@ -1,11 +1,10 @@
 import os
 import json
-import uuid
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "12345")
+app.secret_key = "12345"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 PRODUCTOS_FILE = os.path.join(BASE_DIR, "productos.json")
@@ -13,280 +12,128 @@ CATEGORIAS_FILE = os.path.join(BASE_DIR, "categorias.json")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-EXT = {"png", "jpg", "jpeg", "webp", "gif"}
 
+# ------------------------
+# INICIALIZAR ARCHIVOS
+# ------------------------
+def init_app():
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# =========================
-# BASE
-# =========================
-def asegurar(ruta, base):
-    if not os.path.exists(ruta):
-        with open(ruta, "w", encoding="utf-8") as f:
-            json.dump(base, f, indent=4)
+    if not os.path.exists(PRODUCTOS_FILE):
+        with open(PRODUCTOS_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f)
 
+    if not os.path.exists(CATEGORIAS_FILE):
+        with open(CATEGORIAS_FILE, "w", encoding="utf-8") as f:
+            json.dump([], f)
 
-def cargar(ruta, base):
-    asegurar(ruta, base)
+def cargar_json(ruta):
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             return json.load(f)
     except:
-        return base
+        return []
 
-
-def guardar(ruta, data):
+def guardar_json(ruta, data):
     with open(ruta, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
-
-def subir_img(file):
-    if not file or file.filename == "":
-        return ""
-    if "." not in file.filename:
-        return ""
-
-    ext = file.filename.rsplit(".", 1)[1].lower()
-    if ext not in EXT:
-        return ""
-
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    nombre = f"{uuid.uuid4().hex}.{ext}"
-    ruta = os.path.join(UPLOAD_FOLDER, nombre)
-    file.save(ruta)
-    return f"uploads/{nombre}"
-
-
-def productos():
-    return cargar(PRODUCTOS_FILE, [])
-
-
-def guardar_productos(data):
-    guardar(PRODUCTOS_FILE, data)
-
-
-def categorias():
-    return cargar(CATEGORIAS_FILE, [])
-
-
-def guardar_categorias(data):
-    guardar(CATEGORIAS_FILE, data)
-
-
-def get_producto(id):
-    for p in productos():
-        if str(p.get("id")) == str(id):
-            return p
-    return None
-
-
-def get_categoria_por_id(id):
-    for c in categorias():
-        if str(c.get("id")) == str(id):
-            return c
-    return None
-
-
-def get_categoria_por_nombre(nombre):
-    for c in categorias():
-        if str(c.get("nombre")).lower() == str(nombre).lower():
-            return c
-    return None
-
-
-# =========================
-# INICIO
-# =========================
+# ------------------------
+# INDEX (CLIENTE)
+# ------------------------
 @app.route("/")
 def index():
-    return render_template(
-        "index.html",
-        productos=[p for p in productos() if p.get("activo", True)],
-        categorias=[c for c in categorias() if c.get("activa", True)]
-    )
+    categorias = cargar_json(CATEGORIAS_FILE)
+    return render_template("index.html", categorias=categorias)
 
+# ------------------------
+# VER CATEGORIA
+# ------------------------
+@app.route("/categoria/<categoria_nombre>")
+def ver_categoria(categoria_nombre):
+    categorias = cargar_json(CATEGORIAS_FILE)
+    productos = cargar_json(PRODUCTOS_FILE)
 
-# 🔥 ESTA ES LA CLAVE (ARREGLADA)
-@app.route("/categoria/<nombre>")
-def ver_categoria(nombre):
-    nombre = nombre.replace("%20", " ").lower()
+    categoria = next((c for c in categorias if c["nombre"] == categoria_nombre), None)
 
-    filtrados = []
-    for p in productos():
-        if str(p.get("categoria_nombre", "")).lower() == nombre:
-            filtrados.append(p)
+    productos_filtrados = [p for p in productos if p.get("categoria") == categoria_nombre]
 
-    return render_template(
-        "categoria.html",
-        categoria={"nombre": nombre},
-        categorias=categorias(),
-        productos=filtrados
-    )
+    return render_template("categoria.html", categoria=categoria, productos=productos_filtrados)
 
-
-# =========================
-# CARRITO
-# =========================
-@app.route("/carrito")
-def carrito():
-    car = session.get("carrito", [])
-    total = sum(i.get("subtotal", 0) for i in car)
-    return render_template("carrito.html", carrito=car, total=total)
-
-
-@app.route("/agregar_al_carrito", methods=["POST"])
+# ------------------------
+# AGREGAR AL CARRITO (ARREGLADO)
+# ------------------------
+@app.route("/agregar_carrito", methods=["POST"])
 def agregar_carrito():
-    pid = request.form.get("producto_id")
-    cant = request.form.get("cantidad", "1")
-    desc = request.form.get("descripcion", "")
+    producto_id = request.form.get("producto_id")
+    cantidad = request.form.get("cantidad", "1")
 
     try:
-        cant = int(cant)
+        cantidad = int(cantidad)
+        if cantidad < 1:
+            cantidad = 1
     except:
-        cant = 1
+        cantidad = 1
 
-    p = get_producto(pid)
-    if not p:
-        return redirect(url_for("index"))
+    productos = cargar_json(PRODUCTOS_FILE)
+    producto_encontrado = None
 
-    car = session.get("carrito", [])
-    precio = float(p.get("precio", 0))
+    for p in productos:
+        if str(p.get("id")) == str(producto_id):
+            producto_encontrado = p
+            break
+
+    if not producto_encontrado:
+        return redirect(request.referrer or url_for("index"))
+
+    carrito = session.get("carrito", [])
 
     encontrado = False
-    for item in car:
-        if item["producto_id"] == pid and item["descripcion"] == desc:
-            item["cantidad"] += cant
-            item["subtotal"] = item["cantidad"] * precio
+    for item in carrito:
+        if str(item.get("id")) == str(producto_id):
+            item["cantidad"] += cantidad
             encontrado = True
+            break
 
     if not encontrado:
-        car.append({
-            "producto_id": pid,
-            "nombre": p.get("nombre", ""),
-            "precio": precio,
-            "cantidad": cant,
-            "descripcion": desc,
-            "foto": p.get("foto", ""),
-            "subtotal": precio * cant
+        carrito.append({
+            "id": producto_encontrado.get("id"),
+            "nombre": producto_encontrado.get("nombre"),
+            "precio": float(producto_encontrado.get("precio", 0)),
+            "foto": producto_encontrado.get("foto", ""),
+            "cantidad": cantidad
         })
 
-    session["carrito"] = car
+    session["carrito"] = carrito
     session.modified = True
 
-    return redirect(url_for("carrito"))
+    return redirect(request.referrer or url_for("carrito"))
 
+# ------------------------
+# VER CARRITO
+# ------------------------
+@app.route("/carrito")
+def carrito():
+    carrito = session.get("carrito", [])
 
-@app.route("/actualizar_carrito", methods=["POST"])
-def actualizar_carrito():
-    car = session.get("carrito", [])
+    total = 0
+    for item in carrito:
+        total += float(item["precio"]) * int(item["cantidad"])
 
-    for i, item in enumerate(car):
-        cantidad = request.form.get(f"cantidad_{i}", item["cantidad"])
-        desc = request.form.get(f"descripcion_{i}", item["descripcion"])
+    return render_template("carrito.html", carrito=carrito, total=total)
 
-        try:
-            cantidad = int(cantidad)
-        except:
-            cantidad = 1
-
-        item["cantidad"] = cantidad
-        item["descripcion"] = desc
-        item["subtotal"] = cantidad * float(item["precio"])
-
-    session["carrito"] = car
-    session.modified = True
-
-    return redirect(url_for("carrito"))
-
-
-@app.route("/eliminar_del_carrito/<int:i>", methods=["POST"])
-def eliminar_del_carrito(i):
-    car = session.get("carrito", [])
-    if i < len(car):
-        car.pop(i)
-
-    session["carrito"] = car
-    session.modified = True
-    return redirect(url_for("carrito"))
-
-
-@app.route("/vaciar_carrito", methods=["POST"])
-def vaciar():
+# ------------------------
+# LIMPIAR CARRITO
+# ------------------------
+@app.route("/limpiar_carrito")
+def limpiar_carrito():
     session["carrito"] = []
     return redirect(url_for("carrito"))
 
-
-# =========================
-# ADMIN
-# =========================
-@app.route("/admin")
-def admin():
-    return render_template(
-        "admin.html",
-        productos=productos(),
-        categorias=categorias()
-    )
-
-
-# =========================
-# CATEGORIAS
-# =========================
-@app.route("/agregar_categoria", methods=["POST"])
-def add_cat():
-    nombre = request.form.get("nombre_categoria")
-    foto = subir_img(request.files.get("foto_categoria"))
-
-    data = categorias()
-    data.append({
-        "id": uuid.uuid4().hex,
-        "nombre": nombre,
-        "foto": foto,
-        "activa": True
-    })
-
-    guardar_categorias(data)
-    return redirect(url_for("admin"))
-
-
-# =========================
-# PRODUCTOS
-# =========================
-@app.route("/agregar_producto", methods=["POST"])
-def add_prod():
-    nombre = request.form.get("nombre")
-    precio = request.form.get("precio")
-    categoria_id = request.form.get("categoria_id")
-    descripcion = request.form.get("descripcion")
-    foto = subir_img(request.files.get("foto"))
-
-    try:
-        precio = float(precio)
-    except:
-        return redirect(url_for("admin"))
-
-    categoria = get_categoria_por_id(categoria_id)
-    categoria_nombre = categoria["nombre"] if categoria else ""
-
-    data = productos()
-    data.append({
-        "id": uuid.uuid4().hex,
-        "nombre": nombre,
-        "precio": precio,
-        "categoria_id": categoria_id,
-        "categoria_nombre": categoria_nombre,  # 🔥 CLAVE
-        "descripcion": descripcion,
-        "foto": foto,
-        "activo": True
-    })
-
-    guardar_productos(data)
-    return redirect(url_for("admin"))
-
-
-# =========================
-# MAIN
-# =========================
+# ------------------------
+# INICIO
+# ------------------------
 if __name__ == "__main__":
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    asegurar(PRODUCTOS_FILE, [])
-    asegurar(CATEGORIAS_FILE, [])
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    init_app()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
