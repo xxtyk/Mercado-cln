@@ -66,4 +66,41 @@
 
         .info {
             padding: 18px;
-            text-align: center
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">Mercado en Línea Culiacán</div>
+
+<div class="mensaje">
+    Para mayor velocidad descarga la aplicación para pedir más rápido
+</div>
+
+<a class="boton-admin" href="/admin">Ir al panel</a>
+
+<div class="contenedor">
+    {% for c in categorias %}
+        {% if c is mapping %}
+            <a class="card" href="/categoria/{{ c.nombre }}">
+                {% if c.foto %}
+                    <img src="/static/{{ c.foto }}" alt="{{ c.nombre }}">
+                {% else %}
+                    <img src="https://via.placeholder.com/400x250?text=Sin+imagen" alt="{{ c.nombre }}">
+                {% endif %}
+                <div class="info">{{ c.nombre }}</div>
+            </a>
+        {% else %}
+            <a class="card" href="/categoria/{{ c }}">
+                <img src="https://via.placeholder.com/400x250?text=Sin+imagen" alt="{{ c }}">
+                <div class="info">{{ c }}</div>
+            </a>
+        {% endif %}
+    {% endfor %}
+</div>
+
+</body>
+</html>
