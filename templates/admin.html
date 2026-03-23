@@ -3,131 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de administración</title>
+    <title>Panel de administración - Mercado CLN</title>
     <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f4f4f4;
-            font-family: Arial, sans-serif;
-        }
-
-        .panel {
-            max-width: 700px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        }
-
-        h1, h2 {
-            margin-top: 0;
-        }
-
-        .boton {
-            display: block;
-            width: 100%;
-            background: #000000;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            padding: 14px;
-            border-radius: 10px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            font-weight: bold;
-        }
-
-        form {
-            margin-top: 20px;
-        }
-
-        input, select, textarea, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
-        button {
-            background: #000000;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        ul {
-            padding-left: 18px;
-        }
-
-        .seccion {
-            margin-top: 30px;
-        }
-
-        .mensaje {
-            background: #eeeeee;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
+        body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial, sans-serif; }
+        .panel { max-width: 700px; margin: 0 auto; background: #ffffff; border-radius: 14px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+        h1, h2 { margin-top: 0; color: #333; }
+        .boton-ver { display: block; width: 100%; background: #444; color: white; text-decoration: none; text-align: center; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+        form { margin-top: 15px; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+        input, select, textarea, button { width: 100%; padding: 12px; margin-top: 10px; box-sizing: border-box; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; }
+        button { background: #000000; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background: #333; }
+        .seccion { margin-top: 30px; border-top: 2px solid #eee; pt: 20px; }
+        ul { list-style: none; padding: 0; }
+        li { background: #fff; margin-bottom: 5px; padding: 10px; border-bottom: 1px solid #eee; }
+        .tag-cat { background: #e0e0e0; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div class="panel">
     <h1>Panel de administración</h1>
-
-    {% with mensajes = get_flashed_messages() %}
-        {% if mensajes %}
-            {% for mensaje in mensajes %}
-                <div class="mensaje">{{ mensaje }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
-    <a class="boton" href="/editar_categoria">Agregar categoría</a>
-    <a class="boton" href="/">Ver aplicación</a>
+    
+    <a class="boton-ver" href="/">← Volver a la Tienda</a>
 
     <div class="seccion">
-        <h2>Agregar producto</h2>
-        <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
-            <input type="text" name="nombre" placeholder="Nombre del producto" required>
-            <input type="text" name="precio" placeholder="Precio" required>
-            <textarea name="descripcion" placeholder="Descripción"></textarea>
-
-            <select name="categoria" required>
-                <option value="">Selecciona una categoría</option>
-                {% for nombre in categorias %}
-                    <option value="{{ nombre }}">{{ nombre }}</option>
-                {% endfor %}
-            </select>
-
-            <input type="file" name="foto_producto" accept="image/*">
-            <button type="submit">Guardar producto</button>
+        <h2>1. Agregar Nueva Categoría</h2>
+        <form action="/agregar_categoria" method="POST">
+            <input type="text" name="nombre_categoria" placeholder="Ejemplo: Electrónica, Ropa, Hogar" required>
+            <button type="submit">Guardar Categoría</button>
         </form>
     </div>
 
     <div class="seccion">
-        <h2>Categorías</h2>
+        <h2>2. Agregar Producto</h2>
+        <form action="/agregar_producto" method="POST">
+            <input type="text" name="nombre" placeholder="Nombre del producto" required>
+            <input type="text" name="precio" placeholder="Precio (ej: 1500)" required>
+            
+            <select name="categoria" required>
+                <option value="">Selecciona una categoría</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.nombre }}">{{ cat.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="text" name="foto" placeholder="URL de la imagen (Link de la foto)">
+            <button type="submit">Guardar Producto</button>
+        </form>
+    </div>
+
+    <div class="seccion">
+        <h2>Categorías Actuales</h2>
         <ul>
-            {% for nombre in categorias %}
-                <li>{{ nombre }}</li>
+            {% for cat in categorias %}
+                <li>• {{ cat.nombre }}</li>
             {% else %}
-                <li>No hay categorías todavía.</li>
+                <li>No hay categorías. Agrega una arriba.</li>
             {% endfor %}
         </ul>
     </div>
 
     <div class="seccion">
-        <h2>Productos</h2>
+        <h2>Productos en Inventario</h2>
         <ul>
             {% for p in productos %}
-                <li>{{ p.nombre }} - {{ p.categoria }} - ${{ p.precio }}</li>
+                <li>
+                    <strong>{{ p.nombre }}</strong> - <span class="tag-cat">{{ p.categoria }}</span> 
+                    <br> Precio: ${{ p.precio }}
+                </li>
             {% else %}
-                <li>No hay productos todavía.</li>
+                <li>Aún no has subido productos.</li>
             {% endfor %}
         </ul>
     </div>
