@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -74,14 +74,14 @@ def guardar_categorias(data):
 
 def get_producto(id):
     for p in productos():
-        if p["id"] == id:
+        if str(p.get("id")) == str(id):
             return p
     return None
 
 
 def get_categoria(id):
     for c in categorias():
-        if c["id"] == id:
+        if str(c.get("id")) == str(id):
             return c
     return None
 
@@ -100,21 +100,29 @@ def index():
 
 @app.route("/categoria/<id>")
 def ver_categoria(id):
+    lista = productos()
+
+    filtrados = []
+    for p in lista:
+        # 🔥 FIX TOTAL (acepta errores viejos)
+        if str(p.get("categoria_id")) == str(id) or str(p.get("categoria")) == str(id):
+            filtrados.append(p)
+
     return render_template(
         "categoria.html",
         categoria=get_categoria(id),
         categorias=categorias(),
-        productos=[p for p in productos() if p.get("categoria_id") == id]
+        productos=filtrados
     )
 
 
 # =========================
-# CARRITO (ARREGLADO)
+# CARRITO
 # =========================
 @app.route("/carrito")
 def carrito():
     car = session.get("carrito", [])
-    total = sum(i["subtotal"] for i in car)
+    total = sum(i.get("subtotal", 0) for i in car)
     return render_template("carrito.html", carrito=car, total=total)
 
 
@@ -146,10 +154,11 @@ def agregar_carrito():
     if not encontrado:
         car.append({
             "producto_id": pid,
-            "nombre": p["nombre"],
+            "nombre": p.get("nombre", ""),
             "precio": precio,
             "cantidad": cant,
             "descripcion": desc,
+            "foto": p.get("foto", ""),
             "subtotal": precio * cant
         })
 
@@ -159,7 +168,41 @@ def agregar_carrito():
     return redirect(url_for("carrito"))
 
 
-@app.route("/vaciar", methods=["POST"])
+@app.route("/actualizar_carrito", methods=["POST"])
+def actualizar_carrito():
+    car = session.get("carrito", [])
+
+    for i, item in enumerate(car):
+        cantidad = request.form.get(f"cantidad_{i}", item["cantidad"])
+        desc = request.form.get(f"descripcion_{i}", item["descripcion"])
+
+        try:
+            cantidad = int(cantidad)
+        except:
+            cantidad = 1
+
+        item["cantidad"] = cantidad
+        item["descripcion"] = desc
+        item["subtotal"] = cantidad * float(item["precio"])
+
+    session["carrito"] = car
+    session.modified = True
+
+    return redirect(url_for("carrito"))
+
+
+@app.route("/eliminar_del_carrito/<int:i>", methods=["POST"])
+def eliminar_del_carrito(i):
+    car = session.get("carrito", [])
+    if i < len(car):
+        car.pop(i)
+
+    session["carrito"] = car
+    session.modified = True
+    return redirect(url_for("carrito"))
+
+
+@app.route("/vaciar_carrito", methods=["POST"])
 def vaciar():
     session["carrito"] = []
     return redirect(url_for("carrito"))
@@ -198,7 +241,7 @@ def add_cat():
 
 
 # =========================
-# PRODUCTOS (ARREGLADO)
+# PRODUCTOS
 # =========================
 @app.route("/agregar_producto", methods=["POST"])
 def add_prod():
@@ -212,6 +255,9 @@ def add_prod():
         precio = float(precio)
     except:
         return redirect(url_for("admin"))
+
+    # 🔥 asegurar string
+    categoria_id = str(categoria_id)
 
     data = productos()
     data.append({
