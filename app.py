@@ -69,10 +69,14 @@ def admin():
 def ver_categoria(nombre_categoria):
     productos = cargar_json(PRODUCTOS_FILE, [])
 
-    productos_cat = [
-        p for p in productos
-        if isinstance(p, dict) and p.get("categoria", "").strip().lower() == nombre_categoria.strip().lower()
-    ]
+    productos_cat = []
+    for p in productos:
+        if isinstance(p, dict):
+            categoria_producto = str(p.get("categoria", "")).strip().lower()
+            categoria_url = str(nombre_categoria).strip().lower()
+
+            if categoria_producto == categoria_url:
+                productos_cat.append(p)
 
     return render_template(
         "categoria.html",
@@ -156,19 +160,28 @@ def agregar_carrito():
     except:
         cantidad_num = 1
 
-    item = {
-        "producto": producto,
-        "precio": precio_num,
-        "foto": foto,
-        "cantidad": cantidad_num,
-        "total": precio_num * cantidad_num
-    }
-
     if "carrito" not in session:
         session["carrito"] = []
 
     carrito = session["carrito"]
-    carrito.append(item)
+
+    encontrado = False
+    for item in carrito:
+        if item["producto"] == producto:
+            item["cantidad"] += cantidad_num
+            item["total"] = item["cantidad"] * item["precio"]
+            encontrado = True
+            break
+
+    if not encontrado:
+        carrito.append({
+            "producto": producto,
+            "precio": precio_num,
+            "foto": foto,
+            "cantidad": cantidad_num,
+            "total": precio_num * cantidad_num
+        })
+
     session["carrito"] = carrito
     session.modified = True
 
@@ -180,6 +193,49 @@ def ver_carrito():
     carrito = session.get("carrito", [])
     total = sum(item.get("total", 0) for item in carrito)
     return render_template("carrito.html", carrito=carrito, total=total)
+
+
+@app.route("/sumar_carrito/<int:index>")
+def sumar_carrito(index):
+    carrito = session.get("carrito", [])
+
+    if 0 <= index < len(carrito):
+        carrito[index]["cantidad"] += 1
+        carrito[index]["total"] = carrito[index]["cantidad"] * carrito[index]["precio"]
+        session["carrito"] = carrito
+        session.modified = True
+
+    return redirect(url_for("ver_carrito"))
+
+
+@app.route("/restar_carrito/<int:index>")
+def restar_carrito(index):
+    carrito = session.get("carrito", [])
+
+    if 0 <= index < len(carrito):
+        carrito[index]["cantidad"] -= 1
+
+        if carrito[index]["cantidad"] <= 0:
+            carrito.pop(index)
+        else:
+            carrito[index]["total"] = carrito[index]["cantidad"] * carrito[index]["precio"]
+
+        session["carrito"] = carrito
+        session.modified = True
+
+    return redirect(url_for("ver_carrito"))
+
+
+@app.route("/eliminar_carrito/<int:index>")
+def eliminar_carrito(index):
+    carrito = session.get("carrito", [])
+
+    if 0 <= index < len(carrito):
+        carrito.pop(index)
+        session["carrito"] = carrito
+        session.modified = True
+
+    return redirect(url_for("ver_carrito"))
 
 
 @app.route("/vaciar_carrito")
