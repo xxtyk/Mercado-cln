@@ -5,45 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mercado en Línea Culiacán</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            background: #efefef;
         }
 
-        .header {
-            background: black;
+        .barra-superior {
+            background: #1f1f1f;
             color: white;
-            padding: 15px;
-            font-size: 22px;
-            font-weight: bold;
-            text-align: center;
+            padding: 18px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        .mensaje {
-            background: white;
-            margin: 12px;
-            padding: 14px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
-        }
-
-        .boton-admin {
-            display: block;
-            margin: 12px;
-            text-align: center;
+        .flecha {
+            font-size: 34px;
             text-decoration: none;
-            background: black;
             color: white;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
+            line-height: 1;
         }
 
-        .contenedor {
-            padding: 12px;
+        .titulo {
+            font-size: 28px;
+            letter-spacing: 1px;
+            color: #8a8a8a;
+            font-weight: 500;
+        }
+
+        .grid {
+            padding: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
         }
 
         .card {
@@ -51,56 +51,103 @@
             background: white;
             border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            margin-bottom: 15px;
             text-decoration: none;
             color: black;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }
 
         .card img {
             width: 100%;
-            height: 220px;
+            height: 190px;
             object-fit: cover;
             display: block;
         }
 
-        .info {
-            padding: 18px;
+        .sin-imagen {
+            width: 100%;
+            height: 190px;
+            background: #d9d9d9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .nombre {
+            padding: 14px 8px 16px 8px;
             text-align: center;
-            font-size: 22px;
+            font-size: 18px;
             font-weight: bold;
+            background: #fff;
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .whatsapp {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #25D366;
+            color: white;
+            text-decoration: none;
+            font-size: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 420px) {
+            .titulo {
+                font-size: 24px;
+            }
+
+            .card img,
+            .sin-imagen {
+                height: 170px;
+            }
+
+            .nombre {
+                font-size: 16px;
+                min-height: 62px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="header">Mercado en Línea Culiacán</div>
+    <div class="barra-superior">
+        <a href="{{ url_for('admin') }}" class="flecha">←</a>
+        <div class="titulo">CATEGORÍAS</div>
+    </div>
 
-<div class="mensaje">
-    Para mayor velocidad descarga la aplicación para pedir más rápido
-</div>
+    <div class="grid">
+        {% for c in categorias %}
+            {% if c is mapping %}
+                <a class="card" href="/categoria/{{ c.nombre }}">
+                    {% if c.foto %}
+                        <img src="/static/{{ c.foto }}" alt="{{ c.nombre }}">
+                    {% else %}
+                        <div class="sin-imagen">Sin imagen</div>
+                    {% endif %}
+                    <div class="nombre">{{ c.nombre }}</div>
+                </a>
+            {% else %}
+                <a class="card" href="/categoria/{{ c }}">
+                    <div class="sin-imagen">Sin imagen</div>
+                    <div class="nombre">{{ c }}</div>
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
 
-<a class="boton-admin" href="/admin">Ir al panel</a>
-
-<div class="contenedor">
-    {% for c in categorias %}
-        {% if c is mapping %}
-            <a class="card" href="/categoria/{{ c.nombre }}">
-                {% if c.foto %}
-                    <img src="/static/{{ c.foto }}" alt="{{ c.nombre }}">
-                {% else %}
-                    <img src="https://via.placeholder.com/400x250?text=Sin+imagen" alt="{{ c.nombre }}">
-                {% endif %}
-                <div class="info">{{ c.nombre }}</div>
-            </a>
-        {% else %}
-            <a class="card" href="/categoria/{{ c }}">
-                <img src="https://via.placeholder.com/400x250?text=Sin+imagen" alt="{{ c }}">
-                <div class="info">{{ c }}</div>
-            </a>
-        {% endif %}
-    {% endfor %}
-</div>
+    <a class="whatsapp" href="#">✆</a>
 
 </body>
 </html>
