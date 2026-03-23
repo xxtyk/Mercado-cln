@@ -64,4 +64,74 @@
         }
 
         .seccion {
-            margin-top:
+            margin-top: 30px;
+        }
+
+        .mensaje {
+            background: #eeeeee;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <h1>Panel de administración</h1>
+
+    {% with mensajes = get_flashed_messages() %}
+        {% if mensajes %}
+            {% for mensaje in mensajes %}
+                <div class="mensaje">{{ mensaje }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <a class="boton" href="/editar_categoria">Agregar categoría</a>
+    <a class="boton" href="/">Ver aplicación</a>
+
+    <div class="seccion">
+        <h2>Agregar producto</h2>
+        <form action="/agregar_producto" method="POST" enctype="multipart/form-data">
+            <input type="text" name="nombre" placeholder="Nombre del producto" required>
+            <input type="text" name="precio" placeholder="Precio" required>
+            <textarea name="descripcion" placeholder="Descripción"></textarea>
+
+            <select name="categoria" required>
+                <option value="">Selecciona una categoría</option>
+                {% for nombre in categorias %}
+                    <option value="{{ nombre }}">{{ nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="file" name="foto_producto" accept="image/*">
+            <button type="submit">Guardar producto</button>
+        </form>
+    </div>
+
+    <div class="seccion">
+        <h2>Categorías</h2>
+        <ul>
+            {% for nombre in categorias %}
+                <li>{{ nombre }}</li>
+            {% else %}
+                <li>No hay categorías todavía.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="seccion">
+        <h2>Productos</h2>
+        <ul>
+            {% for p in productos %}
+                <li>{{ p.nombre }} - {{ p.categoria }} - ${{ p.precio }}</li>
+            {% else %}
+                <li>No hay productos todavía.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
