@@ -6,147 +6,288 @@
     <title>Carrito</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #efefef;
+            color: #111;
         }
 
-        .barra {
+        .barra-superior {
             background: #1f1f1f;
             color: white;
-            padding: 16px;
+            padding: 16px 14px;
             display: flex;
             align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .barra a {
-            color: white;
-            font-size: 28px;
+        .flecha {
+            font-size: 30px;
             text-decoration: none;
-            margin-right: 10px;
+            color: white;
+            line-height: 1;
+        }
+
+        .titulo {
+            font-size: 22px;
+            color: #d0d0d0;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         .contenedor {
-            padding: 12px;
-            padding-bottom: 120px;
+            padding: 10px;
+            padding-bottom: 140px;
         }
 
         .card {
             background: white;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 12px;
+            border-radius: 14px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.10);
             display: flex;
-            gap: 12px;
-            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: flex-start;
         }
 
         .foto {
             width: 90px;
             height: 90px;
+            border-radius: 10px;
             object-fit: cover;
-            border-radius: 8px;
+            flex-shrink: 0;
+            background: #ddd;
+        }
+
+        .sin-foto {
+            width: 90px;
+            height: 90px;
+            border-radius: 10px;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 13px;
+            flex-shrink: 0;
         }
 
         .info {
             flex: 1;
+            min-width: 0;
         }
 
         .nombre {
+            font-size: 16px;
             font-weight: bold;
+            margin-bottom: 6px;
+            line-height: 1.2;
         }
 
         .precio {
-            margin-bottom: 8px;
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 6px;
         }
 
-        .fila {
+        .subtotal {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .fila-campos {
             display: flex;
             gap: 6px;
+            margin-top: 6px;
         }
 
-        input {
-            width: 60px;
+        .cantidad {
+            width: 55px;
+            height: 34px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            padding: 4px;
         }
 
-        .btn {
-            background: #333;
+        .detalle {
+            flex: 1;
+            height: 34px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 14px;
+            min-width: 0;
+        }
+
+        .btn-eliminar {
+            background: #d11a2a;
             color: white;
             border: none;
-            padding: 6px 10px;
-            border-radius: 6px;
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-top: 8px;
         }
 
-        .eliminar {
-            background: red;
+        .sin-productos {
+            padding: 20px;
+            font-size: 18px;
+            color: #333;
         }
 
         .barra-inferior {
             position: fixed;
-            bottom: 0;
             left: 0;
             right: 0;
+            bottom: 0;
             background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.12);
             padding: 12px;
+            z-index: 20;
         }
 
         .total {
             font-size: 20px;
+            font-weight: bold;
             text-align: right;
             margin-bottom: 10px;
+        }
+
+        .acciones-finales {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            height: 44px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-actualizar {
+            background: #444;
+            color: white;
+        }
+
+        .btn-comprar {
+            background: #000;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-vaciar {
+            width: 100%;
+            margin-top: 8px;
+            background: #d11a2a;
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .foto,
+            .sin-foto {
+                width: 80px;
+                height: 80px;
+            }
+
+            .nombre {
+                font-size: 15px;
+            }
+
+            .precio,
+            .subtotal {
+                font-size: 14px;
+            }
+
+            .detalle {
+                font-size: 13px;
+            }
+
+            .btn {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="barra">
-    <a href="{{ url_for('index') }}">←</a>
-    <div>CARRITO</div>
-</div>
-
-<form method="POST" action="{{ url_for('actualizar_carrito') }}">
-<div class="contenedor">
-
-{% for item in carrito %}
-<div class="card">
-
-    {% if item.foto %}
-        <img src="{{ url_for('static', filename=item.foto) }}" class="foto">
-    {% endif %}
-
-    <div class="info">
-        <div class="nombre">{{ item.nombre }}</div>
-        <div class="precio">$ {{ item.precio }}</div>
-
-        <div class="fila">
-            <input type="number" name="cantidad_{{ loop.index0 }}" value="{{ item.cantidad }}" min="1">
-            <input type="text" name="descripcion_{{ loop.index0 }}" value="{{ item.descripcion }}">
-        </div>
-
-        <p>Subtotal: ${{ item.subtotal }}</p>
+    <div class="barra-superior">
+        <a href="{{ url_for('index') }}" class="flecha">←</a>
+        <div class="titulo">Carrito</div>
     </div>
 
-    <form method="POST" action="{{ url_for('eliminar_del_carrito', indice=loop.index0) }}">
-        <button class="btn eliminar">X</button>
+    <form method="POST" action="{{ url_for('actualizar_carrito') }}">
+        <div class="contenedor">
+            {% if carrito %}
+                {% for item in carrito %}
+                <div class="card">
+
+                    {% if item.foto %}
+                        <img src="{{ url_for('static', filename=item.foto) }}" class="foto" alt="{{ item.nombre }}">
+                    {% else %}
+                        <div class="sin-foto">Sin foto</div>
+                    {% endif %}
+
+                    <div class="info">
+                        <div class="nombre">{{ item.nombre }}</div>
+                        <div class="precio">Precio: ${{ item.precio }}</div>
+
+                        <div class="fila-campos">
+                            <input class="cantidad" type="number" name="cantidad_{{ loop.index0 }}" value="{{ item.cantidad }}" min="1">
+                            <input class="detalle" type="text" name="descripcion_{{ loop.index0 }}" value="{{ item.descripcion }}" placeholder="Detalle">
+                        </div>
+
+                        <div class="subtotal">Subtotal: ${{ item.subtotal }}</div>
+
+                        <form method="POST" action="{{ url_for('eliminar_del_carrito', i=loop.index0) }}">
+                            <button type="submit" class="btn-eliminar">Eliminar</button>
+                        </form>
+                    </div>
+
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="sin-productos">Tu carrito está vacío</div>
+            {% endif %}
+        </div>
+
+        <div class="barra-inferior">
+            <div class="total">Total: ${{ total }}</div>
+
+            <div class="acciones-finales">
+                <button type="submit" class="btn btn-actualizar">Actualizar</button>
+                <a href="{{ url_for('ficha_pedido') }}" class="btn btn-comprar">Comprar</a>
+            </div>
     </form>
 
-</div>
-{% endfor %}
-
-</div>
-
-<div class="barra-inferior">
-    <div class="total">Total: ${{ total }}</div>
-
-    <button class="btn" type="submit">Actualizar</button>
-</form>
-
-<form method="POST" action="{{ url_for('vaciar_carrito') }}">
-    <button class="btn eliminar">Vaciar</button>
-</form>
-
-</div>
+            <form method="POST" action="{{ url_for('vaciar') }}">
+                <button type="submit" class="btn btn-vaciar">Vaciar carrito</button>
+            </form>
+        </div>
 
 </body>
 </html>
