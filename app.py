@@ -232,7 +232,10 @@ def agregar_carrito():
 
     encontrado = False
     for item in carrito_actual:
-        if str(item.get("id", "")) == str(producto_id) and str(item.get("nota", "")).strip() == nota:
+        mismo_id = str(item.get("id", "")) == str(producto_id)
+        misma_nota = str(item.get("nota", "")).strip() == nota
+
+        if mismo_id and misma_nota:
             item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
             encontrado = True
             break
@@ -255,7 +258,7 @@ def agregar_carrito():
     session["carrito"] = carrito_actual
     session.modified = True
 
-    return redirect(request.referrer or url_for("carrito"))
+    return redirect(url_for("carrito"))
 
 
 # ------------------------
@@ -264,15 +267,20 @@ def agregar_carrito():
 @app.route("/carrito")
 def carrito():
     carrito_items = session.get("carrito", [])
+
     if not isinstance(carrito_items, list):
         carrito_items = []
 
     total = 0
+
     for item in carrito_items:
         try:
-            total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+            precio = float(item.get("precio", 0))
+            cantidad = int(item.get("cantidad", 1))
+            item["subtotal"] = precio * cantidad
+            total += item["subtotal"]
         except Exception:
-            pass
+            item["subtotal"] = 0
 
     return render_template("carrito.html", carrito=carrito_items, total=total)
 
@@ -300,6 +308,26 @@ def limpiar_carrito():
     session["carrito"] = []
     session.modified = True
     return redirect(url_for("carrito"))
+
+
+# ------------------------
+# FICHA DEL CLIENTE
+# ------------------------
+@app.route("/ficha")
+def ficha():
+    carrito_items = session.get("carrito", [])
+
+    if not isinstance(carrito_items, list):
+        carrito_items = []
+
+    total = 0
+    for item in carrito_items:
+        try:
+            total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+        except Exception:
+            pass
+
+    return render_template("ficha.html", carrito=carrito_items, total=total)
 
 
 # ------------------------
