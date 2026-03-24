@@ -1,6 +1,7 @@
 import os
 import json
 import uuid
+from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
@@ -328,6 +329,59 @@ def ficha():
             pass
 
     return render_template("ficha.html", carrito=carrito_items, total=total)
+
+
+# ------------------------
+# ENVIAR PEDIDO A WHATSAPP
+# ------------------------
+@app.route("/enviar_pedido", methods=["POST"])
+def enviar_pedido():
+    nombre = request.form.get("nombre", "").strip()
+    telefono = request.form.get("telefono", "").strip()
+    direccion = request.form.get("direccion", "").strip()
+    referencia = request.form.get("referencia", "").strip()
+    metodo_pago = request.form.get("metodo_pago", "").strip()
+    comentarios = request.form.get("comentarios", "").strip()
+
+    carrito_items = session.get("carrito", [])
+    if not isinstance(carrito_items, list):
+        carrito_items = []
+
+    total = 0
+    lineas = []
+
+    for item in carrito_items:
+        try:
+            precio = float(item.get("precio", 0))
+            cantidad = int(item.get("cantidad", 1))
+            subtotal = precio * cantidad
+            total += subtotal
+
+            linea = f"- {item.get('nombre', '')} x{cantidad} = ${subtotal:.2f}"
+            if item.get("nota"):
+                linea += f" | Nota: {item.get('nota')}"
+            lineas.append(linea)
+        except Exception:
+            pass
+
+    mensaje = f"""🛒 Pedido nuevo - Mercado en Línea Culiacán
+
+👤 Nombre: {nombre}
+📞 Teléfono: {telefono}
+📍 Dirección: {direccion}
+📌 Referencia: {referencia}
+💳 Método de pago: {metodo_pago}
+📝 Comentarios: {comentarios}
+
+📦 Productos:
+{chr(10).join(lineas)}
+
+💰 Total: ${total:.2f}
+"""
+
+    numero_whatsapp = "526674263892"
+    url = f"https://wa.me/{numero_whatsapp}?text={quote(mensaje)}"
+    return redirect(url)
 
 
 # ------------------------
