@@ -1,462 +1,203 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ categoria.nombre }}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ categoria.nombre }}</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #efefef;
+}
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #efefef;
-            color: #111;
-        }
+/* BARRA */
+.barra {
+    background: #1f1f1f;
+    color: white;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        .barra-superior {
-            background: #1f1f1f;
-            color: white;
-            padding: 16px 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-        }
+.flecha {
+    color: white;
+    text-decoration: none;
+    font-size: 26px;
+}
 
-        .flecha {
-            font-size: 30px;
-            text-decoration: none;
-            color: white;
-            line-height: 1;
-        }
+/* GRID */
+.grid {
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
 
-        .titulo {
-            font-size: 22px;
-            color: #d0d0d0;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
+/* CARD */
+.card {
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
 
-        .contenedor {
-            padding: 10px;
-            padding-bottom: 120px;
-        }
+.card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
+.info {
+    padding: 10px;
+}
 
-        .producto {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-            cursor: pointer;
-        }
+.nombre {
+    font-weight: bold;
+    font-size: 14px;
+}
 
-        .producto img,
-        .sin-imagen {
-            width: 100%;
-            height: 140px;
-            display: block;
-        }
+.precio {
+    font-size: 14px;
+    margin-top: 5px;
+}
 
-        .producto img {
-            object-fit: cover;
-        }
+.btn {
+    margin-top: 8px;
+    width: 100%;
+    border: none;
+    background: black;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
 
-        .sin-imagen {
-            background: #d9d9d9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 14px;
-        }
+/* MODAL */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: flex-end;
+}
 
-        .info {
-            padding: 10px;
-        }
+.modal-contenido {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 20px 20px 0 0;
+    padding: 14px;
+}
 
-        .nombre {
-            font-size: 15px;
-            font-weight: bold;
-            line-height: 1.2;
-            min-height: 36px;
-        }
+.modal img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+}
 
-        .precio {
-            font-size: 15px;
-            font-weight: bold;
-            margin-top: 8px;
-        }
+.cantidad {
+    display: flex;
+    margin-top: 10px;
+}
 
-        .descripcion-corta {
-            font-size: 13px;
-            color: #666;
-            margin-top: 6px;
-            min-height: 32px;
-            line-height: 1.2;
-        }
+.cantidad button {
+    width: 40px;
+    height: 40px;
+}
 
-        .boton-rapido {
-            margin-top: 10px;
-            width: 100%;
-            border: none;
-            background: #2c2c2c;
-            color: white;
-            border-radius: 12px;
-            height: 38px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .carrito-flotante {
-            position: fixed;
-            right: 14px;
-            bottom: 18px;
-            background: #1f1f1f;
-            color: white;
-            text-decoration: none;
-            border-radius: 999px;
-            padding: 14px 18px;
-            font-weight: bold;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .carrito-badge {
-            min-width: 24px;
-            height: 24px;
-            padding: 0 6px;
-            border-radius: 999px;
-            background: #e21b2f;
-            color: white;
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .modal-fondo {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.55);
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 100;
-        }
-
-        .modal-fondo.activo {
-            display: flex;
-        }
-
-        .modal {
-            width: 100%;
-            max-width: 560px;
-            background: white;
-            border-radius: 18px 18px 0 0;
-            max-height: 92vh;
-            overflow-y: auto;
-            padding-bottom: 20px;
-        }
-
-        .modal-cerrar-wrap {
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 12px 0 12px;
-        }
-
-        .modal-cerrar {
-            border: none;
-            background: #efefef;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            font-size: 22px;
-            cursor: pointer;
-        }
-
-        .modal-imagen {
-            width: calc(100% - 24px);
-            height: 220px;
-            object-fit: cover;
-            border-radius: 16px;
-            display: block;
-            margin: 0 12px;
-            background: #ddd;
-        }
-
-        .modal-contenido {
-            padding: 14px 14px 0 14px;
-        }
-
-        .modal-nombre {
-            font-size: 24px;
-            font-weight: bold;
-            line-height: 1.2;
-            margin-top: 4px;
-        }
-
-        .modal-precio {
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 12px;
-        }
-
-        .modal-descripcion {
-            font-size: 15px;
-            color: #444;
-            margin-top: 12px;
-            line-height: 1.45;
-            white-space: pre-line;
-        }
-
-        .nota {
-            width: 100%;
-            margin-top: 14px;
-            padding: 10px 12px;
-            border: 1px solid #cfcfcf;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-
-        .fila-carrito {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-top: 14px;
-        }
-
-        .contador {
-            display: flex;
-            align-items: center;
-            border: 1px solid #cfcfcf;
-            border-radius: 14px;
-            overflow: hidden;
-            background: white;
-            height: 46px;
-            min-width: 118px;
-            flex-shrink: 0;
-        }
-
-        .contador button {
-            width: 36px;
-            height: 46px;
-            border: none;
-            background: #f3f3f3;
-            font-size: 22px;
-            cursor: pointer;
-        }
-
-        .contador input {
-            width: 46px;
-            height: 46px;
-            border: none;
-            text-align: center;
-            font-size: 17px;
-            background: white;
-            outline: none;
-            -moz-appearance: textfield;
-        }
-
-        .contador input::-webkit-outer-spin-button,
-        .contador input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .btn-agregar-modal {
-            flex: 1;
-            height: 46px;
-            border: none;
-            border-radius: 14px;
-            background: #111;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        @media (max-width: 420px) {
-            .grid {
-                gap: 8px;
-            }
-
-            .producto img,
-            .sin-imagen {
-                height: 120px;
-            }
-
-            .nombre {
-                font-size: 14px;
-                min-height: 34px;
-            }
-
-            .precio {
-                font-size: 14px;
-            }
-
-            .descripcion-corta {
-                font-size: 12px;
-                min-height: 28px;
-            }
-
-            .boton-rapido {
-                height: 36px;
-                font-size: 13px;
-            }
-
-            .carrito-flotante {
-                right: 12px;
-                bottom: 14px;
-                padding: 12px 16px;
-                font-size: 14px;
-            }
-
-            .modal-imagen {
-                height: 190px;
-            }
-
-            .modal-nombre {
-                font-size: 22px;
-            }
-
-            .modal-precio {
-                font-size: 20px;
-            }
-        }
-    </style>
+.cantidad input {
+    width: 50px;
+    text-align: center;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="barra-superior">
-        <a href="{{ url_for('index') }}" class="flecha">←</a>
-        <div class="titulo">{{ categoria.nombre }}</div>
+<div class="barra">
+<a href="{{ url_for('admin') }}" class="flecha">←</a>
+<div>{{ categoria.nombre }}</div>
+</div>
+
+<div class="grid">
+{% for p in productos %}
+<div class="card">
+
+    {% if p.foto %}
+    <img src="{{ url_for('static', filename=p.foto) }}">
+    {% endif %}
+
+    <div class="info">
+        <div class="nombre">{{ p.nombre }}</div>
+        <div class="precio">${{ p.precio }}</div>
+
+        <button class="btn"
+        onclick="abrir('{{ p.id }}','{{ p.nombre }}','{{ p.descripcion }}','{{ p.precio }}','{{ url_for('static', filename=p.foto) if p.foto else '' }}')">
+        Ver producto
+        </button>
     </div>
 
-    <div class="contenedor">
-        <div class="grid">
-            {% for p in productos %}
-            <div
-                class="producto"
-                onclick="abrirModal(
-                    '{{ p.id }}',
-                    {{ (p.nombre or '')|tojson }},
-                    {{ (p.descripcion or '')|tojson }},
-                    '{{ p.precio }}',
-                    '{{ url_for('static', filename=p.foto) if p.foto else '' }}'
-                )"
-            >
-                {% if p.foto %}
-                    <img src="{{ url_for('static', filename=p.foto) }}" alt="{{ p.nombre }}">
-                {% else %}
-                    <div class="sin-imagen">Sin imagen</div>
-                {% endif %}
+</div>
+{% endfor %}
+</div>
 
-                <div class="info">
-                    <div class="nombre">{{ p.nombre }}</div>
-                    <div class="precio">${{ p.precio }}</div>
-                    <div class="descripcion-corta">{{ (p.descripcion or '')[:45] }}</div>
-                    <button type="button" class="boton-rapido">Ver producto</button>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+<!-- MODAL -->
+<div id="modal" class="modal" onclick="cerrar(event)">
+<div class="modal-contenido">
 
-    <a class="carrito-flotante" href="{{ url_for('carrito') }}">
-        <span>Ver carrito</span>
-        <span class="carrito-badge">{{ session.get('carrito', [])|length }}</span>
-    </a>
+<img id="img">
 
-    <div class="modal-fondo" id="modalProducto" onclick="cerrarModal(event)">
-        <div class="modal">
-            <div class="modal-cerrar-wrap">
-                <button class="modal-cerrar" type="button" onclick="cerrarModal()">×</button>
-            </div>
+<h2 id="nombre"></h2>
+<p id="precio"></p>
+<p id="desc"></p>
 
-            <img id="modalImagen" class="modal-imagen" src="" alt="Producto">
+<form method="POST" action="{{ url_for('agregar_carrito') }}">
+<input type="hidden" name="producto_id" id="id">
 
-            <div class="modal-contenido">
-                <div id="modalNombre" class="modal-nombre"></div>
-                <div id="modalPrecio" class="modal-precio"></div>
-                <div id="modalDescripcion" class="modal-descripcion"></div>
+<div class="cantidad">
+<button type="button" onclick="menos()">-</button>
+<input type="number" name="cantidad" id="cant" value="1">
+<button type="button" onclick="mas()">+</button>
+</div>
 
-                <form action="{{ url_for('agregar_carrito') }}" method="POST">
-                    <input type="hidden" name="producto_id" id="modalProductoId">
+<input name="nota" placeholder="nota" style="width:100%;margin-top:10px">
 
-                    <input
-                        class="nota"
-                        type="text"
-                        name="nota"
-                        placeholder="Nota o descripción del pedido"
-                    >
+<button class="btn">Agregar</button>
+</form>
 
-                    <div class="fila-carrito">
-                        <div class="contador">
-                            <button type="button" onclick="cambiarCantidad('modalCantidad', -1)">−</button>
-                            <input id="modalCantidad" type="number" name="cantidad" value="1" min="1">
-                            <button type="button" onclick="cambiarCantidad('modalCantidad', 1)">+</button>
-                        </div>
+</div>
+</div>
 
-                        <button class="btn-agregar-modal" type="submit">Comprar / Agregar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+<script>
+function abrir(id,nombre,desc,precio,foto){
+    document.getElementById("modal").style.display="flex";
+    document.getElementById("id").value=id;
+    document.getElementById("nombre").innerText=nombre;
+    document.getElementById("precio").innerText="$"+precio;
+    document.getElementById("desc").innerText=desc;
+    document.getElementById("img").src=foto;
+}
 
-    <script>
-        function abrirModal(id, nombre, descripcion, precio, foto) {
-            document.getElementById("modalProductoId").value = id;
-            document.getElementById("modalNombre").textContent = nombre;
-            document.getElementById("modalPrecio").textContent = "$" + precio;
-            document.getElementById("modalDescripcion").textContent = descripcion || "";
+function cerrar(e){
+    if(e.target.id=="modal"){
+        document.getElementById("modal").style.display="none";
+    }
+}
 
-            const imagen = document.getElementById("modalImagen");
-            if (foto) {
-                imagen.src = foto;
-                imagen.style.display = "block";
-            } else {
-                imagen.src = "";
-                imagen.style.display = "none";
-            }
+function mas(){
+    let c=document.getElementById("cant");
+    c.value=parseInt(c.value)+1;
+}
 
-            document.getElementById("modalCantidad").value = 1;
-            document.getElementById("modalProducto").classList.add("activo");
-            document.body.style.overflow = "hidden";
-        }
-
-        function cerrarModal(e) {
-            if (!e || e.target.id === "modalProducto") {
-                document.getElementById("modalProducto").classList.remove("activo");
-                document.body.style.overflow = "";
-            }
-        }
-
-        function cambiarCantidad(idInput, cambio) {
-            const input = document.getElementById(idInput);
-            let valor = parseInt(input.value) || 1;
-            valor += cambio;
-            if (valor < 1) valor = 1;
-            input.value = valor;
-        }
-    </script>
+function menos(){
+    let c=document.getElementById("cant");
+    if(c.value>1) c.value=parseInt(c.value)-1;
+}
+</script>
 
 </body>
 </html>
