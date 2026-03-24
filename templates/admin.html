@@ -6,80 +6,190 @@
     <title>Panel de administración - Mercado CLN</title>
 
     <style>
-        body { margin: 0; padding: 20px; background: #f4f4f4; font-family: Arial; }
-        .panel { max-width: 700px; margin: auto; background: white; border-radius: 14px; padding: 20px; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; }
-        button { background: black; color: white; }
-        .mini-img { width: 80px; margin-top: 10px; }
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+
+        .panel {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .volver {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: white;
+            background: #3d3d3d;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            margin-top: 28px;
+            margin-bottom: 12px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .bloque {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        input, select, button, textarea {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #cfcfcf;
+            font-size: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        button {
+            background: black;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .mini-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            display: block;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+
+        .texto-suave {
+            color: #666;
+            font-size: 14px;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
 
 <div class="panel">
-<h1>ADMIN</h1>
+    <a href="{{ url_for('index') }}" class="volver">← Volver a la tienda</a>
 
-<a href="{{ url_for('index') }}">← Volver</a>
+    <h1>Panel de administración</h1>
 
-<!-- CATEGORIA -->
-<h2>Agregar Categoría</h2>
-<form action="{{ url_for('add_cat') }}" method="POST" enctype="multipart/form-data">
-    <input type="text" name="nombre_categoria" required>
-    <input type="file" name="foto_categoria">
-    <button>Guardar</button>
-</form>
+    <!-- CATEGORIA -->
+    <h2>1. Agregar nueva categoría</h2>
+    <div class="bloque">
+        <form action="{{ url_for('agregar_categoria') }}" method="POST">
+            <input type="text" name="nombre" placeholder="Ejemplo: Electrónica, Ropa, Hogar" required>
+            <button type="submit">Guardar categoría</button>
+        </form>
+    </div>
 
-<!-- PRODUCTO -->
-<h2>Agregar Producto</h2>
-<form action="{{ url_for('add_prod') }}" method="POST" enctype="multipart/form-data">
+    <!-- PRODUCTO -->
+    <h2>2. Agregar producto</h2>
+    <div class="bloque">
+        <form action="{{ url_for('agregar_producto') }}" method="POST">
+            <input type="text" name="nombre" placeholder="Nombre del producto" required>
 
-    <input type="text" name="nombre" placeholder="Nombre" required>
-    <input type="number" name="precio" placeholder="Precio" required>
+            <input type="number" step="0.01" name="precio" placeholder="Precio" required>
 
-    <!-- 🔥 AQUI ESTA EL FIX -->
-    <select name="categoria_id" required>
-        <option value="">Selecciona categoría</option>
+            <select name="categoria" required>
+                <option value="">Selecciona una categoría</option>
+                {% for c in categorias %}
+                    <option value="{{ c.nombre }}">{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
+
+            <input type="text" name="foto" placeholder="URL de la imagen o ruta, por ejemplo: uploads/foto.jpg">
+
+            <button type="submit">Guardar producto</button>
+        </form>
+    </div>
+
+    <!-- VER CATEGORIAS -->
+    <h2>Categorías actuales</h2>
+    <ul class="lista">
         {% for c in categorias %}
-            <option value="{{ c.id }}">{{ c.nombre }}</option>
+        <li class="item">
+            <strong>{{ c.nombre }}</strong>
+
+            {% if c.foto %}
+                <img src="{{ url_for('static', filename=c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
+            {% endif %}
+        </li>
+        {% else %}
+        <li class="item">No hay categorías registradas todavía.</li>
         {% endfor %}
-    </select>
+    </ul>
 
-    <input type="text" name="descripcion" placeholder="Descripción">
-    <input type="file" name="foto">
+    <!-- VER PRODUCTOS -->
+    <h2>Productos actuales</h2>
+    <ul class="lista">
+        {% for p in productos %}
+        <li class="item">
+            <strong>{{ p.nombre }}</strong><br>
+            Precio: ${{ p.precio }}<br>
+            Categoría: {{ p.categoria }}
 
-    <button>Guardar producto</button>
-</form>
+            {% if p.descripcion %}
+                <div class="texto-suave">{{ p.descripcion }}</div>
+            {% endif %}
 
-<!-- VER CATEGORIAS -->
-<h2>Categorías</h2>
-<ul>
-{% for c in categorias %}
-<li>
-    {{ c.nombre }}
-
-    {% if c.foto %}
-        <img src="{{ url_for('static', filename=c.foto) }}" class="mini-img">
-    {% endif %}
-</li>
-{% endfor %}
-</ul>
-
-<!-- VER PRODUCTOS -->
-<h2>Productos</h2>
-<ul>
-{% for p in productos %}
-<li>
-    <b>{{ p.nombre }}</b> - ${{ p.precio }} <br>
-
-    <!-- 🔥 muestra nombre correcto -->
-    Categoría: {{ p.categoria_nombre }}
-
-    {% if p.foto %}
-        <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img">
-    {% endif %}
-</li>
-{% endfor %}
-</ul>
-
+            {% if p.foto %}
+                {% if p.foto.startswith('http://') or p.foto.startswith('https://') %}
+                    <img src="{{ p.foto }}" class="mini-img" alt="{{ p.nombre }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
+                {% endif %}
+            {% endif %}
+        </li>
+        {% else %}
+        <li class="item">No hay productos registrados todavía.</li>
+        {% endfor %}
+    </ul>
 </div>
 
 </body>
