@@ -1,1 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de pedido</title>
 
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #efefef;
+            color: #111;
+        }
+
+        .barra-superior {
+            background: #1f1f1f;
+            color: white;
+            padding: 16px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .flecha {
+            font-size: 30px;
+            text-decoration: none;
+            color: white;
+            line-height: 1;
+        }
+
+        .titulo {
+            font-size: 22px;
+            color: #d0d0d0;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .contenedor {
+            padding: 12px;
+            padding-bottom: 30px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            margin-bottom: 14px;
+        }
+
+        .subtitulo {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 12px 0;
+        }
+
+        .campo {
+            margin-bottom: 12px;
+        }
+
+        .campo label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .campo input,
+        .campo textarea,
+        .campo select {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .campo textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .resumen-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .resumen-item:last-child {
+            border-bottom: none;
+        }
+
+        .nombre {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .detalle {
+            margin-top: 4px;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .nota {
+            margin-top: 4px;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .total {
+            text-align: right;
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .btn-enviar {
+            width: 100%;
+            border: none;
+            background: #111;
+            color: white;
+            height: 52px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 14px;
+        }
+
+        .ayuda {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="barra-superior">
+        <a href="{{ url_for('carrito') }}" class="flecha">←</a>
+        <div class="titulo">Ficha de pedido</div>
+    </div>
+
+    <div class="contenedor">
+        <form action="{{ url_for('enviar_pedido') }}" method="POST">
+
+            <div class="card">
+                <h2 class="subtitulo">Datos del cliente</h2>
+
+                <div class="campo">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+
+                <div class="campo">
+                    <label for="telefono">Teléfono</label>
+                    <input type="text" id="telefono" name="telefono" required>
+                </div>
+
+                <div class="campo">
+                    <label for="direccion">Dirección</label>
+                    <textarea id="direccion" name="direccion" required></textarea>
+                </div>
+
+                <div class="campo">
+                    <label for="referencia">Referencia</label>
+                    <textarea id="referencia" name="referencia" placeholder="Ejemplo: casa blanca, portón negro, tocar dos veces..."></textarea>
+                </div>
+
+                <div class="campo">
+                    <label for="metodo_pago">Método de pago</label>
+                    <select id="metodo_pago" name="metodo_pago">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia">Transferencia</option>
+                        <option value="Contra entrega">Contra entrega</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="comentarios">Comentarios del pedido</label>
+                    <textarea id="comentarios" name="comentarios" placeholder="Aquí el cliente puede poner más indicaciones"></textarea>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="subtitulo">Resumen del pedido</h2>
+
+                {% if carrito %}
+                    {% for item in carrito %}
+                    <div class="resumen-item">
+                        <div class="nombre">{{ item.nombre }}</div>
+                        <div class="detalle">
+                            Cantidad: {{ item.cantidad }} | Precio: ${{ item.precio }}
+                        </div>
+                        {% if item.nota %}
+                            <div class="nota">Nota: {{ item.nota }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="detalle">No hay productos en el carrito.</div>
+                {% endif %}
+
+                <div class="total">Total: ${{ total }}</div>
+                <div class="ayuda">Al enviar, se abrirá WhatsApp con el pedido listo.</div>
+            </div>
+
+            <button type="submit" class="btn-enviar">Enviar pedido por WhatsApp</button>
+        </form>
+    </div>
+
+</body>
+</html>
