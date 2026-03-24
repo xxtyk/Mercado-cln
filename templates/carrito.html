@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carrito</title>
-
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -45,7 +42,7 @@
 
         .contenedor {
             padding: 10px;
-            padding-bottom: 140px;
+            padding-bottom: 150px;
         }
 
         .card {
@@ -64,8 +61,8 @@
             height: 90px;
             border-radius: 10px;
             object-fit: cover;
-            flex-shrink: 0;
             background: #ddd;
+            flex-shrink: 0;
         }
 
         .sin-foto {
@@ -90,19 +87,12 @@
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 6px;
-            line-height: 1.2;
         }
 
-        .precio {
+        .linea {
             font-size: 14px;
             color: #444;
-            margin-bottom: 6px;
-        }
-
-        .nota {
-            font-size: 14px;
-            color: #555;
-            margin-top: 6px;
+            margin-bottom: 5px;
         }
 
         .subtotal {
@@ -111,17 +101,21 @@
             margin-top: 8px;
         }
 
+        .nota {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+        }
+
         .btn-eliminar {
+            display: inline-block;
+            margin-top: 10px;
             background: #d11a2a;
             color: white;
-            border: none;
+            text-decoration: none;
             border-radius: 8px;
             padding: 8px 10px;
             font-size: 13px;
-            cursor: pointer;
-            margin-top: 10px;
-            text-decoration: none;
-            display: inline-block;
         }
 
         .sin-productos {
@@ -160,25 +154,20 @@
             border-radius: 10px;
             font-size: 15px;
             font-weight: bold;
-            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-seguir {
             background: #444;
             color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .btn-comprar {
             background: #000;
             color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         .btn-vaciar {
@@ -193,32 +182,6 @@
             font-weight: bold;
             cursor: pointer;
         }
-
-        @media (max-width: 480px) {
-            .card {
-                padding: 8px;
-                gap: 8px;
-            }
-
-            .foto,
-            .sin-foto {
-                width: 80px;
-                height: 80px;
-            }
-
-            .nombre {
-                font-size: 15px;
-            }
-
-            .precio,
-            .subtotal {
-                font-size: 14px;
-            }
-
-            .btn {
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -232,7 +195,6 @@
         {% if carrito %}
             {% for item in carrito %}
             <div class="card">
-
                 {% if item.foto %}
                     <img src="{{ url_for('static', filename=item.foto) }}" class="foto" alt="{{ item.nombre }}">
                 {% else %}
@@ -241,22 +203,19 @@
 
                 <div class="info">
                     <div class="nombre">{{ item.nombre }}</div>
-                    <div class="precio">Precio: ${{ item.precio }}</div>
-                    <div class="precio">Cantidad: {{ item.cantidad }}</div>
+                    <div class="linea">Precio: ${{ item.precio }}</div>
+                    <div class="linea">Cantidad: {{ item.cantidad }}</div>
 
                     {% if item.nota %}
                         <div class="nota">Nota: {{ item.nota }}</div>
                     {% endif %}
 
-                    <div class="subtotal">
-                        Subtotal: ${{ (item.precio|float) * (item.cantidad|int) }}
-                    </div>
+                    <div class="subtotal">Subtotal: ${{ item.subtotal }}</div>
 
                     <a href="{{ url_for('eliminar_del_carrito', indice=loop.index0) }}" class="btn-eliminar">
                         Eliminar
                     </a>
                 </div>
-
             </div>
             {% endfor %}
         {% else %}
@@ -269,7 +228,7 @@
 
         <div class="acciones-finales">
             <a href="{{ url_for('index') }}" class="btn btn-seguir">Seguir comprando</a>
-            <a href="#" class="btn btn-comprar">Comprar</a>
+            <a href="{{ url_for('ficha') }}" class="btn btn-comprar">Comprar</a>
         </div>
 
         <form method="GET" action="{{ url_for('limpiar_carrito') }}">
