@@ -1,6 +1,8 @@
 import os
 import json
+import uuid
 from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -13,10 +15,16 @@ CATEGORIAS_FILE = os.path.join(BASE_DIR, "categorias.json")
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+
 
 # ------------------------
-# INICIALIZAR ARCHIVOS
+# UTILIDADES
 # ------------------------
+def extension_permitida(nombre_archivo):
+    return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
+
+
 def init_app():
     os.makedirs(STATIC_FOLDER, exist_ok=True)
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -34,9 +42,7 @@ def cargar_json(ruta):
     try:
         with open(ruta, "r", encoding="utf-8") as f:
             data = json.load(f)
-            if isinstance(data, list):
-                return data
-            return []
+            return data if isinstance(data, list) else []
     except Exception:
         return []
 
@@ -56,12 +62,27 @@ def obtener_siguiente_id(lista):
     return max(ids, default=0) + 1
 
 
-# IMPORTANTE: se ejecuta también en Render
+def guardar_imagen(archivo):
+    if not archivo or not archivo.filename:
+        return ""
+
+    if not extension_permitida(archivo.filename):
+        return ""
+
+    nombre_seguro = secure_filename(archivo.filename)
+    extension = nombre_seguro.rsplit(".", 1)[1].lower()
+    nombre_final = f"{uuid.uuid4().hex}.{extension}"
+    ruta_guardado = os.path.join(app.config["UPLOAD_FOLDER"], nombre_final)
+    archivo.save(ruta_guardado)
+
+    return f"uploads/{nombre_final}"
+
+
 init_app()
 
 
 # ------------------------
-# INDEX (CLIENTE)
+# INDEX
 # ------------------------
 @app.route("/")
 def index():
@@ -85,6 +106,7 @@ def admin():
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
     nombre = request.form.get("nombre", "").strip()
+    foto_categoria = request.files.get("foto_categoria")
 
     if not nombre:
         return redirect(url_for("admin"))
@@ -96,14 +118,18 @@ def agregar_categoria():
         for c in categorias
     )
 
-    if not existe:
-        categorias.append({
-            "id": obtener_siguiente_id(categorias),
-            "nombre": nombre,
-            "foto": ""
-        })
-        guardar_json(CATEGORIAS_FILE, categorias)
+    if existe:
+        return redirect(url_for("admin"))
 
+    ruta_foto = guardar_imagen(foto_categoria)
+
+    categorias.append({
+        "id": obtener_siguiente_id(categorias),
+        "nombre": nombre,
+        "foto": ruta_foto
+    })
+
+    guardar_json(CATEGORIAS_FILE, categorias)
     return redirect(url_for("admin"))
 
 
@@ -115,25 +141,26 @@ def agregar_producto():
     nombre = request.form.get("nombre", "").strip()
     precio = request.form.get("precio", "").strip()
     categoria = request.form.get("categoria", "").strip()
-    foto = request.form.get("foto", "").strip()
     descripcion = request.form.get("descripcion", "").strip()
+    foto_archivo = request.files.get("foto")
 
     if not nombre or not precio or not categoria:
         return redirect(url_for("admin"))
-
-    productos = cargar_json(PRODUCTOS_FILE)
 
     try:
         precio_num = float(precio)
     except Exception:
         precio_num = 0.0
 
+    ruta_foto = guardar_imagen(foto_archivo)
+
+    productos = cargar_json(PRODUCTOS_FILE)
     productos.append({
         "id": obtener_siguiente_id(productos),
         "nombre": nombre,
         "precio": precio_num,
         "categoria": categoria,
-        "foto": foto,
+        "foto": ruta_foto,
         "descripcion": descripcion
     })
 
@@ -212,14 +239,14 @@ def agregar_carrito():
 
     if not encontrado:
         try:
-            precio = float(producto_encontrado.get("precio", 0) or 0)
+            precio_num = float(producto_encontrado.get("precio", 0) or 0)
         except Exception:
-            precio = 0.0
+            precio_num = 0.0
 
         carrito_actual.append({
             "id": producto_encontrado.get("id"),
             "nombre": producto_encontrado.get("nombre", ""),
-            "precio": precio,
+            "precio": precio_num,
             "foto": producto_encontrado.get("foto", ""),
             "cantidad": cantidad,
             "nota": nota
@@ -237,7 +264,6 @@ def agregar_carrito():
 @app.route("/carrito")
 def carrito():
     carrito_items = session.get("carrito", [])
-
     if not isinstance(carrito_items, list):
         carrito_items = []
 
