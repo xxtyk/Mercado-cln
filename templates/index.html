@@ -130,7 +130,7 @@
     <div class="grid">
         {% for c in categorias %}
             {% if c is mapping %}
-                <a class="card" href="{{ url_for('categoria', nombre=c.nombre) }}">
+                <a class="card" href="{{ url_for('ver_categoria', categoria_nombre=c.nombre) }}">
                     {% if c.foto %}
                         <img src="{{ url_for('static', filename=c.foto) }}" alt="{{ c.nombre }}">
                     {% else %}
@@ -139,7 +139,7 @@
                     <div class="nombre">{{ c.nombre }}</div>
                 </a>
             {% else %}
-                <a class="card" href="{{ url_for('categoria', nombre=c) }}">
+                <a class="card" href="{{ url_for('ver_categoria', categoria_nombre=c) }}">
                     <div class="sin-imagen">Sin imagen</div>
                     <div class="nombre">{{ c }}</div>
                 </a>
