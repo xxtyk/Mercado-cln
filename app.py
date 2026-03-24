@@ -46,9 +46,17 @@ def guardar_json(ruta, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
-# IMPORTANTE:
-# Esto debe ir fuera del __main__
-# para que también funcione en Render/Gunicorn
+def obtener_siguiente_id(lista):
+    ids = []
+    for item in lista:
+        try:
+            ids.append(int(item.get("id", 0)))
+        except Exception:
+            pass
+    return max(ids, default=0) + 1
+
+
+# IMPORTANTE: se ejecuta también en Render
 init_app()
 
 
@@ -62,6 +70,78 @@ def index():
 
 
 # ------------------------
+# PANEL ADMIN
+# ------------------------
+@app.route("/admin")
+def admin():
+    categorias = cargar_json(CATEGORIAS_FILE)
+    productos = cargar_json(PRODUCTOS_FILE)
+    return render_template("admin.html", categorias=categorias, productos=productos)
+
+
+# ------------------------
+# AGREGAR CATEGORIA
+# ------------------------
+@app.route("/agregar_categoria", methods=["POST"])
+def agregar_categoria():
+    nombre = request.form.get("nombre", "").strip()
+
+    if not nombre:
+        return redirect(url_for("admin"))
+
+    categorias = cargar_json(CATEGORIAS_FILE)
+
+    existe = any(
+        str(c.get("nombre", "")).strip().lower() == nombre.lower()
+        for c in categorias
+    )
+
+    if not existe:
+        categorias.append({
+            "id": obtener_siguiente_id(categorias),
+            "nombre": nombre,
+            "foto": ""
+        })
+        guardar_json(CATEGORIAS_FILE, categorias)
+
+    return redirect(url_for("admin"))
+
+
+# ------------------------
+# AGREGAR PRODUCTO
+# ------------------------
+@app.route("/agregar_producto", methods=["POST"])
+def agregar_producto():
+    nombre = request.form.get("nombre", "").strip()
+    precio = request.form.get("precio", "").strip()
+    categoria = request.form.get("categoria", "").strip()
+    foto = request.form.get("foto", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+
+    if not nombre or not precio or not categoria:
+        return redirect(url_for("admin"))
+
+    productos = cargar_json(PRODUCTOS_FILE)
+
+    try:
+        precio_num = float(precio)
+    except Exception:
+        precio_num = 0.0
+
+    productos.append({
+        "id": obtener_siguiente_id(productos),
+        "nombre": nombre,
+        "precio": precio_num,
+        "categoria": categoria,
+        "foto": foto,
+        "descripcion": descripcion
+    })
+
+    guardar_json(PRODUCTOS_FILE, productos)
+    return redirect(url_for("admin"))
+
+
+# ------------------------
 # VER CATEGORIA
 # ------------------------
 @app.route("/categoria/<categoria_nombre>")
@@ -70,7 +150,10 @@ def ver_categoria(categoria_nombre):
     productos = cargar_json(PRODUCTOS_FILE)
 
     categoria = next(
-        (c for c in categorias if str(c.get("nombre", "")).strip() == str(categoria_nombre).strip()),
+        (
+            c for c in categorias
+            if str(c.get("nombre", "")).strip().lower() == str(categoria_nombre).strip().lower()
+        ),
         None
     )
 
@@ -79,7 +162,7 @@ def ver_categoria(categoria_nombre):
 
     productos_filtrados = [
         p for p in productos
-        if str(p.get("categoria", "")).strip() == str(categoria_nombre).strip()
+        if str(p.get("categoria", "")).strip().lower() == str(categoria_nombre).strip().lower()
     ]
 
     return render_template(
@@ -96,6 +179,7 @@ def ver_categoria(categoria_nombre):
 def agregar_carrito():
     producto_id = request.form.get("producto_id")
     cantidad = request.form.get("cantidad", "1")
+    nota = request.form.get("nota", "").strip()
 
     try:
         cantidad = int(cantidad)
@@ -116,14 +200,12 @@ def agregar_carrito():
         return redirect(request.referrer or url_for("index"))
 
     carrito_actual = session.get("carrito", [])
-
-    # seguridad por si la sesión no trae lista
     if not isinstance(carrito_actual, list):
         carrito_actual = []
 
     encontrado = False
     for item in carrito_actual:
-        if str(item.get("id", "")) == str(producto_id):
+        if str(item.get("id", "")) == str(producto_id) and str(item.get("nota", "")).strip() == nota:
             item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
             encontrado = True
             break
@@ -139,7 +221,8 @@ def agregar_carrito():
             "nombre": producto_encontrado.get("nombre", ""),
             "precio": precio,
             "foto": producto_encontrado.get("foto", ""),
-            "cantidad": cantidad
+            "cantidad": cantidad,
+            "nota": nota
         })
 
     session["carrito"] = carrito_actual
@@ -166,6 +249,21 @@ def carrito():
             pass
 
     return render_template("carrito.html", carrito=carrito_items, total=total)
+
+
+# ------------------------
+# ELIMINAR ITEM DEL CARRITO
+# ------------------------
+@app.route("/eliminar_del_carrito/<int:indice>")
+def eliminar_del_carrito(indice):
+    carrito_items = session.get("carrito", [])
+
+    if isinstance(carrito_items, list) and 0 <= indice < len(carrito_items):
+        carrito_items.pop(indice)
+        session["carrito"] = carrito_items
+        session.modified = True
+
+    return redirect(url_for("carrito"))
 
 
 # ------------------------
