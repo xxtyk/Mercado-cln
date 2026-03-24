@@ -1,10 +1,8 @@
 [
-  {
-    "nombre": "Frutas",
-    "foto": ""
-  },
-  {
-    "nombre": "Verduras",
-    "foto": ""
-  }
+  { "id": 1, "nombre": "Cuidado del cabello", "foto": "" },
+  { "id": 2, "nombre": "Cocina", "foto": "" },
+  { "id": 3, "nombre": "Cuidado personal", "foto": "" },
+  { "id": 4, "nombre": "Aire acondicionado", "foto": "" },
+  { "id": 5, "nombre": "Electrodomestico", "foto": "" },
+  { "id": 6, "nombre": "Otro", "foto": "" }
 ]
