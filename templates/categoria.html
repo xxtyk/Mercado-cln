@@ -14,6 +14,7 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background: #efefef;
+            color: #111;
         }
 
         .barra-superior {
@@ -25,7 +26,7 @@
             gap: 12px;
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 20;
         }
 
         .flecha {
@@ -56,24 +57,23 @@
         .producto {
             background: white;
             border-radius: 16px;
-            padding: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            cursor: pointer;
         }
 
-        .producto img {
+        .producto img,
+        .sin-imagen {
             width: 100%;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 12px;
+            height: 140px;
             display: block;
         }
 
+        .producto img {
+            object-fit: cover;
+        }
+
         .sin-imagen {
-            width: 100%;
-            height: 130px;
-            border-radius: 12px;
             background: #d9d9d9;
             display: flex;
             align-items: center;
@@ -82,73 +82,195 @@
             font-size: 14px;
         }
 
+        .info {
+            padding: 10px;
+        }
+
         .nombre {
             font-size: 15px;
             font-weight: bold;
-            margin-top: 8px;
-            min-height: 38px;
             line-height: 1.2;
+            min-height: 36px;
         }
 
         .precio {
             font-size: 15px;
             font-weight: bold;
-            margin-top: 6px;
+            margin-top: 8px;
         }
 
-        .descripcion {
-            margin-top: 4px;
+        .descripcion-corta {
             font-size: 13px;
             color: #666;
-            min-height: 30px;
+            margin-top: 6px;
+            min-height: 32px;
             line-height: 1.2;
+        }
+
+        .boton-rapido {
+            margin-top: 10px;
+            width: 100%;
+            border: none;
+            background: #2c2c2c;
+            color: white;
+            border-radius: 12px;
+            height: 38px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .carrito-flotante {
+            position: fixed;
+            right: 14px;
+            bottom: 18px;
+            background: #1f1f1f;
+            color: white;
+            text-decoration: none;
+            border-radius: 999px;
+            padding: 14px 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .carrito-badge {
+            min-width: 24px;
+            height: 24px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #e21b2f;
+            color: white;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .modal-fondo {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal-fondo.activo {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 560px;
+            background: white;
+            border-radius: 18px 18px 0 0;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .modal-cerrar-wrap {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 12px 0 12px;
+        }
+
+        .modal-cerrar {
+            border: none;
+            background: #efefef;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .modal-imagen {
+            width: calc(100% - 24px);
+            height: 220px;
+            object-fit: cover;
+            border-radius: 16px;
+            display: block;
+            margin: 0 12px;
+            background: #ddd;
+        }
+
+        .modal-contenido {
+            padding: 14px 14px 0 14px;
+        }
+
+        .modal-nombre {
+            font-size: 24px;
+            font-weight: bold;
+            line-height: 1.2;
+            margin-top: 4px;
+        }
+
+        .modal-precio {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .modal-descripcion {
+            font-size: 15px;
+            color: #444;
+            margin-top: 12px;
+            line-height: 1.45;
+            white-space: pre-line;
         }
 
         .nota {
             width: 100%;
-            margin-top: 6px;
-            padding: 8px;
+            margin-top: 14px;
+            padding: 10px 12px;
             border: 1px solid #cfcfcf;
-            border-radius: 10px;
-            font-size: 13px;
+            border-radius: 12px;
+            font-size: 14px;
         }
 
         .fila-carrito {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
-            margin-top: 8px;
+            margin-top: 14px;
         }
 
         .contador {
             display: flex;
             align-items: center;
             border: 1px solid #cfcfcf;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             background: white;
-            min-width: 100px;
-            height: 42px;
+            height: 46px;
+            min-width: 118px;
             flex-shrink: 0;
         }
 
         .contador button {
-            width: 30px;
-            height: 42px;
+            width: 36px;
+            height: 46px;
             border: none;
             background: #f3f3f3;
-            font-size: 20px;
+            font-size: 22px;
             cursor: pointer;
         }
 
         .contador input {
-            width: 40px;
-            height: 42px;
+            width: 46px;
+            height: 46px;
             border: none;
             text-align: center;
-            font-size: 16px;
-            outline: none;
+            font-size: 17px;
             background: white;
+            outline: none;
             -moz-appearance: textfield;
         }
 
@@ -158,53 +280,26 @@
             margin: 0;
         }
 
-        .btn-agregar {
+        .btn-agregar-modal {
             flex: 1;
-            min-width: 0;
-            height: 42px;
+            height: 46px;
             border: none;
-            border-radius: 12px;
-            background: #2c2c2c;
+            border-radius: 14px;
+            background: #111;
             color: white;
-            font-size: 15px;
-            cursor: pointer;
-            padding: 0 10px;
-        }
-
-        .ver-carrito {
-            position: fixed;
-            right: 14px;
-            bottom: 14px;
-            background: #1f1f1f;
-            color: white;
-            text-decoration: none;
-            padding: 14px 18px;
-            border-radius: 999px;
+            font-size: 16px;
             font-weight: bold;
-            font-size: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            z-index: 30;
+            cursor: pointer;
         }
 
         @media (max-width: 420px) {
-            .contenedor {
-                padding: 8px;
-                padding-bottom: 110px;
-            }
-
             .grid {
                 gap: 8px;
             }
 
-            .producto {
-                padding: 8px;
-                border-radius: 14px;
-            }
-
             .producto img,
             .sin-imagen {
-                height: 115px;
-                border-radius: 10px;
+                height: 120px;
             }
 
             .nombre {
@@ -216,48 +311,33 @@
                 font-size: 14px;
             }
 
-            .descripcion {
+            .descripcion-corta {
                 font-size: 12px;
-                min-height: 26px;
+                min-height: 28px;
             }
 
-            .nota {
-                padding: 7px;
-                font-size: 12px;
+            .boton-rapido {
+                height: 36px;
+                font-size: 13px;
             }
 
-            .fila-carrito {
-                gap: 6px;
-            }
-
-            .contador {
-                min-width: 92px;
-                height: 40px;
-            }
-
-            .contador button {
-                width: 28px;
-                height: 40px;
-                font-size: 18px;
-            }
-
-            .contador input {
-                width: 36px;
-                height: 40px;
-                font-size: 15px;
-            }
-
-            .btn-agregar {
-                height: 40px;
-                font-size: 14px;
-                padding: 0 8px;
-            }
-
-            .ver-carrito {
+            .carrito-flotante {
                 right: 12px;
-                bottom: 12px;
+                bottom: 14px;
                 padding: 12px 16px;
                 font-size: 14px;
+            }
+
+            .modal-imagen {
+                height: 190px;
+            }
+
+            .modal-nombre {
+                font-size: 22px;
+            }
+
+            .modal-precio {
+                font-size: 20px;
             }
         }
     </style>
@@ -272,40 +352,103 @@
     <div class="contenedor">
         <div class="grid">
             {% for p in productos %}
-            <div class="producto">
+            <div
+                class="producto"
+                onclick="abrirModal(
+                    '{{ p.id }}',
+                    {{ (p.nombre or '')|tojson }},
+                    {{ (p.descripcion or '')|tojson }},
+                    '{{ p.precio }}',
+                    '{{ url_for('static', filename=p.foto) if p.foto else '' }}'
+                )"
+            >
                 {% if p.foto %}
                     <img src="{{ url_for('static', filename=p.foto) }}" alt="{{ p.nombre }}">
                 {% else %}
                     <div class="sin-imagen">Sin imagen</div>
                 {% endif %}
 
-                <div class="nombre">{{ p.nombre }}</div>
-                <div class="precio">${{ p.precio }}</div>
-                <div class="descripcion">{{ p.descripcion or '' }}</div>
-
-                <form action="{{ url_for('agregar_carrito') }}" method="POST">
-                    <input type="hidden" name="producto_id" value="{{ p.id }}">
-
-                    <input class="nota" type="text" name="nota" placeholder="Nota o descripción">
-
-                    <div class="fila-carrito">
-                        <div class="contador">
-                            <button type="button" onclick="cambiarCantidad('cantidad_{{ p.id }}', -1)">−</button>
-                            <input id="cantidad_{{ p.id }}" type="number" name="cantidad" value="1" min="1">
-                            <button type="button" onclick="cambiarCantidad('cantidad_{{ p.id }}', 1)">+</button>
-                        </div>
-
-                        <button class="btn-agregar" type="submit">Agregar</button>
-                    </div>
-                </form>
+                <div class="info">
+                    <div class="nombre">{{ p.nombre }}</div>
+                    <div class="precio">${{ p.precio }}</div>
+                    <div class="descripcion-corta">{{ (p.descripcion or '')[:45] }}</div>
+                    <button type="button" class="boton-rapido">Ver producto</button>
+                </div>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <a class="ver-carrito" href="{{ url_for('carrito') }}">Ver carrito</a>
+    <a class="carrito-flotante" href="{{ url_for('carrito') }}">
+        <span>Ver carrito</span>
+        <span class="carrito-badge">{{ session.get('carrito', [])|length }}</span>
+    </a>
+
+    <div class="modal-fondo" id="modalProducto" onclick="cerrarModal(event)">
+        <div class="modal">
+            <div class="modal-cerrar-wrap">
+                <button class="modal-cerrar" type="button" onclick="cerrarModal()">×</button>
+            </div>
+
+            <img id="modalImagen" class="modal-imagen" src="" alt="Producto">
+
+            <div class="modal-contenido">
+                <div id="modalNombre" class="modal-nombre"></div>
+                <div id="modalPrecio" class="modal-precio"></div>
+                <div id="modalDescripcion" class="modal-descripcion"></div>
+
+                <form action="{{ url_for('agregar_carrito') }}" method="POST">
+                    <input type="hidden" name="producto_id" id="modalProductoId">
+
+                    <input
+                        class="nota"
+                        type="text"
+                        name="nota"
+                        placeholder="Nota o descripción del pedido"
+                    >
+
+                    <div class="fila-carrito">
+                        <div class="contador">
+                            <button type="button" onclick="cambiarCantidad('modalCantidad', -1)">−</button>
+                            <input id="modalCantidad" type="number" name="cantidad" value="1" min="1">
+                            <button type="button" onclick="cambiarCantidad('modalCantidad', 1)">+</button>
+                        </div>
+
+                        <button class="btn-agregar-modal" type="submit">Comprar / Agregar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script>
+        function abrirModal(id, nombre, descripcion, precio, foto) {
+            document.getElementById("modalProductoId").value = id;
+            document.getElementById("modalNombre").textContent = nombre;
+            document.getElementById("modalPrecio").textContent = "$" + precio;
+            document.getElementById("modalDescripcion").textContent = descripcion || "";
+
+            const imagen = document.getElementById("modalImagen");
+            if (foto) {
+                imagen.src = foto;
+                imagen.style.display = "block";
+            } else {
+                imagen.src = "";
+                imagen.style.display = "none";
+            }
+
+            document.getElementById("modalCantidad").value = 1;
+            document.getElementById("modalProducto").classList.add("activo");
+            document.body.style.overflow = "hidden";
+        }
+
+        function cerrarModal(e) {
+            if (!e || e.target.id === "modalProducto") {
+                document.getElementById("modalProducto").classList.remove("activo");
+                document.body.style.overflow = "";
+            }
+        }
+
         function cambiarCantidad(idInput, cambio) {
             const input = document.getElementById(idInput);
             let valor = parseInt(input.value) || 1;
