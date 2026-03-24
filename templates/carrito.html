@@ -99,36 +99,16 @@
             margin-bottom: 6px;
         }
 
+        .nota {
+            font-size: 14px;
+            color: #555;
+            margin-top: 6px;
+        }
+
         .subtotal {
             font-size: 15px;
             font-weight: bold;
             margin-top: 8px;
-        }
-
-        .fila-campos {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .cantidad {
-            width: 55px;
-            height: 34px;
-            border: 1px solid #bbb;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 14px;
-            padding: 4px;
-        }
-
-        .detalle {
-            flex: 1;
-            height: 34px;
-            border: 1px solid #bbb;
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 14px;
-            min-width: 0;
         }
 
         .btn-eliminar {
@@ -139,7 +119,9 @@
             padding: 8px 10px;
             font-size: 13px;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .sin-productos {
@@ -181,9 +163,13 @@
             cursor: pointer;
         }
 
-        .btn-actualizar {
+        .btn-seguir {
             background: #444;
             color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-comprar {
@@ -200,6 +186,12 @@
             margin-top: 8px;
             background: #d11a2a;
             color: white;
+            border: none;
+            border-radius: 10px;
+            height: 44px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         @media (max-width: 480px) {
@@ -223,10 +215,6 @@
                 font-size: 14px;
             }
 
-            .detalle {
-                font-size: 13px;
-            }
-
             .btn {
                 font-size: 14px;
             }
@@ -240,54 +228,54 @@
         <div class="titulo">Carrito</div>
     </div>
 
-    <form method="POST" action="{{ url_for('actualizar_carrito') }}">
-        <div class="contenedor">
-            {% if carrito %}
-                {% for item in carrito %}
-                <div class="card">
+    <div class="contenedor">
+        {% if carrito %}
+            {% for item in carrito %}
+            <div class="card">
 
-                    {% if item.foto %}
-                        <img src="{{ url_for('static', filename=item.foto) }}" class="foto" alt="{{ item.nombre }}">
-                    {% else %}
-                        <div class="sin-foto">Sin foto</div>
+                {% if item.foto %}
+                    <img src="{{ url_for('static', filename=item.foto) }}" class="foto" alt="{{ item.nombre }}">
+                {% else %}
+                    <div class="sin-foto">Sin foto</div>
+                {% endif %}
+
+                <div class="info">
+                    <div class="nombre">{{ item.nombre }}</div>
+                    <div class="precio">Precio: ${{ item.precio }}</div>
+                    <div class="precio">Cantidad: {{ item.cantidad }}</div>
+
+                    {% if item.nota %}
+                        <div class="nota">Nota: {{ item.nota }}</div>
                     {% endif %}
 
-                    <div class="info">
-                        <div class="nombre">{{ item.nombre }}</div>
-                        <div class="precio">Precio: ${{ item.precio }}</div>
-
-                        <div class="fila-campos">
-                            <input class="cantidad" type="number" name="cantidad_{{ loop.index0 }}" value="{{ item.cantidad }}" min="1">
-                            <input class="detalle" type="text" name="descripcion_{{ loop.index0 }}" value="{{ item.descripcion }}" placeholder="Detalle">
-                        </div>
-
-                        <div class="subtotal">Subtotal: ${{ item.subtotal }}</div>
-
-                        <form method="POST" action="{{ url_for('eliminar_del_carrito', i=loop.index0) }}">
-                            <button type="submit" class="btn-eliminar">Eliminar</button>
-                        </form>
+                    <div class="subtotal">
+                        Subtotal: ${{ (item.precio|float) * (item.cantidad|int) }}
                     </div>
 
+                    <a href="{{ url_for('eliminar_del_carrito', indice=loop.index0) }}" class="btn-eliminar">
+                        Eliminar
+                    </a>
                 </div>
-                {% endfor %}
-            {% else %}
-                <div class="sin-productos">Tu carrito está vacío</div>
-            {% endif %}
-        </div>
 
-        <div class="barra-inferior">
-            <div class="total">Total: ${{ total }}</div>
-
-            <div class="acciones-finales">
-                <button type="submit" class="btn btn-actualizar">Actualizar</button>
-                <a href="{{ url_for('ficha_pedido') }}" class="btn btn-comprar">Comprar</a>
             </div>
-    </form>
+            {% endfor %}
+        {% else %}
+            <div class="sin-productos">Tu carrito está vacío</div>
+        {% endif %}
+    </div>
 
-            <form method="POST" action="{{ url_for('vaciar') }}">
-                <button type="submit" class="btn btn-vaciar">Vaciar carrito</button>
-            </form>
+    <div class="barra-inferior">
+        <div class="total">Total: ${{ total }}</div>
+
+        <div class="acciones-finales">
+            <a href="{{ url_for('index') }}" class="btn btn-seguir">Seguir comprando</a>
+            <a href="#" class="btn btn-comprar">Comprar</a>
         </div>
+
+        <form method="GET" action="{{ url_for('limpiar_carrito') }}">
+            <button type="submit" class="btn-vaciar">Vaciar carrito</button>
+        </form>
+    </div>
 
 </body>
 </html>
