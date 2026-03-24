@@ -108,6 +108,12 @@
             font-size: 14px;
             margin-top: 6px;
         }
+
+        .ayuda {
+            font-size: 14px;
+            color: #666;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -117,19 +123,19 @@
 
     <h1>Panel de administración</h1>
 
-    <!-- CATEGORIA -->
     <h2>1. Agregar nueva categoría</h2>
     <div class="bloque">
-        <form action="{{ url_for('agregar_categoria') }}" method="POST">
+        <form action="{{ url_for('agregar_categoria') }}" method="POST" enctype="multipart/form-data">
             <input type="text" name="nombre" placeholder="Ejemplo: Electrónica, Ropa, Hogar" required>
+            <input type="file" name="foto_categoria" accept="image/*">
+            <div class="ayuda">Aquí sí puedes subir la foto desde tu celular.</div>
             <button type="submit">Guardar categoría</button>
         </form>
     </div>
 
-    <!-- PRODUCTO -->
     <h2>2. Agregar producto</h2>
     <div class="bloque">
-        <form action="{{ url_for('agregar_producto') }}" method="POST">
+        <form action="{{ url_for('agregar_producto') }}" method="POST" enctype="multipart/form-data">
             <input type="text" name="nombre" placeholder="Nombre del producto" required>
 
             <input type="number" step="0.01" name="precio" placeholder="Precio" required>
@@ -143,13 +149,13 @@
 
             <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
 
-            <input type="text" name="foto" placeholder="URL de la imagen o ruta, por ejemplo: uploads/foto.jpg">
+            <input type="file" name="foto" accept="image/*">
+            <div class="ayuda">Sube la foto del producto desde tu celular.</div>
 
             <button type="submit">Guardar producto</button>
         </form>
     </div>
 
-    <!-- VER CATEGORIAS -->
     <h2>Categorías actuales</h2>
     <ul class="lista">
         {% for c in categorias %}
@@ -165,7 +171,6 @@
         {% endfor %}
     </ul>
 
-    <!-- VER PRODUCTOS -->
     <h2>Productos actuales</h2>
     <ul class="lista">
         {% for p in productos %}
@@ -179,11 +184,7 @@
             {% endif %}
 
             {% if p.foto %}
-                {% if p.foto.startswith('http://') or p.foto.startswith('https://') %}
-                    <img src="{{ p.foto }}" class="mini-img" alt="{{ p.nombre }}">
-                {% else %}
-                    <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
-                {% endif %}
+                <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
             {% endif %}
         </li>
         {% else %}
