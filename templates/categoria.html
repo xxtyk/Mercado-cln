@@ -6,142 +6,239 @@
 <title>{{ categoria.nombre }}</title>
 
 <style>
-body{
-    margin:0;
-    font-family: Arial, sans-serif;
-    background:#f5f5f5;
-}
+    * {
+        box-sizing: border-box;
+    }
 
-/* HEADER */
-.header{
-    background:#000;
-    padding:12px;
-    text-align:center;
-    position:sticky;
-    top:0;
-    z-index:10;
-}
-.header img{
-    height:60px;
-}
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        color: #212121;
+    }
 
-/* GRID PRODUCTOS */
-.grid{
-    display:grid;
-    grid-template-columns: repeat(2,1fr);
-    gap:10px;
-    padding:10px;
-}
+    .header {
+        background: #000;
+        padding: 12px 16px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
 
-/* CARD */
-.card{
-    background:#fff;
-    border-radius:10px;
-    overflow:hidden;
-    box-shadow:0 2px 8px rgba(0,0,0,0.12);
-    display:flex;
-    flex-direction:column;
-}
+    .header img {
+        height: 60px;
+        object-fit: contain;
+    }
 
-.card img{
-    width:100%;
-    height:150px;
-    object-fit:cover;
-}
+    .barra-categoria {
+        background: #222;
+        color: #fff;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
 
-/* CONTENIDO */
-.content{
-    padding:10px;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-}
+    .volver {
+        color: #fff;
+        text-decoration: none;
+        font-size: 22px;
+        line-height: 1;
+    }
 
-.nombre{
-    font-size:13px;
-    font-weight:bold;
-}
+    .titulo-categoria {
+        flex: 1;
+    }
 
-.descripcion{
-    font-size:12px;
-    color:#666;
-}
+    .contenedor {
+        max-width: 600px;
+        margin: 0 auto;
+        padding-bottom: 90px;
+    }
 
-.precio{
-    font-size:16px;
-    font-weight:bold;
-    color:#1976d2;
-}
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 10px;
+    }
 
-/* BOTON */
-.btn{
-    margin-top:auto;
-    background:#1976d2;
-    color:white;
-    border:none;
-    padding:8px;
-    border-radius:6px;
-    font-weight:bold;
-    cursor:pointer;
-}
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        display: flex;
+        flex-direction: column;
+    }
 
-/* CARRITO FLOAT */
-.carrito-btn{
-    position:fixed;
-    bottom:20px;
-    right:20px;
-    background:#1976d2;
-    color:white;
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.3);
-}
+    .imagen-wrap {
+        position: relative;
+    }
 
+    .card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        display: block;
+        background: #eee;
+    }
+
+    .etiqueta {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #1976d2;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .content {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .nombre {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin: 0;
+    }
+
+    .descripcion {
+        font-size: 12px;
+        color: #666;
+        line-height: 1.4;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 34px;
+    }
+
+    .precio {
+        font-size: 17px;
+        font-weight: 700;
+        color: #1976d2;
+        margin-top: 2px;
+    }
+
+    .btn {
+        margin-top: auto;
+        width: 100%;
+        background: #1976d2;
+        color: white;
+        border: none;
+        padding: 9px 0;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        letter-spacing: 0.3px;
+    }
+
+    .btn:hover {
+        background: #1565c0;
+    }
+
+    .vacio {
+        text-align: center;
+        color: #888;
+        padding: 70px 20px;
+    }
+
+    .vacio .emoji {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .carrito-link {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        background: #1976d2;
+        color: white;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 24px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.28);
+        z-index: 30;
+    }
+
+    @media (min-width: 700px) {
+        body {
+            background: #ececec;
+        }
+
+        .contenedor {
+            background: #f5f5f5;
+            min-height: calc(100vh - 84px);
+        }
+    }
 </style>
 </head>
 
 <body>
 
 <div class="header">
-    <img src="{{ url_for('static', filename='logo.jpg') }}">
+    <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Mercado en Línea Culiacán">
 </div>
 
-<div class="grid">
+<div class="barra-categoria">
+    <a href="{{ url_for('index') }}" class="volver">←</a>
+    <div class="titulo-categoria">{{ categoria.nombre.upper() }}</div>
+</div>
 
-{% for producto in productos %}
+<div class="contenedor">
+    {% if productos and productos|length > 0 %}
+    <div class="grid">
+        {% for producto in productos %}
+        <div class="card">
+            <div class="imagen-wrap">
+                <img src="{{ url_for('static', filename=producto.foto) }}" alt="{{ producto.nombre }}">
+                <div class="etiqueta">Disponible</div>
+            </div>
 
-<div class="card">
+            <div class="content">
+                <div class="nombre">{{ producto.nombre }}</div>
+                <div class="descripcion">{{ producto.descripcion or 'Producto disponible en Mercado en Línea Culiacán' }}</div>
+                <div class="precio">${{ producto.precio }}.00</div>
 
-    <img src="{{ url_for('static', filename='uploads/' + producto.imagen) }}">
-
-    <div class="content">
-
-        <div class="nombre">{{ producto.nombre }}</div>
-        <div class="descripcion">{{ producto.descripcion }}</div>
-
-        <div class="precio">${{ producto.precio }}</div>
-
-        <form action="/agregar_carrito" method="POST">
-            <input type="hidden" name="id" value="{{ producto.id }}">
-            <button class="btn">Agregar</button>
-        </form>
-
+                <form action="{{ url_for('agregar_carrito') }}" method="POST">
+                    <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                    <input type="hidden" name="cantidad" value="1">
+                    <button type="submit" class="btn">Agregar al carrito</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
     </div>
-
+    {% else %}
+    <div class="vacio">
+        <div class="emoji">📦</div>
+        <div>Próximamente productos en esta categoría</div>
+    </div>
+    {% endif %}
 </div>
 
-{% endfor %}
-
-</div>
-
-<div class="carrito-btn">
-🛒
-</div>
+<a href="{{ url_for('carrito') }}" class="carrito-link">🛒</a>
 
 </body>
 </html>
