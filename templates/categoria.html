@@ -6,198 +6,142 @@
 <title>{{ categoria.nombre }}</title>
 
 <style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #efefef;
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f5f5f5;
 }
 
-/* BARRA */
-.barra {
-    background: #1f1f1f;
-    color: white;
-    padding: 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* HEADER */
+.header{
+    background:#000;
+    padding:12px;
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+.header img{
+    height:60px;
 }
 
-.flecha {
-    color: white;
-    text-decoration: none;
-    font-size: 26px;
-}
-
-/* GRID */
-.grid {
-    padding: 10px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+/* GRID PRODUCTOS */
+.grid{
+    display:grid;
+    grid-template-columns: repeat(2,1fr);
+    gap:10px;
+    padding:10px;
 }
 
 /* CARD */
-.card {
-    background: white;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+.card{
+    background:#fff;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+    display:flex;
+    flex-direction:column;
 }
 
-.card img {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
+.card img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
 }
 
-.info {
-    padding: 10px;
+/* CONTENIDO */
+.content{
+    padding:10px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
 }
 
-.nombre {
-    font-weight: bold;
-    font-size: 14px;
+.nombre{
+    font-size:13px;
+    font-weight:bold;
 }
 
-.precio {
-    font-size: 14px;
-    margin-top: 5px;
+.descripcion{
+    font-size:12px;
+    color:#666;
 }
 
-.btn {
-    margin-top: 8px;
-    width: 100%;
-    border: none;
-    background: black;
-    color: white;
-    padding: 10px;
-    border-radius: 10px;
+.precio{
+    font-size:16px;
+    font-weight:bold;
+    color:#1976d2;
 }
 
-/* MODAL */
-.modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: none;
-    justify-content: center;
-    align-items: flex-end;
+/* BOTON */
+.btn{
+    margin-top:auto;
+    background:#1976d2;
+    color:white;
+    border:none;
+    padding:8px;
+    border-radius:6px;
+    font-weight:bold;
+    cursor:pointer;
 }
 
-.modal-contenido {
-    background: white;
-    width: 100%;
-    max-width: 500px;
-    border-radius: 20px 20px 0 0;
-    padding: 14px;
+/* CARRITO FLOAT */
+.carrito-btn{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    background:#1976d2;
+    color:white;
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
 }
 
-.modal img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    border-radius: 10px;
-}
-
-.cantidad {
-    display: flex;
-    margin-top: 10px;
-}
-
-.cantidad button {
-    width: 40px;
-    height: 40px;
-}
-
-.cantidad input {
-    width: 50px;
-    text-align: center;
-}
 </style>
 </head>
 
 <body>
 
-<div class="barra">
-<a href="{{ url_for('admin') }}" class="flecha">←</a>
-<div>{{ categoria.nombre }}</div>
+<div class="header">
+    <img src="{{ url_for('static', filename='logo.jpg') }}">
 </div>
 
 <div class="grid">
-{% for p in productos %}
+
+{% for producto in productos %}
+
 <div class="card">
 
-    {% if p.foto %}
-    <img src="{{ url_for('static', filename=p.foto) }}">
-    {% endif %}
+    <img src="{{ url_for('static', filename='uploads/' + producto.imagen) }}">
 
-    <div class="info">
-        <div class="nombre">{{ p.nombre }}</div>
-        <div class="precio">${{ p.precio }}</div>
+    <div class="content">
 
-        <button class="btn"
-        onclick="abrir('{{ p.id }}','{{ p.nombre }}','{{ p.descripcion }}','{{ p.precio }}','{{ url_for('static', filename=p.foto) if p.foto else '' }}')">
-        Ver producto
-        </button>
+        <div class="nombre">{{ producto.nombre }}</div>
+        <div class="descripcion">{{ producto.descripcion }}</div>
+
+        <div class="precio">${{ producto.precio }}</div>
+
+        <form action="/agregar_carrito" method="POST">
+            <input type="hidden" name="id" value="{{ producto.id }}">
+            <button class="btn">Agregar</button>
+        </form>
+
     </div>
 
 </div>
+
 {% endfor %}
-</div>
-
-<!-- MODAL -->
-<div id="modal" class="modal" onclick="cerrar(event)">
-<div class="modal-contenido">
-
-<img id="img">
-
-<h2 id="nombre"></h2>
-<p id="precio"></p>
-<p id="desc"></p>
-
-<form method="POST" action="{{ url_for('agregar_carrito') }}">
-<input type="hidden" name="producto_id" id="id">
-
-<div class="cantidad">
-<button type="button" onclick="menos()">-</button>
-<input type="number" name="cantidad" id="cant" value="1">
-<button type="button" onclick="mas()">+</button>
-</div>
-
-<input name="nota" placeholder="nota" style="width:100%;margin-top:10px">
-
-<button class="btn">Agregar</button>
-</form>
 
 </div>
+
+<div class="carrito-btn">
+🛒
 </div>
-
-<script>
-function abrir(id,nombre,desc,precio,foto){
-    document.getElementById("modal").style.display="flex";
-    document.getElementById("id").value=id;
-    document.getElementById("nombre").innerText=nombre;
-    document.getElementById("precio").innerText="$"+precio;
-    document.getElementById("desc").innerText=desc;
-    document.getElementById("img").src=foto;
-}
-
-function cerrar(e){
-    if(e.target.id=="modal"){
-        document.getElementById("modal").style.display="none";
-    }
-}
-
-function mas(){
-    let c=document.getElementById("cant");
-    c.value=parseInt(c.value)+1;
-}
-
-function menos(){
-    let c=document.getElementById("cant");
-    if(c.value>1) c.value=parseInt(c.value)-1;
-}
-</script>
 
 </body>
 </html>
