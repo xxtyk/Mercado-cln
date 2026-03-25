@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 from urllib.parse import quote
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
@@ -17,6 +18,19 @@ CATEGORIAS_FILE = os.path.join(BASE_DIR, "categorias.json")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+COSTO_ENVIO = 40
+
+VENDEDORES = {
+    "Mercado en Línea Culiacán": "526679771409",
+    "Hector": "526679771409",
+    "Silvia": "526674263892",
+    "Juan": "526678962503",
+    "Cristian": "526673587278",
+    "Brissa": "526674283998",
+    "Claudia": "526671605229",
+    "Amairany": "526677469585",
+    "Natalia": "526673513058",
+}
 
 
 # ------------------------
@@ -77,6 +91,47 @@ def guardar_imagen(archivo):
     archivo.save(ruta_guardado)
 
     return f"uploads/{nombre_final}"
+
+
+def obtener_carrito():
+    carrito_items = session.get("carrito", [])
+    if not isinstance(carrito_items, list):
+        carrito_items = []
+
+    carrito_limpio = []
+    for item in carrito_items:
+        try:
+            precio = float(item.get("precio", 0) or 0)
+        except Exception:
+            precio = 0.0
+
+        try:
+            cantidad = int(item.get("cantidad", 1) or 1)
+        except Exception:
+            cantidad = 1
+
+        if cantidad < 1:
+            cantidad = 1
+
+        foto = item.get("foto", "") or item.get("imagen", "")
+
+        carrito_limpio.append({
+            "id": item.get("id"),
+            "nombre": item.get("nombre", ""),
+            "precio": precio,
+            "foto": foto,
+            "imagen": foto,
+            "cantidad": cantidad,
+            "nota": item.get("nota", "").strip(),
+            "subtotal": precio * cantidad
+        })
+
+    return carrito_limpio
+
+
+def guardar_carrito(carrito_items):
+    session["carrito"] = carrito_items
+    session.modified = True
 
 
 init_app()
@@ -205,7 +260,7 @@ def ver_categoria(categoria_nombre):
 # ------------------------
 @app.route("/agregar_carrito", methods=["POST"])
 def agregar_carrito():
-    producto_id = request.form.get("producto_id")
+    producto_id = request.form.get("producto_id") or request.form.get("id")
     cantidad = request.form.get("cantidad", "1")
     nota = request.form.get("nota", "").strip()
 
@@ -227,9 +282,7 @@ def agregar_carrito():
     if not producto_encontrado:
         return redirect(request.referrer or url_for("index"))
 
-    carrito_actual = session.get("carrito", [])
-    if not isinstance(carrito_actual, list):
-        carrito_actual = []
+    carrito_actual = obtener_carrito()
 
     encontrado = False
     for item in carrito_actual:
@@ -238,6 +291,7 @@ def agregar_carrito():
 
         if mismo_id and misma_nota:
             item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
+            item["subtotal"] = float(item.get("precio", 0)) * int(item.get("cantidad", 1))
             encontrado = True
             break
 
@@ -247,18 +301,20 @@ def agregar_carrito():
         except Exception:
             precio_num = 0.0
 
+        foto = producto_encontrado.get("foto", "")
+
         carrito_actual.append({
             "id": producto_encontrado.get("id"),
             "nombre": producto_encontrado.get("nombre", ""),
             "precio": precio_num,
-            "foto": producto_encontrado.get("foto", ""),
+            "foto": foto,
+            "imagen": foto,
             "cantidad": cantidad,
-            "nota": nota
+            "nota": nota,
+            "subtotal": precio_num * cantidad
         })
 
-    session["carrito"] = carrito_actual
-    session.modified = True
-
+    guardar_carrito(carrito_actual)
     return redirect(url_for("carrito"))
 
 
@@ -267,23 +323,57 @@ def agregar_carrito():
 # ------------------------
 @app.route("/carrito")
 def carrito():
-    carrito_items = session.get("carrito", [])
+    carrito_items = obtener_carrito()
+    subtotal = sum(item.get("subtotal", 0) for item in carrito_items)
+    envio = COSTO_ENVIO if carrito_items else 0
+    total = subtotal + envio
 
-    if not isinstance(carrito_items, list):
-        carrito_items = []
+    return render_template(
+        "carrito.html",
+        carrito=carrito_items,
+        subtotal=int(subtotal) if subtotal.is_integer() else subtotal,
+        envio=envio,
+        total=int(total) if float(total).is_integer() else total
+    )
 
-    total = 0
+
+# ------------------------
+# SUMAR AL CARRITO
+# ------------------------
+@app.route("/sumar_carrito/<int:producto_id>", methods=["POST"])
+def sumar_carrito(producto_id):
+    carrito_items = obtener_carrito()
 
     for item in carrito_items:
-        try:
-            precio = float(item.get("precio", 0))
-            cantidad = int(item.get("cantidad", 1))
-            item["subtotal"] = precio * cantidad
-            total += item["subtotal"]
-        except Exception:
-            item["subtotal"] = 0
+        if int(item.get("id", 0)) == producto_id:
+            item["cantidad"] = int(item.get("cantidad", 1)) + 1
+            item["subtotal"] = float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+            break
 
-    return render_template("carrito.html", carrito=carrito_items, total=total)
+    guardar_carrito(carrito_items)
+    return redirect(url_for("carrito"))
+
+
+# ------------------------
+# RESTAR DEL CARRITO
+# ------------------------
+@app.route("/restar_carrito/<int:producto_id>", methods=["POST"])
+def restar_carrito(producto_id):
+    carrito_items = obtener_carrito()
+    nuevo_carrito = []
+
+    for item in carrito_items:
+        if int(item.get("id", 0)) == producto_id:
+            nueva_cantidad = int(item.get("cantidad", 1)) - 1
+            if nueva_cantidad > 0:
+                item["cantidad"] = nueva_cantidad
+                item["subtotal"] = float(item.get("precio", 0)) * nueva_cantidad
+                nuevo_carrito.append(item)
+        else:
+            nuevo_carrito.append(item)
+
+    guardar_carrito(nuevo_carrito)
+    return redirect(url_for("carrito"))
 
 
 # ------------------------
@@ -291,13 +381,12 @@ def carrito():
 # ------------------------
 @app.route("/eliminar_del_carrito/<int:indice>")
 def eliminar_del_carrito(indice):
-    carrito_items = session.get("carrito", [])
+    carrito_items = obtener_carrito()
 
-    if isinstance(carrito_items, list) and 0 <= indice < len(carrito_items):
+    if 0 <= indice < len(carrito_items):
         carrito_items.pop(indice)
-        session["carrito"] = carrito_items
-        session.modified = True
 
+    guardar_carrito(carrito_items)
     return redirect(url_for("carrito"))
 
 
@@ -306,9 +395,107 @@ def eliminar_del_carrito(indice):
 # ------------------------
 @app.route("/limpiar_carrito")
 def limpiar_carrito():
-    session["carrito"] = []
-    session.modified = True
+    guardar_carrito([])
     return redirect(url_for("carrito"))
+
+
+# ------------------------
+# CHECKOUT / DATOS DE ENTREGA
+# ------------------------
+@app.route("/checkout", methods=["GET"])
+def checkout():
+    carrito_items = obtener_carrito()
+
+    if not carrito_items:
+        return redirect(url_for("carrito"))
+
+    subtotal = sum(item.get("subtotal", 0) for item in carrito_items)
+
+    vendedores_lista = list(VENDEDORES.keys())
+
+    return render_template(
+        "checkout.html",
+        carrito=carrito_items,
+        subtotal=int(subtotal) if float(subtotal).is_integer() else subtotal,
+        vendedores=vendedores_lista,
+        nombre="",
+        direccion="",
+        telefono="",
+        nota="",
+        vendedor_seleccionado="",
+        tipo_entrega=""
+    )
+
+
+# ------------------------
+# FINALIZAR PEDIDO
+# ------------------------
+@app.route("/finalizar_pedido", methods=["POST"])
+def finalizar_pedido():
+    carrito_items = obtener_carrito()
+
+    if not carrito_items:
+        return redirect(url_for("carrito"))
+
+    nombre = request.form.get("nombre", "").strip()
+    telefono = request.form.get("telefono", "").strip()
+    direccion = request.form.get("direccion", "").strip()
+    vendedor = request.form.get("vendedor", "").strip()
+    tipo_entrega = request.form.get("tipo_entrega", "").strip() or request.form.get("entrega", "").strip()
+    nota = request.form.get("nota", "").strip()
+
+    subtotal = sum(item.get("subtotal", 0) for item in carrito_items)
+    costo_entrega = COSTO_ENVIO if tipo_entrega == "domicilio" else 0
+    total = subtotal + costo_entrega
+
+    if not nombre or not telefono or not direccion or not vendedor or not tipo_entrega:
+        vendedores_lista = list(VENDEDORES.keys())
+        return render_template(
+            "checkout.html",
+            carrito=carrito_items,
+            subtotal=int(subtotal) if float(subtotal).is_integer() else subtotal,
+            vendedores=vendedores_lista,
+            nombre=nombre,
+            direccion=direccion,
+            telefono=telefono,
+            nota=nota,
+            vendedor_seleccionado=vendedor,
+            tipo_entrega=tipo_entrega
+        )
+
+    lineas = []
+    for item in carrito_items:
+        linea = f"- {item.get('nombre', '')} x{item.get('cantidad', 1)} = ${item.get('subtotal', 0):.2f}"
+        if item.get("nota"):
+            linea += f" | Nota: {item.get('nota')}"
+        lineas.append(linea)
+
+    entrega_texto = "Envío a domicilio" if tipo_entrega == "domicilio" else "Recoger en bodega"
+    pago_texto = "Efectivo (Contra entrega)"
+
+    mensaje = f"""🛒 Pedido nuevo - Mercado en Línea Culiacán
+
+👤 Nombre: {nombre}
+📞 WhatsApp: {telefono}
+📍 Dirección: {direccion}
+🧑‍💼 Vendedor: {vendedor}
+🚚 Entrega: {entrega_texto}
+💳 Pago: {pago_texto}
+📝 Nota: {nota if nota else "Sin nota"}
+
+📦 Productos:
+{chr(10).join(lineas)}
+
+💰 Subtotal: ${subtotal:.2f}
+🚚 Envío: ${costo_entrega:.2f}
+✅ Total: ${total:.2f}
+"""
+
+    numero_whatsapp = VENDEDORES.get(vendedor, VENDEDORES["Mercado en Línea Culiacán"])
+    url = f"https://wa.me/{numero_whatsapp}?text={quote(mensaje)}"
+
+    guardar_carrito([])
+    return redirect(url)
 
 
 # ------------------------
@@ -316,18 +503,8 @@ def limpiar_carrito():
 # ------------------------
 @app.route("/ficha")
 def ficha():
-    carrito_items = session.get("carrito", [])
-
-    if not isinstance(carrito_items, list):
-        carrito_items = []
-
-    total = 0
-    for item in carrito_items:
-        try:
-            total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
-        except Exception:
-            pass
-
+    carrito_items = obtener_carrito()
+    total = sum(item.get("subtotal", 0) for item in carrito_items)
     return render_template("ficha.html", carrito=carrito_items, total=total)
 
 
@@ -343,26 +520,15 @@ def enviar_pedido():
     metodo_pago = request.form.get("metodo_pago", "").strip()
     comentarios = request.form.get("comentarios", "").strip()
 
-    carrito_items = session.get("carrito", [])
-    if not isinstance(carrito_items, list):
-        carrito_items = []
+    carrito_items = obtener_carrito()
+    total = sum(item.get("subtotal", 0) for item in carrito_items)
 
-    total = 0
     lineas = []
-
     for item in carrito_items:
-        try:
-            precio = float(item.get("precio", 0))
-            cantidad = int(item.get("cantidad", 1))
-            subtotal = precio * cantidad
-            total += subtotal
-
-            linea = f"- {item.get('nombre', '')} x{cantidad} = ${subtotal:.2f}"
-            if item.get("nota"):
-                linea += f" | Nota: {item.get('nota')}"
-            lineas.append(linea)
-        except Exception:
-            pass
+        linea = f"- {item.get('nombre', '')} x{item.get('cantidad', 1)} = ${item.get('subtotal', 0):.2f}"
+        if item.get("nota"):
+            linea += f" | Nota: {item.get('nota')}"
+        lineas.append(linea)
 
     mensaje = f"""🛒 Pedido nuevo - Mercado en Línea Culiacán
 
