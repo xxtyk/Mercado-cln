@@ -1,127 +1,158 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado en Línea Culiacán</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercado en Línea Culiacán</title>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #efefef;
-        }
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
 
-        .barra-superior {
-            background: #1f1f1f;
-            color: white;
-            padding: 18px 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
+    body{
+      font-family:Arial, sans-serif;
+      background:#ffffff;
+      color:#222;
+    }
 
-        .flecha {
-            font-size: 34px;
-            text-decoration: none;
-            color: white;
-            line-height: 1;
-        }
+    /* PANTALLA DE CARGA */
+    #pantalla-carga{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:#ffffff;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      z-index:9999;
+      text-align:center;
+      padding:25px;
+    }
 
-        .titulo {
-            font-size: 28px;
-            letter-spacing: 1px;
-            color: #8a8a8a;
-            font-weight: 500;
-        }
+    #pantalla-carga img{
+      width:160px;
+      max-width:80%;
+      margin-bottom:25px;
+      animation:latido 1.4s infinite;
+    }
 
-        .grid {
-            padding: 8px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
+    #pantalla-carga h1{
+      font-size:28px;
+      color:#c62828;
+      margin-bottom:12px;
+    }
 
-        .card {
-            display: block;
-            background: white;
-            border-radius: 14px;
-            overflow: hidden;
-            text-decoration: none;
-            color: black;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-        }
+    #pantalla-carga p{
+      font-size:18px;
+      color:#444;
+      max-width:320px;
+      line-height:1.4;
+      margin-bottom:18px;
+    }
 
-        .card img {
-            width: 100%;
-            height: 190px;
-            object-fit: cover;
-            display: block;
-        }
+    #pantalla-carga a{
+      display:inline-block;
+      background:#c62828;
+      color:white;
+      text-decoration:none;
+      padding:12px 22px;
+      border-radius:10px;
+      font-weight:bold;
+      font-size:16px;
+    }
 
-        .sin-imagen {
-            width: 100%;
-            height: 190px;
-            background: #d9d9d9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 16px;
-        }
+    @keyframes latido{
+      0%{transform:scale(1);}
+      50%{transform:scale(1.08);}
+      100%{transform:scale(1);}
+    }
 
-        .nombre {
-            padding: 14px 8px 16px 8px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            background: #fff;
-            min-height: 68px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* CONTENIDO APP */
+    .app{
+      display:none;
+      min-height:100vh;
+      background:#f5f5f5;
+    }
 
-        @media (max-width: 420px) {
-            .titulo {
-                font-size: 24px;
-            }
+    .barra-superior{
+      background:#b71c1c;
+      color:white;
+      text-align:center;
+      padding:18px 12px;
+      font-size:24px;
+      font-weight:bold;
+      position:sticky;
+      top:0;
+      z-index:10;
+      box-shadow:0 2px 8px rgba(0,0,0,0.18);
+    }
 
-            .card img,
-            .sin-imagen {
-                height: 170px;
-            }
+    .contenido{
+      padding:20px;
+      text-align:center;
+    }
 
-            .nombre {
-                font-size: 16px;
-                min-height: 62px;
-            }
-        }
-    </style>
+    .bienvenida{
+      background:white;
+      border-radius:14px;
+      padding:25px 18px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.10);
+      max-width:420px;
+      margin:20px auto;
+    }
+
+    .bienvenida h2{
+      font-size:24px;
+      margin-bottom:10px;
+      color:#b71c1c;
+    }
+
+    .bienvenida p{
+      font-size:17px;
+      color:#444;
+      line-height:1.5;
+    }
+  </style>
 </head>
 <body>
 
+  <!-- PANTALLA DE CARGA -->
+  <div id="pantalla-carga">
+    <img src="/AddText_03-19-10.24.19%20(1).png" alt="Logo Mercado en Línea Culiacán">
+    <h1>Mercado en Línea Culiacán</h1>
+    <p>Descarga la aplicación para hacer tu pedido más rápido.</p>
+    <a href="#">Descarga aquí la aplicación</a>
+  </div>
+
+  <!-- APP -->
+  <div class="app" id="app">
     <div class="barra-superior">
-        <a href="{{ url_for('inicio') }}" class="flecha">←</a>
-        <div class="titulo">CATEGORÍAS</div>
+      Mercado en Línea Culiacán
     </div>
 
-    <div class="grid">
-        {% for c in categorias %}
-            <a class="card" href="{{ url_for('ver_categoria', categoria_id=c.id) }}">
-                {% if c.foto %}
-                    <img src="{{ url_for('static', filename=c.foto) }}" alt="{{ c.nombre }}">
-                {% else %}
-                    <div class="sin-imagen">Sin imagen</div>
-                {% endif %}
-                <div class="nombre">{{ c.nombre }}</div>
-            </a>
-        {% endfor %}
+    <div class="contenido">
+      <div class="bienvenida">
+        <h2>Bienvenido</h2>
+        <p>
+          Aquí tus clientes podrán entrar a ver productos, hacer pedidos
+          y comprar más rápido desde su teléfono.
+        </p>
+      </div>
     </div>
+  </div>
+
+  <script>
+    setTimeout(function(){
+      document.getElementById("pantalla-carga").style.display = "none";
+      document.getElementById("app").style.display = "block";
+    }, 3000);
+  </script>
 
 </body>
 </html>
