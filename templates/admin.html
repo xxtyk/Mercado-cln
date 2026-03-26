@@ -123,25 +123,6 @@
             flex-wrap: wrap;
         }
 
-        .estado {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .estado-activo {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .estado-agotado {
-            background: #ffebee;
-            color: #c62828;
-        }
-
         .acciones {
             display: flex;
             gap: 8px;
@@ -165,6 +146,7 @@
             cursor: pointer;
             width: auto;
             margin-top: 0;
+            text-align: center;
         }
 
         .btn-editar {
@@ -177,13 +159,8 @@
             color: white;
         }
 
-        .btn-agotado {
+        .btn-eliminar {
             background: #d32f2f;
-            color: white;
-        }
-
-        .btn-activar {
-            background: #2e7d32;
             color: white;
         }
 
@@ -194,6 +171,11 @@
         }
 
         .categoria-txt {
+            margin-top: 4px;
+            color: #444;
+        }
+
+        .vendedor-txt {
             margin-top: 4px;
             color: #444;
         }
@@ -226,7 +208,7 @@
 <body>
 
 <div class="panel">
-    <a href="{{ url_for('index') }}" class="volver">← Volver a la tienda</a>
+    <a href="{{ url_for('inicio') }}" class="volver">← Volver a la tienda</a>
 
     <h1>Panel de administración</h1>
 
@@ -247,16 +229,22 @@
 
             <input type="number" step="0.01" name="precio" placeholder="Precio" required>
 
-            <select name="categoria" required>
+            <select name="categoria_id" required>
                 <option value="">Selecciona una categoría</option>
                 {% for c in categorias %}
-                    <option value="{{ c.nombre }}">{{ c.nombre }}</option>
+                    <option value="{{ c.id }}">{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="vendedor">
+                {% for nombre_vendedor in vendedores.keys() %}
+                    <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
                 {% endfor %}
             </select>
 
             <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
 
-            <input type="file" name="foto" accept="image/*">
+            <input type="file" name="foto_producto" accept="image/*">
             <div class="ayuda">Sube la foto del producto desde tu celular.</div>
 
             <button type="submit">Guardar producto</button>
@@ -281,6 +269,10 @@
                 <a href="{{ url_for('editar_categoria', categoria_id=c.id) }}" class="btn-link btn-categoria">
                     Editar categoría
                 </a>
+
+                <form action="{{ url_for('eliminar_categoria', categoria_id=c.id) }}" method="POST">
+                    <button type="submit" class="btn-accion btn-eliminar">Eliminar categoría</button>
+                </form>
             </div>
         </li>
         {% else %}
@@ -301,14 +293,12 @@
                     </div>
 
                     <div class="categoria-txt">
-                        Categoría: {{ p.categoria }}
+                        ID categoría: {{ p.categoria_id }}
                     </div>
 
-                    {% if p.agotado %}
-                        <div class="estado estado-agotado">AGOTADO</div>
-                    {% else %}
-                        <div class="estado estado-activo">ACTIVO</div>
-                    {% endif %}
+                    <div class="vendedor-txt">
+                        Vendedor: {{ p.vendedor or 'Mercado en Línea Culiacán' }}
+                    </div>
                 </div>
             </div>
 
@@ -325,12 +315,8 @@
                     Editar producto
                 </a>
 
-                <form action="{{ url_for('toggle_agotado', producto_id=p.id) }}" method="POST">
-                    {% if p.agotado %}
-                        <button type="submit" class="btn-accion btn-activar">Activar producto</button>
-                    {% else %}
-                        <button type="submit" class="btn-accion btn-agotado">Marcar agotado</button>
-                    {% endif %}
+                <form action="{{ url_for('eliminar_producto', producto_id=p.id) }}" method="POST">
+                    <button type="submit" class="btn-accion btn-eliminar">Eliminar producto</button>
                 </form>
             </div>
         </li>
