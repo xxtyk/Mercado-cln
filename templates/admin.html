@@ -175,11 +175,6 @@
             color: #444;
         }
 
-        .vendedor-txt {
-            margin-top: 4px;
-            color: #444;
-        }
-
         @media (max-width: 520px) {
             body {
                 padding: 10px;
@@ -236,12 +231,6 @@
                 {% endfor %}
             </select>
 
-            <select name="vendedor">
-                {% for nombre_vendedor in vendedores.keys() %}
-                    <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
-                {% endfor %}
-            </select>
-
             <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
 
             <input type="file" name="foto_producto" accept="image/*">
@@ -294,10 +283,6 @@
 
                     <div class="categoria-txt">
                         ID categoría: {{ p.categoria_id }}
-                    </div>
-
-                    <div class="vendedor-txt">
-                        Vendedor: {{ p.vendedor or 'Mercado en Línea Culiacán' }}
                     </div>
                 </div>
             </div>
