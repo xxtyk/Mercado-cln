@@ -1,280 +1,161 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito</title>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            color: #212121;
-        }
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f5f5f5;
+}
 
-        .contenedor-principal {
-            max-width: 420px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background: white;
-            display: flex;
-            flex-direction: column;
-        }
+.header{
+    background:#1976d2;
+    color:white;
+    padding:16px;
+    font-size:20px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
 
-        .barra {
-            background: #1976d2;
-            color: white;
-            padding: 16px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-        }
+.header a{
+    color:white;
+    text-decoration:none;
+    font-size:24px;
+}
 
-        .volver {
-            color: white;
-            text-decoration: none;
-            font-size: 26px;
-            line-height: 1;
-        }
+.container{
+    padding:10px;
+}
 
-        .titulo {
-            font-size: 22px;
-            font-weight: bold;
-        }
+.card{
+    background:white;
+    border-radius:10px;
+    padding:10px;
+    margin-bottom:10px;
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
 
-        .contenido {
-            flex: 1;
-            padding: 14px;
-            padding-bottom: 120px;
-        }
+.card img{
+    width:80px;
+    height:80px;
+    object-fit:cover;
+    border-radius:10px;
+}
 
-        .vacio {
-            text-align: center;
-            color: #666;
-            padding: 40px 20px;
-            font-size: 17px;
-        }
+.info{
+    flex:1;
+}
 
-        .item {
-            background: #fafafa;
-            border: 1px solid #e5e5e5;
-            border-radius: 14px;
-            padding: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            gap: 12px;
-        }
+.nombre{
+    font-weight:bold;
+}
 
-        .foto {
-            width: 82px;
-            height: 82px;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-            background: #eee;
-        }
+.precio{
+    color:#1976d2;
+    margin-top:4px;
+}
 
-        .sin-foto {
-            width: 82px;
-            height: 82px;
-            border-radius: 12px;
-            background: #e0e0e0;
-            color: #666;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            text-align: center;
-            padding: 6px;
-        }
+.botones{
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+}
 
-        .datos {
-            flex: 1;
-        }
+.btn{
+    padding:6px 10px;
+    border:none;
+    border-radius:6px;
+    color:white;
+    cursor:pointer;
+}
 
-        .nombre {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
+.azul{ background:#1976d2; }
+.rojo{ background:#d32f2f; }
 
-        .precio {
-            color: #1976d2;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
+.resumen{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-top:10px;
+}
 
-        .nota {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
+.total{
+    font-size:22px;
+    font-weight:bold;
+}
 
-        .cantidad {
-            color: #333;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
+.btn-final{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
 
-        .acciones {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .acciones form {
-            margin: 0;
-        }
-
-        .btn-mini {
-            border: none;
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-mas, .btn-menos {
-            background: #1976d2;
-            color: white;
-        }
-
-        .btn-eliminar {
-            background: #d32f2f;
-            color: white;
-        }
-
-        .resumen {
-            position: sticky;
-            bottom: 0;
-            background: white;
-            border-top: 1px solid #ddd;
-            padding: 14px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
-        }
-
-        .linea {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        .total {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 6px;
-        }
-
-        .btn-principal,
-        .btn-secundario {
-            display: block;
-            width: 100%;
-            text-align: center;
-            text-decoration: none;
-            border: none;
-            border-radius: 12px;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-
-        .btn-principal {
-            background: #25D366;
-            color: white;
-        }
-
-        .btn-secundario {
-            background: #eeeeee;
-            color: #212121;
-        }
-    </style>
+.verde{ background:#2ecc71; color:white; }
+.gris{ background:#ccc; }
+</style>
 </head>
 <body>
 
-<div class="contenedor-principal">
-    <div class="barra">
-        <a href="{{ url_for('inicio') }}" class="volver">←</a>
-        <div class="titulo">Carrito</div>
-    </div>
+<div class="header">
+    <a href="{{ url_for('inicio') }}">←</a>
+    Carrito
+</div>
 
-    <div class="contenido">
-        {% if carrito %}
-            {% for item in carrito %}
-            <div class="item">
-                {% if item.foto %}
-                    <img src="{{ url_for('static', filename=item.foto) }}" alt="{{ item.nombre }}" class="foto">
-                {% else %}
-                    <div class="sin-foto">Sin foto</div>
-                {% endif %}
+<div class="container">
 
-                <div class="datos">
-                    <div class="nombre">{{ item.nombre }}</div>
-                    <div class="precio">${{ "%.2f"|format(item.precio|float) }}</div>
-                    <div class="cantidad">Cantidad: {{ item.cantidad }}</div>
+{% for item in carrito %}
+<div class="card">
+    <img src="{{ url_for('static', filename=item.foto) }}">
 
-                    {% if item.descripcion %}
-                        <div class="nota">Nota: {{ item.descripcion }}</div>
-                    {% endif %}
+    <div class="info">
+        <div class="nombre">{{ item.nombre }}</div>
+        <div class="precio">${{ item.precio|int }}</div>
+        <div>Cantidad: {{ item.cantidad }}</div>
 
-                    <div class="acciones">
-                        <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                            <input type="hidden" name="accion" value="restar">
-                            <button type="submit" class="btn-mini btn-menos">-</button>
-                        </form>
+        <div class="botones">
+            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                <input type="hidden" name="accion" value="restar">
+                <button class="btn azul">-</button>
+            </form>
 
-                        <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                            <input type="hidden" name="accion" value="sumar">
-                            <button type="submit" class="btn-mini btn-mas">+</button>
-                        </form>
+            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                <input type="hidden" name="accion" value="sumar">
+                <button class="btn azul">+</button>
+            </form>
 
-                        <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                            <input type="hidden" name="accion" value="eliminar">
-                            <button type="submit" class="btn-mini btn-eliminar">Eliminar</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-            <div class="vacio">Tu carrito está vacío.</div>
-        {% endif %}
-    </div>
-
-    {% if carrito %}
-    <div class="resumen">
-        <div class="linea">
-            <span>Subtotal</span>
-            <span>${{ "%.2f"|format(subtotal|float) }}</span>
+            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                <input type="hidden" name="accion" value="eliminar">
+                <button class="btn rojo">Eliminar</button>
+            </form>
         </div>
-
-        <div class="linea">
-            <span>Envío</span>
-            <span>${{ "%.2f"|format(costo_envio|float) }}</span>
-        </div>
-
-        <div class="linea total">
-            <span>Total</span>
-            <span>${{ "%.2f"|format(total|float) }}</span>
-        </div>
-
-        <a href="{{ url_for('datos_entrega') }}" class="btn-principal">Continuar pedido</a>
-
-        <form action="{{ url_for('vaciar_carrito') }}" method="POST">
-            <button type="submit" class="btn-secundario">Vaciar carrito</button>
-        </form>
     </div>
-    {% endif %}
+</div>
+{% endfor %}
+
+<div class="resumen">
+    <div>Subtotal: ${{ subtotal|int }}</div>
+    <div class="total">Total: ${{ subtotal|int }}</div>
+
+    <a href="{{ url_for('datos_entrega') }}">
+        <button class="btn-final verde">Continuar pedido</button>
+    </a>
+
+    <form action="{{ url_for('vaciar_carrito') }}" method="POST">
+        <button class="btn-final gris">Vaciar carrito</button>
+    </form>
+</div>
+
 </div>
 
 </body>
