@@ -89,7 +89,7 @@
             background: #fafafa;
             border: 1px solid #e5e5e5;
             border-radius: 12px;
-            padding: 12px;
+            padding: 14px;
             margin-bottom: 12px;
         }
 
@@ -113,6 +113,113 @@
             font-size: 14px;
             color: #666;
             margin-top: 6px;
+        }
+
+        .fila-superior {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .estado {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .estado-activo {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .estado-agotado {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .acciones form {
+            margin: 0;
+        }
+
+        .btn-accion,
+        .btn-link {
+            display: inline-block;
+            text-decoration: none;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .btn-editar {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-categoria {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-agotado {
+            background: #d32f2f;
+            color: white;
+        }
+
+        .btn-activar {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .precio {
+            font-weight: bold;
+            color: #1976d2;
+            margin-top: 6px;
+        }
+
+        .categoria-txt {
+            margin-top: 4px;
+            color: #444;
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 10px;
+            }
+
+            .panel {
+                padding: 14px;
+            }
+
+            .acciones {
+                flex-direction: column;
+            }
+
+            .btn-accion,
+            .btn-link,
+            .acciones form {
+                width: 100%;
+            }
+
+            .acciones form button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -160,11 +267,21 @@
     <ul class="lista">
         {% for c in categorias %}
         <li class="item">
-            <strong>{{ c.nombre }}</strong>
+            <div class="fila-superior">
+                <div>
+                    <strong>{{ c.nombre }}</strong>
+                </div>
+            </div>
 
             {% if c.foto %}
                 <img src="{{ url_for('static', filename=c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
             {% endif %}
+
+            <div class="acciones">
+                <a href="{{ url_for('editar_categoria', categoria_id=c.id) }}" class="btn-link btn-categoria">
+                    Editar categoría
+                </a>
+            </div>
         </li>
         {% else %}
         <li class="item">No hay categorías registradas todavía.</li>
@@ -175,9 +292,25 @@
     <ul class="lista">
         {% for p in productos %}
         <li class="item">
-            <strong>{{ p.nombre }}</strong><br>
-            Precio: ${{ p.precio }}<br>
-            Categoría: {{ p.categoria }}
+            <div class="fila-superior">
+                <div>
+                    <strong>{{ p.nombre }}</strong>
+
+                    <div class="precio">
+                        ${{ "%.2f"|format(p.precio|float) }}
+                    </div>
+
+                    <div class="categoria-txt">
+                        Categoría: {{ p.categoria }}
+                    </div>
+
+                    {% if p.agotado %}
+                        <div class="estado estado-agotado">AGOTADO</div>
+                    {% else %}
+                        <div class="estado estado-activo">ACTIVO</div>
+                    {% endif %}
+                </div>
+            </div>
 
             {% if p.descripcion %}
                 <div class="texto-suave">{{ p.descripcion }}</div>
@@ -186,6 +319,20 @@
             {% if p.foto %}
                 <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
             {% endif %}
+
+            <div class="acciones">
+                <a href="{{ url_for('editar_producto', producto_id=p.id) }}" class="btn-link btn-editar">
+                    Editar producto
+                </a>
+
+                <form action="{{ url_for('toggle_agotado', producto_id=p.id) }}" method="POST">
+                    {% if p.agotado %}
+                        <button type="submit" class="btn-accion btn-activar">Activar producto</button>
+                    {% else %}
+                        <button type="submit" class="btn-accion btn-agotado">Marcar agotado</button>
+                    {% endif %}
+                </form>
+            </div>
         </li>
         {% else %}
         <li class="item">No hay productos registrados todavía.</li>
