@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -55,7 +54,7 @@
     .contenido {
         flex: 1;
         padding: 14px;
-        padding-bottom: 120px;
+        padding-bottom: 40px;
     }
 
     .bloque {
@@ -70,6 +69,19 @@
         font-size: 18px;
         font-weight: bold;
         margin-bottom: 10px;
+    }
+
+    .aviso {
+        background: #fff8e1;
+        color: #8a5200;
+        border: 1px solid #f0d58c;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 1.4;
+        margin-bottom: 14px;
+        text-align: center;
     }
 
     input, select, textarea, button {
@@ -137,7 +149,7 @@
 
             {% for item in carrito %}
                 <div class="producto">
-                    <div>{{ item.cantidad }} x {{ item.nombre }} - ${{ "%.2f"|format((item.precio|float) * (item.cantidad|int)) }}</div>
+                    <div>{{ item.cantidad }} x {{ item.nombre }} - ${{ ((item.precio|float) * (item.cantidad|int))|int }}</div>
                     {% if item.descripcion %}
                         <div class="nota">Nota: {{ item.descripcion }}</div>
                     {% endif %}
@@ -147,20 +159,29 @@
             <div style="margin-top: 12px;">
                 <div class="linea">
                     <span>Subtotal</span>
-                    <span>${{ "%.2f"|format(subtotal|float) }}</span>
+                    <span>${{ subtotal|int }}</span>
                 </div>
+
+                {% if costo_envio > 0 %}
                 <div class="linea">
                     <span>Envío</span>
-                    <span>${{ "%.2f"|format(costo_envio|float) }}</span>
+                    <span>${{ costo_envio|int }}</span>
                 </div>
+                {% endif %}
+
                 <div class="linea total">
                     <span>Total</span>
-                    <span>${{ "%.2f"|format(total|float) }}</span>
+                    <span>${{ total|int }}</span>
                 </div>
             </div>
         </div>
 
         <div class="bloque">
+            <div class="aviso">
+                PAGAS AL RECIBIR TU PRODUCTO A CONTRAENTREGA.<br>
+                NO DEBES DEPOSITAR NUNCA ANTICIPADO.
+            </div>
+
             <div class="subtitulo">Llena tus datos</div>
 
             <form action="{{ url_for('finalizar_pedido') }}" method="POST">
@@ -168,19 +189,26 @@
                 <input type="tel" name="telefono" placeholder="Teléfono" required>
                 <input type="text" name="direccion" placeholder="Dirección" required>
                 <input type="text" name="colonia" placeholder="Colonia" required>
-                <textarea name="referencias" placeholder="Referencias (opcional)"></textarea>
+                <textarea name="nota" placeholder="Nota:"></textarea>
 
-                <select name="metodo_pago" required>
-                    <option value="">Método de pago</option>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
+                <select name="tipo_entrega" required>
+                    <option value="">¿Cómo quieres recibir tu pedido?</option>
+                    <option value="recoger">Paso a recoger a bodega</option>
+                    <option value="domicilio">Envío a domicilio en Culiacán (+$40)</option>
                 </select>
 
                 <select name="vendedor">
+                    <option value="Nadie">Nadie</option>
                     {% for nombre_vendedor in vendedores.keys() %}
-                        <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                        {% if nombre_vendedor != "Mercado en Línea Culiacán" %}
+                            <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
+
+                <div class="nota" style="margin-top: 10px;">
+                    Escribe tu vendedor quien te atendió.
+                </div>
 
                 <button type="submit" class="btn-principal">Enviar pedido por WhatsApp</button>
             </form>
