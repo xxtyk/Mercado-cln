@@ -12,7 +12,6 @@ body{
     background:#f5f5f5;
 }
 
-/* HEADER */
 .header{
     background:#000;
     padding:12px;
@@ -37,20 +36,18 @@ body{
     font-size:18px;
 }
 
-/* CONTENIDO */
 .container{
     padding:10px;
 }
 
-/* IMAGEN */
 .img-producto{
     width:100%;
     height:250px;
     object-fit:cover;
     border-radius:10px;
+    display:block;
 }
 
-/* CARD */
 .card{
     background:#fff;
     border-radius:10px;
@@ -76,12 +73,47 @@ body{
     color:#555;
 }
 
-/* BOTÓN */
+.cantidad-box{
+    margin-top:14px;
+}
+
+.cantidad-label{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.controles-cantidad{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.btn-cantidad{
+    width:48px;
+    height:48px;
+    border:none;
+    background:#000;
+    color:white;
+    border-radius:8px;
+    font-size:26px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.input-cantidad{
+    width:80px;
+    height:48px;
+    text-align:center;
+    font-size:20px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
 form{
     margin-top:12px;
 }
 
-button{
+button.agregar{
     width:100%;
     padding:12px;
     border:none;
@@ -89,20 +121,21 @@ button{
     color:white;
     border-radius:8px;
     font-size:16px;
+    cursor:pointer;
 }
 </style>
 </head>
 <body>
 
 <div class="header">
-    <a href="{{ url_for('catalogo') }}">←</a>
+    <a href="{{ url_for('ver_categoria', categoria_id=producto.categoria_id) }}">←</a>
     <h1>{{ producto.nombre }}</h1>
 </div>
 
 <div class="container">
 
     {% if producto.foto %}
-        <img src="{{ resolver_imagen(producto.foto) }}" class="img-producto">
+        <img src="{{ resolver_imagen(producto.foto) }}" class="img-producto" alt="{{ producto.nombre }}">
     {% endif %}
 
     <div class="card">
@@ -114,13 +147,34 @@ button{
         {% endif %}
 
         <form action="{{ url_for('agregar_al_carrito', producto_id=producto.id) }}" method="POST">
-            <input type="hidden" name="cantidad" value="1">
+            <div class="cantidad-box">
+                <div class="cantidad-label">Cantidad</div>
+
+                <div class="controles-cantidad">
+                    <button type="button" class="btn-cantidad" onclick="cambiarCantidad(-1)">−</button>
+                    <input id="cantidad" class="input-cantidad" type="number" name="cantidad" value="1" min="1">
+                    <button type="button" class="btn-cantidad" onclick="cambiarCantidad(1)">+</button>
+                </div>
+            </div>
+
             <input type="hidden" name="siguiente" value="carrito">
-            <button type="submit">Agregar al carrito</button>
+            <button type="submit" class="agregar">Agregar al carrito</button>
         </form>
     </div>
 
 </div>
+
+<script>
+function cambiarCantidad(cambio) {
+    const input = document.getElementById("cantidad");
+    let valor = parseInt(input.value) || 1;
+    valor += cambio;
+    if (valor < 1) {
+        valor = 1;
+    }
+    input.value = valor;
+}
+</script>
 
 </body>
 </html>
