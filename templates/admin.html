@@ -251,7 +251,7 @@
             </div>
 
             {% if c.foto %}
-                <img src="{{ url_for('static', filename=c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
+                <img src="{{ resolver_imagen(c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
             {% endif %}
 
             <div class="acciones">
@@ -292,7 +292,7 @@
             {% endif %}
 
             {% if p.foto %}
-                <img src="{{ url_for('static', filename=p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
+                <img src="{{ resolver_imagen(p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
             {% endif %}
 
             <div class="acciones">
