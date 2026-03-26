@@ -120,11 +120,7 @@ input{
             <div class="precio">${{ "%.2f"|format(p.precio|float) }}</div>
 
             <form action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
-                
                 <input type="number" name="cantidad" value="1" min="1">
-
-                <input type="text" name="descripcion" placeholder="Nota (opcional)">
-
                 <button type="submit">Agregar</button>
             </form>
 
