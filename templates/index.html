@@ -123,27 +123,20 @@
 <body>
 
     <div class="barra-superior">
-        <a href="{{ url_for('index') }}" class="flecha">←</a>
+        <a href="{{ url_for('inicio') }}" class="flecha">←</a>
         <div class="titulo">CATEGORÍAS</div>
     </div>
 
     <div class="grid">
         {% for c in categorias %}
-            {% if c is mapping %}
-                <a class="card" href="{{ url_for('ver_categoria', categoria_nombre=c.nombre) }}">
-                    {% if c.foto %}
-                        <img src="{{ url_for('static', filename=c.foto) }}" alt="{{ c.nombre }}">
-                    {% else %}
-                        <div class="sin-imagen">Sin imagen</div>
-                    {% endif %}
-                    <div class="nombre">{{ c.nombre }}</div>
-                </a>
-            {% else %}
-                <a class="card" href="{{ url_for('ver_categoria', categoria_nombre=c) }}">
+            <a class="card" href="{{ url_for('ver_categoria', categoria_id=c.id) }}">
+                {% if c.foto %}
+                    <img src="{{ url_for('static', filename=c.foto) }}" alt="{{ c.nombre }}">
+                {% else %}
                     <div class="sin-imagen">Sin imagen</div>
-                    <div class="nombre">{{ c }}</div>
-                </a>
-            {% endif %}
+                {% endif %}
+                <div class="nombre">{{ c.nombre }}</div>
+            </a>
         {% endfor %}
     </div>
 
