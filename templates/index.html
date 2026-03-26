@@ -136,7 +136,7 @@
                     <a class="card-categoria" href="{{ url_for('ver_categoria', categoria_id=categoria.id) }}">
                         <div class="imagen-categoria">
                             {% if categoria.foto %}
-                                <img src="{% if categoria.foto.startswith('http') %}{{ categoria.foto }}{% else %}{{ url_for('static', filename=categoria.foto) }}{% endif %}" alt="{{ categoria.nombre }}">
+                                <img src="{{ resolver_imagen(categoria.foto) }}" alt="{{ categoria.nombre }}">
                             {% else %}
                                 <div class="sin-imagen">Sin imagen</div>
                             {% endif %}
