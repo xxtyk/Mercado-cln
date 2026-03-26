@@ -120,6 +120,7 @@
         border-radius: 10px;
         border: 2px solid #e0e0e0;
         background: #fff;
+        transition: 0.2s ease;
     }
 
     .opcion input:checked + .caja-opcion.domicilio {
@@ -252,6 +253,17 @@
         filter: brightness(0.95);
     }
 
+    .texto-ayuda {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #666;
+        line-height: 1.4;
+    }
+
+    .oculto {
+        display: none;
+    }
+
     @media (min-width: 700px) {
         body {
             background: #ececec;
@@ -280,23 +292,25 @@
             </div>
 
             <div class="grupo">
-                <label class="label">👤 Nombre completo</label>
-                <input type="text" name="nombre" placeholder="Ej: María González" value="{{ nombre or '' }}" required>
+                <label class="label" for="nombre">👤 Nombre completo</label>
+                <input type="text" id="nombre" name="nombre" placeholder="Ej: María González" value="{{ nombre or '' }}" required>
             </div>
 
             <div class="grupo">
-                <label class="label">📱 Número de WhatsApp</label>
-                <input type="text" name="telefono" placeholder="Ej: 6671234567" value="{{ telefono or '' }}" required>
+                <label class="label" for="telefono">📱 Número de WhatsApp</label>
+                <input type="tel" id="telefono" name="telefono" placeholder="Ej: 6671234567" value="{{ telefono or '' }}" inputmode="numeric" required>
+                <div class="texto-ayuda">Escribe tu número para contactarte por WhatsApp.</div>
+            </div>
+
+            <div class="grupo" id="grupo-direccion">
+                <label class="label" for="direccion" id="label-direccion">📍 Dirección de entrega</label>
+                <input type="text" id="direccion" name="direccion" placeholder="Ej: Calle Ángel Flores 345, Col. Centro" value="{{ direccion or '' }}" required>
+                <div class="texto-ayuda" id="ayuda-direccion">Escribe tu dirección completa para entregar tu pedido.</div>
             </div>
 
             <div class="grupo">
-                <label class="label">📍 Dirección de entrega</label>
-                <input type="text" name="direccion" placeholder="Ej: Calle Ángel Flores 345, Col. Centro" value="{{ direccion or '' }}" required>
-            </div>
-
-            <div class="grupo">
-                <label class="label">🧑‍💼 Vendedor</label>
-                <select name="vendedor" required>
+                <label class="label" for="vendedor">🧑‍💼 Vendedor</label>
+                <select name="vendedor" id="vendedor" required>
                     <option value="">— Selecciona un vendedor —</option>
                     {% for vendedor in vendedores %}
                     <option value="{{ vendedor }}" {% if vendedor_seleccionado == vendedor %}selected{% endif %}>
@@ -311,7 +325,7 @@
                 <div class="opciones-entrega">
 
                     <label class="opcion">
-                        <input type="radio" name="tipo_entrega" value="domicilio" {% if tipo_entrega == 'domicilio' %}checked{% endif %} required>
+                        <input type="radio" name="tipo_entrega" value="domicilio" {% if tipo_entrega == 'domicilio' or not tipo_entrega %}checked{% endif %} required>
                         <div class="caja-opcion domicilio">
                             <span class="texto-opcion">Envío a domicilio</span>
                             <span class="precio-opcion">$40</span>
@@ -330,8 +344,8 @@
             </div>
 
             <div class="grupo">
-                <label class="label">📝 Nota (opcional)</label>
-                <textarea name="nota" placeholder="Ej: Dejar con el vecino, timbre no funciona, color preferido...">{{ nota or '' }}</textarea>
+                <label class="label" for="nota">📝 Nota (opcional)</label>
+                <textarea id="nota" name="nota" placeholder="Ej: Dejar con el vecino, timbre no funciona, color preferido...">{{ nota or '' }}</textarea>
             </div>
 
             <div class="resumen">
@@ -346,24 +360,22 @@
 
                 <div class="fila-envio">
                     <span>Costo de Entrega</span>
-                    <span>
-                        {% if tipo_entrega == 'domicilio' %}
-                            $40.00
-                        {% elif tipo_entrega == 'bodega' %}
+                    <span id="texto-envio">
+                        {% if tipo_entrega == 'bodega' %}
                             Gratis
                         {% else %}
-                            —
+                            $40.00
                         {% endif %}
                     </span>
                 </div>
 
                 <div class="fila-total">
                     <span>Total</span>
-                    <span>
-                        {% if tipo_entrega == 'domicilio' %}
-                            ${{ subtotal + 40 }}.00
-                        {% else %}
+                    <span id="texto-total">
+                        {% if tipo_entrega == 'bodega' %}
                             ${{ subtotal }}.00
+                        {% else %}
+                            ${{ subtotal + 40 }}.00
                         {% endif %}
                     </span>
                 </div>
@@ -371,7 +383,7 @@
 
             <div class="metodo-pago">
                 <div class="titulo-pago">💵 Método de pago</div>
-                <div class="texto-pago">Efectivo (Contra entrega)</div>
+                <div class="texto-pago">Efectivo contra entrega</div>
             </div>
 
             <div class="aviso">
@@ -386,5 +398,46 @@
     </form>
 
 </div>
+
+<script>
+    const subtotal = {{ subtotal|default(0)|int }};
+    const costoDomicilio = 40;
+
+    const radioDomicilio = document.querySelector('input[name="tipo_entrega"][value="domicilio"]');
+    const radioBodega = document.querySelector('input[name="tipo_entrega"][value="bodega"]');
+
+    const textoEnvio = document.getElementById("texto-envio");
+    const textoTotal = document.getElementById("texto-total");
+
+    const grupoDireccion = document.getElementById("grupo-direccion");
+    const labelDireccion = document.getElementById("label-direccion");
+    const inputDireccion = document.getElementById("direccion");
+    const ayudaDireccion = document.getElementById("ayuda-direccion");
+
+    function actualizarVistaEntrega() {
+        if (radioBodega.checked) {
+            textoEnvio.textContent = "Gratis";
+            textoTotal.textContent = "$" + subtotal + ".00";
+
+            labelDireccion.textContent = "📍 Referencia o ubicación (opcional)";
+            inputDireccion.placeholder = "Ej: Frente al parque, pasaré por mi pedido";
+            inputDireccion.required = false;
+            ayudaDireccion.textContent = "Si recogerás en bodega, este campo puede quedar vacío.";
+        } else {
+            textoEnvio.textContent = "$40.00";
+            textoTotal.textContent = "$" + (subtotal + costoDomicilio) + ".00";
+
+            labelDireccion.textContent = "📍 Dirección de entrega";
+            inputDireccion.placeholder = "Ej: Calle Ángel Flores 345, Col. Centro";
+            inputDireccion.required = true;
+            ayudaDireccion.textContent = "Escribe tu dirección completa para entregar tu pedido.";
+        }
+    }
+
+    radioDomicilio.addEventListener("change", actualizarVistaEntrega);
+    radioBodega.addEventListener("change", actualizarVistaEntrega);
+
+    actualizarVistaEntrega();
+</script>
 </body>
 </html>
