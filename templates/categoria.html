@@ -92,14 +92,6 @@ button{
     cursor:pointer;
     font-size:16px;
 }
-
-input{
-    width:100%;
-    padding:6px;
-    margin-top:6px;
-    border-radius:6px;
-    border:1px solid #ccc;
-}
 </style>
 </head>
 <body>
@@ -122,8 +114,8 @@ input{
             <div class="precio">${{ p.precio|int }}</div>
 
             <form action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
+                <input type="hidden" name="cantidad" value="1">
                 <input type="hidden" name="siguiente" value="carrito">
-                <input type="number" name="cantidad" value="1" min="1">
                 <button type="submit">Agregar</button>
             </form>
 
