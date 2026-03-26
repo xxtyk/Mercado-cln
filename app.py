@@ -246,16 +246,14 @@ def agregar_al_carrito(producto_id):
 @app.route("/carrito")
 def ver_carrito():
     carrito = obtener_carrito()
-
     subtotal = total_importe_carrito()
-    total = subtotal + COSTO_ENVIO if carrito else 0
 
     return render_template(
         "carrito.html",
         carrito=carrito,
         subtotal=subtotal,
-        costo_envio=COSTO_ENVIO if carrito else 0,
-        total=total
+        costo_envio=0,
+        total=subtotal
     )
 
 
@@ -313,14 +311,13 @@ def datos_entrega():
         return redirect(url_for("ver_carrito"))
 
     subtotal = total_importe_carrito()
-    total = subtotal + COSTO_ENVIO
 
     return render_template(
         "datos_entrega.html",
         carrito=carrito,
         subtotal=subtotal,
-        costo_envio=COSTO_ENVIO,
-        total=total,
+        costo_envio=0,
+        total=subtotal,
         vendedores=VENDEDORES
     )
 
@@ -335,15 +332,19 @@ def finalizar_pedido():
     telefono = request.form.get("telefono", "").strip()
     direccion = request.form.get("direccion", "").strip()
     colonia = request.form.get("colonia", "").strip()
-    referencias = request.form.get("referencias", "").strip()
-    metodo_pago = request.form.get("metodo_pago", "").strip()
-    vendedor = request.form.get("vendedor", "Mercado en Línea Culiacán").strip()
+    nota = request.form.get("nota", "").strip()
+    tipo_entrega = request.form.get("tipo_entrega", "").strip()
+    vendedor = request.form.get("vendedor", "Nadie").strip()
 
-    if vendedor not in VENDEDORES:
-        vendedor = "Mercado en Línea Culiacán"
+    if tipo_entrega == "domicilio":
+        costo_envio = COSTO_ENVIO
+        texto_entrega = "Envío a domicilio en Culiacán"
+    else:
+        costo_envio = 0
+        texto_entrega = "Pasa a recoger a bodega"
 
     subtotal = total_importe_carrito()
-    total = subtotal + COSTO_ENVIO
+    total = subtotal + costo_envio
 
     mensaje = []
     mensaje.append("🛒 *NUEVO PEDIDO*")
@@ -352,8 +353,9 @@ def finalizar_pedido():
     mensaje.append(f"📞 *Teléfono:* {telefono}")
     mensaje.append(f"📍 *Dirección:* {direccion}")
     mensaje.append(f"🏘️ *Colonia:* {colonia}")
-    mensaje.append(f"📝 *Referencias:* {referencias}")
-    mensaje.append(f"💳 *Método de pago:* {metodo_pago}")
+    if nota:
+        mensaje.append(f"📝 *Nota:* {nota}")
+    mensaje.append(f"🚚 *Entrega:* {texto_entrega}")
     mensaje.append(f"👨‍💼 *Vendedor:* {vendedor}")
     mensaje.append("")
     mensaje.append("*Productos:*")
@@ -365,18 +367,23 @@ def finalizar_pedido():
         descripcion = item.get("descripcion", "").strip()
         importe = precio * cantidad
 
-        linea = f"- {cantidad} x {nombre_producto} - ${formatear_moneda(importe)}"
+        linea = f"- {cantidad} x {nombre_producto} - ${int(importe)}"
         if descripcion:
             linea += f" ({descripcion})"
         mensaje.append(linea)
 
     mensaje.append("")
-    mensaje.append(f"Subtotal: ${formatear_moneda(subtotal)}")
-    mensaje.append(f"Envío: ${formatear_moneda(COSTO_ENVIO)}")
-    mensaje.append(f"Total: ${formatear_moneda(total)}")
+    mensaje.append(f"Subtotal: ${int(subtotal)}")
+    if costo_envio > 0:
+        mensaje.append(f"Envío: ${int(costo_envio)}")
+    mensaje.append(f"Total: ${int(total)}")
 
     texto = "\n".join(mensaje)
-    telefono_vendedor = VENDEDORES.get(vendedor, VENDEDORES["Mercado en Línea Culiacán"])
+
+    telefono_vendedor = VENDEDORES.get(vendedor)
+    if not telefono_vendedor:
+        telefono_vendedor = VENDEDORES["Mercado en Línea Culiacán"]
+
     enlace_whatsapp = f"https://wa.me/{telefono_vendedor}?text={quote(texto)}"
 
     guardar_carrito([])
@@ -516,7 +523,9 @@ def editar_producto(producto_id):
         if nombre:
             producto["nombre"] = nombre
 
-        producto["precio"] = normalizar_precio(precio)
+        if precio != "":
+            producto["precio"] = normalizar_precio(precio)
+
         producto["descripcion"] = descripcion
 
         if categoria_id:
