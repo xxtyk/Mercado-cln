@@ -74,12 +74,22 @@
             font-size:22px;
             color:#ffffff;
             line-height:1.5;
-            margin-bottom:28px;
+            margin-bottom:22px;
             max-width:340px;
         }
 
+        .botones{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            width:100%;
+            max-width:320px;
+            margin-top:8px;
+        }
+
         .boton{
-            display:inline-block;
+            display:block;
+            width:100%;
             background:#153ea8;
             color:#fff;
             text-decoration:none;
@@ -88,6 +98,11 @@
             font-size:18px;
             font-weight:bold;
             box-shadow:0 4px 14px rgba(0,0,0,0.35);
+        }
+
+        .boton-secundario{
+            background:#2b2b2b;
+            border:1px solid #4a4a4a;
         }
 
         @keyframes latido{
@@ -111,9 +126,15 @@
         Descarga la aplicación para hacer tu pedido más rápido.
     </div>
 
-    <a class="boton" href="{{ url_for('catalogo') }}">
-        Entrar a la aplicación
-    </a>
+    <div class="botones">
+        <a class="boton" href="{{ url_for('catalogo') }}">
+            Descargar aplicación
+        </a>
+
+        <a class="boton boton-secundario" href="{{ url_for('catalogo') }}">
+            Entrar a la aplicación
+        </a>
+    </div>
 
 </div>
 
