@@ -1,105 +1,125 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f4f4f4;
-            font-family: Arial, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ producto.nombre }}</title>
 
-        .panel {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-        }
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#f5f5f5;
+}
 
-        h1, h2 {
-            margin-top: 0;
-        }
+/* HEADER */
+.header{
+    background:#000;
+    padding:12px;
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
 
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
+.header a{
+    position:absolute;
+    left:10px;
+    top:12px;
+    color:white;
+    text-decoration:none;
+    font-size:22px;
+}
 
-        button {
-            background: #000000;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-        }
+.header h1{
+    color:#fff;
+    margin:0;
+    font-size:18px;
+}
 
-        .boton {
-            display: block;
-            width: 100%;
-            background: #000000;
-            color: white;
-            text-decoration: none;
-            text-align: center;
-            padding: 14px;
-            border-radius: 10px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            font-weight: bold;
-        }
+/* CONTENIDO */
+.container{
+    padding:10px;
+}
 
-        .categoria {
-            background: #eeeeee;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
+/* IMAGEN */
+.img-producto{
+    width:100%;
+    height:250px;
+    object-fit:cover;
+    border-radius:10px;
+}
 
-        .categoria img{
-            width:100%;
-            max-height:150px;
-            object-fit:cover;
-            border-radius:8px;
-            margin-top:8px;
-        }
-    </style>
+/* CARD */
+.card{
+    background:#fff;
+    border-radius:10px;
+    padding:14px;
+    margin-top:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.12);
+}
+
+.nombre{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.precio{
+    color:#2e7d32;
+    font-weight:bold;
+    margin-top:6px;
+    font-size:20px;
+}
+
+.descripcion{
+    margin-top:8px;
+    color:#555;
+}
+
+/* BOTÓN */
+form{
+    margin-top:12px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    background:#000;
+    color:white;
+    border-radius:8px;
+    font-size:16px;
+}
+</style>
 </head>
 <body>
 
-<div class="panel">
-    <h1>Agregar categoría</h1>
+<div class="header">
+    <a href="{{ url_for('catalogo') }}">←</a>
+    <h1>{{ producto.nombre }}</h1>
+</div>
 
-    <!-- ⚠️ CORREGIDO: ruta correcta -->
-    <form action="/agregar_categoria" method="POST" enctype="multipart/form-data">
-        <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
-        <input type="file" name="foto_categoria" accept="image/*">
-        <button type="submit">Guardar categoría</button>
-    </form>
+<div class="container">
 
-    <a class="boton" href="/admin">Volver al panel</a>
-
-    <h2>Categorías actuales</h2>
-
-    {% if categorias %}
-        {% for c in categorias %}
-            <div class="categoria">
-                {{ c.nombre }}
-
-                {% if c.foto %}
-                    <img src="{{ resolver_imagen(c.foto) }}">
-                {% endif %}
-            </div>
-        {% endfor %}
-    {% else %}
-        <div class="categoria">No hay categorías todavía.</div>
+    {% if producto.foto %}
+        <img src="{{ resolver_imagen(producto.foto) }}" class="img-producto">
     {% endif %}
+
+    <div class="card">
+        <div class="nombre">{{ producto.nombre }}</div>
+        <div class="precio">${{ producto.precio|int }}</div>
+
+        {% if producto.descripcion %}
+            <div class="descripcion">{{ producto.descripcion }}</div>
+        {% endif %}
+
+        <form action="{{ url_for('agregar_al_carrito', producto_id=producto.id) }}" method="POST">
+            <input type="hidden" name="cantidad" value="1">
+            <input type="hidden" name="siguiente" value="carrito">
+            <button type="submit">Agregar al carrito</button>
+        </form>
+    </div>
+
 </div>
 
 </body>
