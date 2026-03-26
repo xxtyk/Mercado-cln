@@ -1,1 +1,97 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado en Línea Culiacán</title>
+
+    <style>
+        *{
+            box-sizing:border-box;
+            margin:0;
+            padding:0;
+        }
+
+        body{
+            font-family: Arial, sans-serif;
+            background:#ffffff;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            min-height:100vh;
+        }
+
+        .pantalla{
+            width:100%;
+            max-width:420px;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            text-align:center;
+            padding:30px 20px;
+        }
+
+        .logo{
+            width:180px;
+            max-width:80%;
+            margin-bottom:25px;
+            animation:latido 1.4s infinite;
+        }
+
+        h1{
+            font-size:30px;
+            color:#b71c1c;
+            margin-bottom:14px;
+        }
+
+        p{
+            font-size:18px;
+            color:#444;
+            line-height:1.5;
+            margin-bottom:24px;
+        }
+
+        .boton{
+            display:inline-block;
+            background:#b71c1c;
+            color:#fff;
+            text-decoration:none;
+            padding:14px 22px;
+            border-radius:12px;
+            font-size:17px;
+            font-weight:bold;
+        }
+
+        @keyframes latido{
+            0%{transform:scale(1);}
+            50%{transform:scale(1.06);}
+            100%{transform:scale(1);}
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="pantalla">
+
+    <!-- LOGO -->
+    <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+
+    <h1>Mercado en Línea Culiacán</h1>
+
+    <p>
+        Descarga la aplicación para hacer tu pedido más rápido.
+    </p>
+
+    <!-- BOTÓN -->
+    <a class="boton" href="{{ url_for('catalogo') }}">
+        Entrar a la aplicación
+    </a>
+
+</div>
+
+</body>
+</html>
