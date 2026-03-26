@@ -3,11 +3,21 @@ import json
 import uuid
 from urllib.parse import quote
 
+import cloudinary
+import cloudinary.uploader
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
+
+cloudinary.config(
+    cloud_name="dosyi726x",
+    api_key="942229587198227",
+    api_secret="jHn-OlPaUEdfqvCk1DvgTeSUhyQ",
+    secure=True
+)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 STATIC_FOLDER = os.path.join(BASE_DIR, "static")
@@ -83,13 +93,21 @@ def guardar_imagen(archivo):
     if not extension_permitida(archivo.filename):
         return ""
 
-    nombre_seguro = secure_filename(archivo.filename)
-    extension = nombre_seguro.rsplit(".", 1)[1].lower()
-    nombre_final = f"{uuid.uuid4().hex}.{extension}"
-    ruta_guardado = os.path.join(app.config["UPLOAD_FOLDER"], nombre_final)
-    archivo.save(ruta_guardado)
+    try:
+        nombre_seguro = secure_filename(archivo.filename)
+        nombre_base = os.path.splitext(nombre_seguro)[0]
 
-    return f"uploads/{nombre_final}"
+        resultado = cloudinary.uploader.upload(
+            archivo,
+            folder="mercado_cln",
+            public_id=f"{uuid.uuid4().hex}_{nombre_base}",
+            resource_type="image"
+        )
+
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print("Error subiendo imagen a Cloudinary:", e)
+        return ""
 
 
 def obtener_categoria_por_id(categoria_id):
@@ -161,14 +179,11 @@ def inyectar_datos_globales():
 # ------------------------
 # RUTAS CLIENTE
 # ------------------------
-
-# 🔥 PORTADA (NUEVO)
 @app.route("/")
 def inicio():
     return render_template("portada.html")
 
 
-# 🔥 CATÁLOGO (ANTES ERA /)
 @app.route("/catalogo")
 def catalogo():
     categorias = cargar_json(CATEGORIAS_FILE)
@@ -196,9 +211,8 @@ def ver_producto(producto_id):
 
 
 # ------------------------
-# CARRITO (NO SE TOCÓ)
+# CARRITO
 # ------------------------
-
 @app.route("/agregar_al_carrito/<int:producto_id>", methods=["POST"])
 def agregar_al_carrito(producto_id):
     producto = obtener_producto_por_id(producto_id)
@@ -207,8 +221,15 @@ def agregar_al_carrito(producto_id):
 
     carrito = obtener_carrito()
 
-    cantidad = int(request.form.get("cantidad", 1))
+    cantidad = request.form.get("cantidad", "1")
     descripcion = request.form.get("descripcion", "").strip()
+
+    try:
+        cantidad = int(cantidad)
+        if cantidad < 1:
+            cantidad = 1
+    except Exception:
+        cantidad = 1
 
     for item in carrito:
         if item["producto_id"] == producto_id and item["descripcion"] == descripcion:
@@ -229,9 +250,8 @@ def agregar_al_carrito(producto_id):
 
 
 # ------------------------
-# ADMIN (NO SE TOCÓ)
+# ADMIN
 # ------------------------
-
 @app.route("/admin")
 def admin():
     categorias = cargar_json(CATEGORIAS_FILE)
@@ -239,10 +259,63 @@ def admin():
     return render_template("admin.html", categorias=categorias, productos=productos, vendedores=VENDEDORES)
 
 
+@app.route("/agregar_categoria", methods=["POST"])
+def agregar_categoria():
+    nombre = request.form.get("nombre", "").strip()
+    foto = request.files.get("foto_categoria")
+
+    if not nombre:
+        return redirect(url_for("admin"))
+
+    categorias = cargar_json(CATEGORIAS_FILE)
+    nueva_categoria = {
+        "id": obtener_siguiente_id(categorias),
+        "nombre": nombre,
+        "foto": guardar_imagen(foto)
+    }
+
+    categorias.append(nueva_categoria)
+    guardar_json(CATEGORIAS_FILE, categorias)
+
+    return redirect(url_for("admin"))
+
+
+@app.route("/agregar_producto", methods=["POST"])
+def agregar_producto():
+    nombre = request.form.get("nombre", "").strip()
+    precio = request.form.get("precio", "").strip()
+    descripcion = request.form.get("descripcion", "").strip()
+    categoria_id = request.form.get("categoria_id", "").strip()
+    vendedor = request.form.get("vendedor", "Mercado en Línea Culiacán").strip()
+    foto = request.files.get("foto_producto")
+
+    if not nombre or not categoria_id:
+        return redirect(url_for("admin"))
+
+    if vendedor not in VENDEDORES:
+        vendedor = "Mercado en Línea Culiacán"
+
+    productos = cargar_json(PRODUCTOS_FILE)
+
+    nuevo_producto = {
+        "id": obtener_siguiente_id(productos),
+        "nombre": nombre,
+        "precio": normalizar_precio(precio),
+        "descripcion": descripcion,
+        "categoria_id": int(categoria_id),
+        "foto": guardar_imagen(foto),
+        "vendedor": vendedor
+    }
+
+    productos.append(nuevo_producto)
+    guardar_json(PRODUCTOS_FILE, productos)
+
+    return redirect(url_for("admin"))
+
+
 # ------------------------
 # INICIO
 # ------------------------
-
 init_app()
 
 if __name__ == "__main__":
