@@ -2,217 +2,246 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Datos de entrega</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Datos de entrega</title>
 
 <style>
-    * {
-        box-sizing: border-box;
+    *{
+        box-sizing:border-box;
     }
 
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        color: #212121;
+    body{
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:#f5f5f5;
+        color:#212121;
     }
 
-    .contenedor-principal {
-        max-width: 420px;
-        margin: 0 auto;
-        min-height: 100vh;
-        background: white;
-        display: flex;
-        flex-direction: column;
+    .contenedor-principal{
+        max-width:420px;
+        margin:0 auto;
+        min-height:100vh;
+        background:white;
+        display:flex;
+        flex-direction:column;
     }
 
-    .barra {
-        background: #1976d2;
-        color: white;
-        padding: 16px 18px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    .barra{
+        background:#1976d2;
+        color:white;
+        padding:16px 18px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+        position:sticky;
+        top:0;
+        z-index:20;
+        box-shadow:0 2px 8px rgba(0,0,0,0.18);
     }
 
-    .volver {
-        color: white;
-        text-decoration: none;
-        font-size: 26px;
-        line-height: 1;
+    .volver{
+        color:white;
+        text-decoration:none;
+        font-size:28px;
+        line-height:1;
     }
 
-    .titulo {
-        font-size: 22px;
-        font-weight: bold;
+    .titulo{
+        font-size:20px;
+        font-weight:bold;
     }
 
-    .contenido {
-        flex: 1;
-        padding: 14px;
-        padding-bottom: 40px;
+    .contenido{
+        padding:14px;
+        display:flex;
+        flex-direction:column;
+        gap:14px;
     }
 
-    .bloque {
-        background: #fafafa;
-        border: 1px solid #e5e5e5;
-        border-radius: 14px;
-        padding: 14px;
-        margin-bottom: 14px;
+    .bloque{
+        background:#fff;
+        border-radius:12px;
+        padding:14px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        border:1px solid #eaeaea;
     }
 
-    .subtitulo {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 10px;
+    .subtitulo{
+        font-size:17px;
+        font-weight:bold;
+        margin-bottom:10px;
     }
 
-    .aviso {
-        background: #fff8e1;
-        color: #8a5200;
-        border: 1px solid #f0d58c;
-        border-radius: 12px;
-        padding: 14px;
-        font-size: 18px;
-        font-weight: bold;
-        line-height: 1.4;
-        margin-bottom: 14px;
-        text-align: center;
+    .item-carrito{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        padding:8px 0;
+        border-bottom:1px solid #f0f0f0;
+        font-size:14px;
     }
 
-    input, select, textarea, button {
-        width: 100%;
-        padding: 14px;
-        margin-top: 10px;
-        border-radius: 10px;
-        border: 1px solid #cfcfcf;
-        font-size: 16px;
+    .item-carrito:last-child{
+        border-bottom:none;
     }
 
-    textarea {
-        min-height: 90px;
-        resize: vertical;
+    .nombre-item{
+        flex:1;
     }
 
-    .linea {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 15px;
+    .importe-item{
+        font-weight:bold;
+        white-space:nowrap;
     }
 
-    .total {
-        font-size: 20px;
-        font-weight: bold;
-        margin-top: 8px;
+    label{
+        display:block;
+        margin-top:10px;
+        margin-bottom:6px;
+        font-size:14px;
+        font-weight:bold;
     }
 
-    .btn-principal {
-        background: #25D366;
-        color: white;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
+    input, textarea, select{
+        width:100%;
+        border:1px solid #d0d0d0;
+        border-radius:10px;
+        padding:12px;
+        font-size:15px;
+        outline:none;
     }
 
-    .producto {
-        padding: 8px 0;
-        border-bottom: 1px solid #e5e5e5;
+    textarea{
+        min-height:90px;
+        resize:vertical;
     }
 
-    .producto:last-child {
-        border-bottom: none;
+    .resumen-linea{
+        display:flex;
+        justify-content:space-between;
+        padding:6px 0;
+        font-size:15px;
     }
 
-    .nota {
-        color: #666;
-        font-size: 14px;
-        margin-top: 4px;
+    .total{
+        font-size:20px;
+        font-weight:bold;
+        color:#1976d2;
+        border-top:1px solid #eee;
+        margin-top:8px;
+        padding-top:10px;
+    }
+
+    .btn-finalizar{
+        width:100%;
+        border:none;
+        background:#25d366;
+        color:white;
+        padding:14px;
+        border-radius:12px;
+        font-size:17px;
+        font-weight:bold;
+        cursor:pointer;
+        margin-top:8px;
+    }
+
+    .texto-suave{
+        font-size:13px;
+        color:#666;
+        margin-top:6px;
     }
 </style>
 </head>
 <body>
 
 <div class="contenedor-principal">
+
     <div class="barra">
         <a href="{{ url_for('ver_carrito') }}" class="volver">←</a>
-        <div class="titulo">Datos de entrega</div>
+        <div class="titulo">Finalizar pedido</div>
     </div>
 
     <div class="contenido">
+
         <div class="bloque">
-            <div class="subtitulo">Resumen del pedido</div>
+            <div class="subtitulo">Tu pedido</div>
 
             {% for item in carrito %}
-                <div class="producto">
-                    <div>{{ item.cantidad }} x {{ item.nombre }} - ${{ ((item.precio|float) * (item.cantidad|int))|int }}</div>
-                    {% if item.descripcion %}
-                        <div class="nota">Nota: {{ item.descripcion }}</div>
-                    {% endif %}
+                <div class="item-carrito">
+                    <div class="nombre-item">
+                        {{ item.cantidad }} x {{ item.nombre }}
+                        {% if item.descripcion %}
+                            <div class="texto-suave">{{ item.descripcion }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="importe-item">
+                        ${{ (item.precio * item.cantidad)|int }}
+                    </div>
                 </div>
             {% endfor %}
+        </div>
 
-            <div style="margin-top: 12px;">
-                <div class="linea">
+        <form action="{{ url_for('finalizar_pedido') }}" method="POST">
+            <div class="bloque">
+                <div class="subtitulo">Datos de entrega</div>
+
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" name="nombre" required>
+
+                <label for="telefono">Teléfono</label>
+                <input type="tel" id="telefono" name="telefono" required>
+
+                <label for="tipo_entrega">Tipo de entrega</label>
+                <select id="tipo_entrega" name="tipo_entrega" required>
+                    <option value="domicilio">Envío a domicilio</option>
+                    <option value="recoger">Pasa a recoger a bodega</option>
+                </select>
+
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion">
+
+                <label for="colonia">Colonia</label>
+                <input type="text" id="colonia" name="colonia">
+
+                <label for="nota">Nota</label>
+                <textarea id="nota" name="nota" placeholder="Ejemplo: casa color blanco, tocar el timbre, sin cebolla, etc."></textarea>
+
+                <label for="vendedor">Vendedor</label>
+                <select id="vendedor" name="vendedor" required>
+                    {% for nombre_vendedor, telefono_vendedor in vendedores.items() %}
+                        <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="bloque">
+                <div class="subtitulo">Resumen</div>
+
+                <div class="resumen-linea">
                     <span>Subtotal</span>
                     <span>${{ subtotal|int }}</span>
                 </div>
 
-                {% if costo_envio > 0 %}
-                <div class="linea">
+                <div class="resumen-linea">
                     <span>Envío</span>
-                    <span>${{ costo_envio|int }}</span>
+                    <span>
+                        {% if costo_envio %}
+                            ${{ costo_envio|int }}
+                        {% else %}
+                            $0
+                        {% endif %}
+                    </span>
                 </div>
-                {% endif %}
 
-                <div class="linea total">
+                <div class="resumen-linea total">
                     <span>Total</span>
                     <span>${{ total|int }}</span>
                 </div>
+
+                <button type="submit" class="btn-finalizar">Finalizar pedido</button>
             </div>
-        </div>
+        </form>
 
-        <div class="bloque">
-            <div class="aviso">
-                PAGAS AL RECIBIR TU PRODUCTO A CONTRAENTREGA.<br>
-                NO DEBES DEPOSITAR NUNCA ANTICIPADO.
-            </div>
-
-            <div class="subtitulo">Llena tus datos</div>
-
-            <form action="{{ url_for('finalizar_pedido') }}" method="POST">
-                <input type="text" name="nombre" placeholder="Nombre completo" required>
-                <input type="tel" name="telefono" placeholder="Teléfono" required>
-                <input type="text" name="direccion" placeholder="Dirección" required>
-                <input type="text" name="colonia" placeholder="Colonia" required>
-                <textarea name="nota" placeholder="Nota:"></textarea>
-
-                <select name="tipo_entrega" required>
-                    <option value="">¿Cómo quieres recibir tu pedido?</option>
-                    <option value="recoger">Paso a recoger a bodega</option>
-                    <option value="domicilio">Envío a domicilio en Culiacán (+$40)</option>
-                </select>
-
-                <div class="nota" style="margin-top: 10px;">
-                    Escribe tu vendedor quien te atendió.
-                </div>
-
-                <select name="vendedor">
-                    <option value="Nadie">Nadie</option>
-                    {% for nombre_vendedor in vendedores.keys() %}
-                        {% if nombre_vendedor != "Mercado en Línea Culiacán" %}
-                            <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-
-                <button type="submit" class="btn-principal">Finalizar pedido</button>
-            </form>
-        </div>
     </div>
 </div>
 
