@@ -74,6 +74,7 @@ body{
     color:#2e7d32;
     font-weight:bold;
     margin-top:4px;
+    font-size:16px;
 }
 
 /* BOTÓN */
@@ -89,6 +90,7 @@ button{
     color:white;
     border-radius:6px;
     cursor:pointer;
+    font-size:16px;
 }
 
 input{
@@ -117,9 +119,10 @@ input{
 
         <div class="info">
             <div class="nombre">{{ p.nombre }}</div>
-            <div class="precio">${{ "%.2f"|format(p.precio|float) }}</div>
+            <div class="precio">${{ p.precio|int }}</div>
 
             <form action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
+                <input type="hidden" name="siguiente" value="carrito">
                 <input type="number" name="cantidad" value="1" min="1">
                 <button type="submit">Agregar</button>
             </form>
