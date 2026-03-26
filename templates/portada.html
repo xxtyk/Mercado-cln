@@ -95,7 +95,7 @@
     </button>
 
     <div class="contador" id="contador">
-        Entrando a categorías en 5 segundos...
+        Entrando a categorías en 10 segundos...
     </div>
 </div>
 
@@ -126,7 +126,7 @@
         alert("Para instalarla, abre los 3 puntos del navegador y elige: Agregar a pantalla principal o Instalar aplicación.");
     });
 
-    let segundos = 5;
+    let segundos = 10;
 
     const intervalo = setInterval(function() {
         segundos--;
@@ -140,7 +140,7 @@
 
     setTimeout(function() {
         window.location.href = "{{ url_for('catalogo') }}";
-    }, 5000);
+    }, 10000);
 </script>
 
 </body>
