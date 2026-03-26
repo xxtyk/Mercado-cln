@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar categoría</title>
+    <title>Panel Admin</title>
     <style>
         body {
             margin: 0;
@@ -61,6 +61,14 @@
             border-radius: 8px;
             margin-top: 10px;
         }
+
+        .categoria img{
+            width:100%;
+            max-height:150px;
+            object-fit:cover;
+            border-radius:8px;
+            margin-top:8px;
+        }
     </style>
 </head>
 <body>
@@ -68,8 +76,9 @@
 <div class="panel">
     <h1>Agregar categoría</h1>
 
-    <form action="/editar_categoria" method="POST" enctype="multipart/form-data">
-        <input type="text" name="nombre_categoria" placeholder="Nombre de la categoría" required>
+    <!-- ⚠️ CORREGIDO: ruta correcta -->
+    <form action="/agregar_categoria" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
         <input type="file" name="foto_categoria" accept="image/*">
         <button type="submit">Guardar categoría</button>
     </form>
@@ -77,11 +86,20 @@
     <a class="boton" href="/admin">Volver al panel</a>
 
     <h2>Categorías actuales</h2>
-    {% for nombre, foto in categorias.items() %}
-        <div class="categoria">{{ nombre }}</div>
+
+    {% if categorias %}
+        {% for c in categorias %}
+            <div class="categoria">
+                {{ c.nombre }}
+
+                {% if c.foto %}
+                    <img src="{{ resolver_imagen(c.foto) }}">
+                {% endif %}
+            </div>
+        {% endfor %}
     {% else %}
         <div class="categoria">No hay categorías todavía.</div>
-    {% endfor %}
+    {% endif %}
 </div>
 
 </body>
