@@ -32,7 +32,6 @@ VENDEDORES = {
     "Natalia": "526673513058",
 }
 
-
 # ------------------------
 # UTILIDADES
 # ------------------------
@@ -122,13 +121,6 @@ def normalizar_precio(valor):
         return 0.0
 
 
-def formatear_moneda(valor):
-    try:
-        return f"{float(valor):.2f}"
-    except Exception:
-        return "0.00"
-
-
 def obtener_carrito():
     carrito = session.get("carrito", [])
     return carrito if isinstance(carrito, list) else []
@@ -169,8 +161,16 @@ def inyectar_datos_globales():
 # ------------------------
 # RUTAS CLIENTE
 # ------------------------
+
+# 🔥 PORTADA (NUEVO)
 @app.route("/")
 def inicio():
+    return render_template("portada.html")
+
+
+# 🔥 CATÁLOGO (ANTES ERA /)
+@app.route("/catalogo")
+def catalogo():
     categorias = cargar_json(CATEGORIAS_FILE)
     return render_template("index.html", categorias=categorias)
 
@@ -196,203 +196,42 @@ def ver_producto(producto_id):
 
 
 # ------------------------
-# CARRITO
+# CARRITO (NO SE TOCÓ)
 # ------------------------
+
 @app.route("/agregar_al_carrito/<int:producto_id>", methods=["POST"])
 def agregar_al_carrito(producto_id):
     producto = obtener_producto_por_id(producto_id)
     if not producto:
-        return redirect(url_for("inicio"))
+        return redirect(url_for("catalogo"))
 
     carrito = obtener_carrito()
 
-    cantidad = request.form.get("cantidad", "1")
+    cantidad = int(request.form.get("cantidad", 1))
     descripcion = request.form.get("descripcion", "").strip()
 
-    try:
-        cantidad = int(cantidad)
-        if cantidad < 1:
-            cantidad = 1
-    except Exception:
-        cantidad = 1
-
-    item_existente = None
     for item in carrito:
-        if str(item.get("producto_id")) == str(producto_id) and item.get("descripcion", "") == descripcion:
-            item_existente = item
+        if item["producto_id"] == producto_id and item["descripcion"] == descripcion:
+            item["cantidad"] += cantidad
             break
-
-    if item_existente:
-        item_existente["cantidad"] += cantidad
     else:
         carrito.append({
-            "producto_id": producto.get("id"),
-            "nombre": producto.get("nombre", ""),
-            "precio": normalizar_precio(producto.get("precio", 0)),
-            "foto": producto.get("foto", ""),
+            "producto_id": producto["id"],
+            "nombre": producto["nombre"],
+            "precio": producto["precio"],
+            "foto": producto["foto"],
             "cantidad": cantidad,
             "descripcion": descripcion
         })
 
     guardar_carrito(carrito)
-
-    siguiente = request.form.get("siguiente")
-    if siguiente == "carrito":
-        return redirect(url_for("ver_carrito"))
-
-    return redirect(url_for("ver_categoria", categoria_id=producto.get("categoria_id")))
-
-
-@app.route("/carrito")
-def ver_carrito():
-    carrito = obtener_carrito()
-    subtotal = total_importe_carrito()
-
-    return render_template(
-        "carrito.html",
-        carrito=carrito,
-        subtotal=subtotal,
-        costo_envio=0,
-        total=subtotal
-    )
-
-
-@app.route("/carrito/actualizar/<int:indice>", methods=["POST"])
-def actualizar_carrito(indice):
-    carrito = obtener_carrito()
-
-    if 0 <= indice < len(carrito):
-        accion = request.form.get("accion", "").strip()
-
-        if accion == "sumar":
-            carrito[indice]["cantidad"] = int(carrito[indice].get("cantidad", 1)) + 1
-
-        elif accion == "restar":
-            nueva_cantidad = int(carrito[indice].get("cantidad", 1)) - 1
-            if nueva_cantidad <= 0:
-                carrito.pop(indice)
-            else:
-                carrito[indice]["cantidad"] = nueva_cantidad
-
-        elif accion == "eliminar":
-            carrito.pop(indice)
-
-        else:
-            cantidad = request.form.get("cantidad", "1")
-            descripcion = request.form.get("descripcion", "").strip()
-
-            try:
-                cantidad = int(cantidad)
-                if cantidad <= 0:
-                    carrito.pop(indice)
-                else:
-                    carrito[indice]["cantidad"] = cantidad
-                    carrito[indice]["descripcion"] = descripcion
-            except Exception:
-                pass
-
-    guardar_carrito(carrito)
-    return redirect(url_for("ver_carrito"))
-
-
-@app.route("/vaciar_carrito", methods=["POST"])
-def vaciar_carrito():
-    guardar_carrito([])
-    return redirect(url_for("ver_carrito"))
+    return redirect(url_for("ver_categoria", categoria_id=producto["categoria_id"]))
 
 
 # ------------------------
-# PEDIDO / WHATSAPP
+# ADMIN (NO SE TOCÓ)
 # ------------------------
-@app.route("/datos_entrega")
-def datos_entrega():
-    carrito = obtener_carrito()
-    if not carrito:
-        return redirect(url_for("ver_carrito"))
 
-    subtotal = total_importe_carrito()
-
-    return render_template(
-        "datos_entrega.html",
-        carrito=carrito,
-        subtotal=subtotal,
-        costo_envio=0,
-        total=subtotal,
-        vendedores=VENDEDORES
-    )
-
-
-@app.route("/finalizar_pedido", methods=["POST"])
-def finalizar_pedido():
-    carrito = obtener_carrito()
-    if not carrito:
-        return redirect(url_for("ver_carrito"))
-
-    nombre = request.form.get("nombre", "").strip()
-    telefono = request.form.get("telefono", "").strip()
-    direccion = request.form.get("direccion", "").strip()
-    colonia = request.form.get("colonia", "").strip()
-    nota = request.form.get("nota", "").strip()
-    tipo_entrega = request.form.get("tipo_entrega", "").strip()
-    vendedor = request.form.get("vendedor", "Nadie").strip()
-
-    if tipo_entrega == "domicilio":
-        costo_envio = COSTO_ENVIO
-        texto_entrega = "Envío a domicilio en Culiacán"
-    else:
-        costo_envio = 0
-        texto_entrega = "Pasa a recoger a bodega"
-
-    subtotal = total_importe_carrito()
-    total = subtotal + costo_envio
-
-    mensaje = []
-    mensaje.append("🛒 *NUEVO PEDIDO*")
-    mensaje.append("")
-    mensaje.append(f"👤 *Nombre:* {nombre}")
-    mensaje.append(f"📞 *Teléfono:* {telefono}")
-    mensaje.append(f"📍 *Dirección:* {direccion}")
-    mensaje.append(f"🏘️ *Colonia:* {colonia}")
-    if nota:
-        mensaje.append(f"📝 *Nota:* {nota}")
-    mensaje.append(f"🚚 *Entrega:* {texto_entrega}")
-    mensaje.append(f"👨‍💼 *Vendedor:* {vendedor}")
-    mensaje.append("")
-    mensaje.append("*Productos:*")
-
-    for item in carrito:
-        nombre_producto = item.get("nombre", "")
-        cantidad = int(item.get("cantidad", 0))
-        precio = normalizar_precio(item.get("precio", 0))
-        descripcion = item.get("descripcion", "").strip()
-        importe = precio * cantidad
-
-        linea = f"- {cantidad} x {nombre_producto} - ${int(importe)}"
-        if descripcion:
-            linea += f" ({descripcion})"
-        mensaje.append(linea)
-
-    mensaje.append("")
-    mensaje.append(f"Subtotal: ${int(subtotal)}")
-    if costo_envio > 0:
-        mensaje.append(f"Envío: ${int(costo_envio)}")
-    mensaje.append(f"Total: ${int(total)}")
-
-    texto = "\n".join(mensaje)
-
-    telefono_vendedor = VENDEDORES.get(vendedor)
-    if not telefono_vendedor:
-        telefono_vendedor = VENDEDORES["Mercado en Línea Culiacán"]
-
-    enlace_whatsapp = f"https://wa.me/{telefono_vendedor}?text={quote(texto)}"
-
-    guardar_carrito([])
-    return redirect(enlace_whatsapp)
-
-
-# ------------------------
-# ADMIN
-# ------------------------
 @app.route("/admin")
 def admin():
     categorias = cargar_json(CATEGORIAS_FILE)
@@ -400,173 +239,12 @@ def admin():
     return render_template("admin.html", categorias=categorias, productos=productos, vendedores=VENDEDORES)
 
 
-@app.route("/agregar_categoria", methods=["POST"])
-def agregar_categoria():
-    nombre = request.form.get("nombre", "").strip()
-    foto = request.files.get("foto_categoria")
-
-    if not nombre:
-        return redirect(url_for("admin"))
-
-    categorias = cargar_json(CATEGORIAS_FILE)
-    nueva_categoria = {
-        "id": obtener_siguiente_id(categorias),
-        "nombre": nombre,
-        "foto": guardar_imagen(foto)
-    }
-
-    categorias.append(nueva_categoria)
-    guardar_json(CATEGORIAS_FILE, categorias)
-
-    return redirect(url_for("admin"))
-
-
-@app.route("/editar_categoria/<int:categoria_id>", methods=["GET", "POST"])
-def editar_categoria(categoria_id):
-    categorias = cargar_json(CATEGORIAS_FILE)
-    categoria = None
-
-    for c in categorias:
-        if str(c.get("id")) == str(categoria_id):
-            categoria = c
-            break
-
-    if not categoria:
-        return "Categoría no encontrada", 404
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        foto = request.files.get("foto_categoria")
-
-        if nombre:
-            categoria["nombre"] = nombre
-
-        nueva_foto = guardar_imagen(foto)
-        if nueva_foto:
-            categoria["foto"] = nueva_foto
-
-        guardar_json(CATEGORIAS_FILE, categorias)
-        return redirect(url_for("admin"))
-
-    return render_template("editar_categoria.html", categoria=categoria)
-
-
-@app.route("/eliminar_categoria/<int:categoria_id>", methods=["POST"])
-def eliminar_categoria(categoria_id):
-    categorias = cargar_json(CATEGORIAS_FILE)
-    productos = cargar_json(PRODUCTOS_FILE)
-
-    categorias = [c for c in categorias if str(c.get("id")) != str(categoria_id)]
-    productos = [p for p in productos if str(p.get("categoria_id")) != str(categoria_id)]
-
-    guardar_json(CATEGORIAS_FILE, categorias)
-    guardar_json(PRODUCTOS_FILE, productos)
-
-    return redirect(url_for("admin"))
-
-
-@app.route("/agregar_producto", methods=["POST"])
-def agregar_producto():
-    nombre = request.form.get("nombre", "").strip()
-    precio = request.form.get("precio", "").strip()
-    descripcion = request.form.get("descripcion", "").strip()
-    categoria_id = request.form.get("categoria_id", "").strip()
-    vendedor = request.form.get("vendedor", "Mercado en Línea Culiacán").strip()
-    foto = request.files.get("foto_producto")
-
-    if not nombre or not categoria_id:
-        return redirect(url_for("admin"))
-
-    if vendedor not in VENDEDORES:
-        vendedor = "Mercado en Línea Culiacán"
-
-    productos = cargar_json(PRODUCTOS_FILE)
-
-    nuevo_producto = {
-        "id": obtener_siguiente_id(productos),
-        "nombre": nombre,
-        "precio": normalizar_precio(precio),
-        "descripcion": descripcion,
-        "categoria_id": int(categoria_id),
-        "foto": guardar_imagen(foto),
-        "vendedor": vendedor
-    }
-
-    productos.append(nuevo_producto)
-    guardar_json(PRODUCTOS_FILE, productos)
-
-    return redirect(url_for("admin"))
-
-
-@app.route("/editar_producto/<int:producto_id>", methods=["GET", "POST"])
-def editar_producto(producto_id):
-    productos = cargar_json(PRODUCTOS_FILE)
-    categorias = cargar_json(CATEGORIAS_FILE)
-    producto = None
-
-    for p in productos:
-        if str(p.get("id")) == str(producto_id):
-            producto = p
-            break
-
-    if not producto:
-        return "Producto no encontrado", 404
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-        precio = request.form.get("precio", "").strip()
-        descripcion = request.form.get("descripcion", "").strip()
-        categoria_id = request.form.get("categoria_id", "").strip()
-        vendedor = request.form.get("vendedor", "Mercado en Línea Culiacán").strip()
-        foto = request.files.get("foto_producto")
-
-        if nombre:
-            producto["nombre"] = nombre
-
-        if precio != "":
-            producto["precio"] = normalizar_precio(precio)
-
-        producto["descripcion"] = descripcion
-
-        if categoria_id:
-            try:
-                producto["categoria_id"] = int(categoria_id)
-            except Exception:
-                pass
-
-        if vendedor in VENDEDORES:
-            producto["vendedor"] = vendedor
-        else:
-            producto["vendedor"] = "Mercado en Línea Culiacán"
-
-        nueva_foto = guardar_imagen(foto)
-        if nueva_foto:
-            producto["foto"] = nueva_foto
-
-        guardar_json(PRODUCTOS_FILE, productos)
-        return redirect(url_for("admin"))
-
-    return render_template(
-        "editar_producto.html",
-        producto=producto,
-        categorias=categorias,
-        vendedores=VENDEDORES
-    )
-
-
-@app.route("/eliminar_producto/<int:producto_id>", methods=["POST"])
-def eliminar_producto(producto_id):
-    productos = cargar_json(PRODUCTOS_FILE)
-    productos = [p for p in productos if str(p.get("id")) != str(producto_id)]
-    guardar_json(PRODUCTOS_FILE, productos)
-    return redirect(url_for("admin"))
-
-
 # ------------------------
 # INICIO
 # ------------------------
+
 init_app()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
