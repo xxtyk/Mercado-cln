@@ -13,9 +13,9 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
 
 cloudinary.config(
-    cloud_name="dosyi726x",
-    api_key="942229587198227",
-    api_secret="jHn-OlPaUEdfqvCk1DvgTeSUhyQ",
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "dosyi726x"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", ""),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", ""),
     secure=True
 )
 
@@ -96,7 +96,7 @@ def guardar_imagen(archivo):
 
     try:
         nombre_seguro = secure_filename(archivo.filename)
-        nombre_base = os.path.splitext(nombre_seguro)[0]
+        nombre_base = os.path.splitext(nombre_seguro)[0] or "imagen"
 
         resultado = cloudinary.uploader.upload(
             archivo,
@@ -165,6 +165,15 @@ def total_importe_carrito():
     return total
 
 
+def resolver_imagen(imagen):
+    if not imagen:
+        return ""
+    imagen = str(imagen).strip()
+    if imagen.startswith("http://") or imagen.startswith("https://"):
+        return imagen
+    return url_for("static", filename=imagen)
+
+
 # ------------------------
 # CONTEXTO GLOBAL
 # ------------------------
@@ -173,7 +182,8 @@ def inyectar_datos_globales():
     return {
         "carrito_cantidad_total": total_productos_carrito(),
         "carrito_importe_total": total_importe_carrito(),
-        "COSTO_ENVIO": COSTO_ENVIO
+        "COSTO_ENVIO": COSTO_ENVIO,
+        "resolver_imagen": resolver_imagen
     }
 
 
@@ -497,6 +507,7 @@ def agregar_producto():
         vendedor = "Mercado en Línea Culiacán"
 
     productos = cargar_json(PRODUCTOS_FILE)
+    foto_url = guardar_imagen(foto)
 
     nuevo_producto = {
         "id": obtener_siguiente_id(productos),
@@ -504,7 +515,7 @@ def agregar_producto():
         "precio": normalizar_precio(precio),
         "descripcion": descripcion,
         "categoria_id": int(categoria_id),
-        "foto": guardar_imagen(foto),
+        "foto": foto_url,
         "vendedor": vendedor
     }
 
