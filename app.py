@@ -1,7 +1,7 @@
 import os
 import json
 import uuid
-from urllib.parse import quote
+import requests
 
 import cloudinary
 import cloudinary.uploader
@@ -29,6 +29,11 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
 COSTO_ENVIO = 40
+
+GREEN_API_URL = os.environ.get("GREEN_API_URL", "").strip()
+GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
+GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
+GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
 
 VENDEDORES = {
     "Mercado en Línea Culiacán": "526679771409",
@@ -328,7 +333,7 @@ def vaciar_carrito():
 
 
 # ------------------------
-# PEDIDO / WHATSAPP
+# PEDIDO / GREEN API
 # ------------------------
 @app.route("/datos_entrega")
 def datos_entrega():
@@ -406,14 +411,22 @@ def finalizar_pedido():
 
     texto = "\n".join(mensaje)
 
-    telefono_vendedor = VENDEDORES.get(vendedor)
-    if not telefono_vendedor:
-        telefono_vendedor = VENDEDORES["Mercado en Línea Culiacán"]
+    try:
+        url = f"{GREEN_API_URL.rstrip('/')}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
 
-    enlace_whatsapp = f"https://wa.me/{telefono_vendedor}?text={quote(texto)}"
+        payload = {
+            "chatId": GREEN_API_CHAT_ID,
+            "message": texto
+        }
+
+        response = requests.post(url, json=payload, timeout=30)
+        print("Green API:", response.status_code, response.text)
+
+    except Exception as e:
+        print("Error enviando a Green API:", e)
 
     guardar_carrito([])
-    return redirect(enlace_whatsapp)
+    return redirect(url_for("inicio"))
 
 
 # ------------------------
