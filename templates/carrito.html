@@ -116,7 +116,9 @@ body{
 
 {% for item in carrito %}
 <div class="card">
-    <img src="{{ url_for('static', filename=item.foto) }}">
+    {% if item.foto %}
+        <img src="{{ resolver_imagen(item.foto) }}" alt="{{ item.nombre }}">
+    {% endif %}
 
     <div class="info">
         <div class="nombre">{{ item.nombre }}</div>
@@ -126,17 +128,17 @@ body{
         <div class="botones">
             <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
                 <input type="hidden" name="accion" value="restar">
-                <button class="btn azul">-</button>
+                <button class="btn azul" type="submit">-</button>
             </form>
 
             <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
                 <input type="hidden" name="accion" value="sumar">
-                <button class="btn azul">+</button>
+                <button class="btn azul" type="submit">+</button>
             </form>
 
             <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
                 <input type="hidden" name="accion" value="eliminar">
-                <button class="btn rojo">Eliminar</button>
+                <button class="btn rojo" type="submit">Eliminar</button>
             </form>
         </div>
     </div>
@@ -148,11 +150,11 @@ body{
     <div class="total">Total: ${{ subtotal|int }}</div>
 
     <a href="{{ url_for('datos_entrega') }}">
-        <button class="btn-final verde">Continuar pedido</button>
+        <button class="btn-final verde" type="button">Continuar pedido</button>
     </a>
 
     <form action="{{ url_for('vaciar_carrito') }}" method="POST">
-        <button class="btn-final gris">Vaciar carrito</button>
+        <button class="btn-final gris" type="submit">Vaciar carrito</button>
     </form>
 </div>
 
