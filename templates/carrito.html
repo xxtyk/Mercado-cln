@@ -37,8 +37,9 @@
         .cerrar {
             color: white;
             text-decoration: none;
-            font-size: 24px;
+            font-size: 28px;
             line-height: 1;
+            font-weight: bold;
         }
 
         .contenedor {
@@ -69,6 +70,7 @@
             object-fit: cover;
             border-radius: 8px;
             background: #eee;
+            flex-shrink: 0;
         }
 
         .info {
@@ -106,13 +108,13 @@
         }
 
         .btn-cantidad {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 1px solid #1976d2;
             background: white;
             color: #1976d2;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             cursor: pointer;
             display: flex;
@@ -147,6 +149,7 @@
             font-size: 14px;
             color: #555;
             margin-bottom: 10px;
+            gap: 10px;
         }
 
         .fila-envio {
@@ -192,6 +195,7 @@
             padding: 12px 16px;
             font-size: 13px;
             color: #e65100;
+            line-height: 1.5;
         }
 
         .pie {
@@ -256,7 +260,7 @@
     <div class="contenedor">
         <div class="barra-superior">
             <div class="titulo">🛒 Mi Carrito</div>
-            <a href="{{ url_for('index') }}" class="cerrar">✕</a>
+            <a href="{{ url_for('index') }}" class="cerrar">←</a>
         </div>
 
         <div class="lista">
@@ -268,7 +272,7 @@
 
                     <div class="info">
                         <div class="nombre">{{ item.nombre }}</div>
-                        <div class="precio">${{ item.precio }}.00</div>
+                        <div class="precio">${{ "%.2f"|format(item.precio|float) }}</div>
                         {% if item.nota %}
                         <div class="nota">Nota: {{ item.nota }}</div>
                         {% endif %}
@@ -293,17 +297,17 @@
 
                     <div class="fila">
                         <span>Subtotal</span>
-                        <span>${{ subtotal }}.00</span>
+                        <span>${{ "%.2f"|format(subtotal|float) }}</span>
                     </div>
 
                     <div class="fila fila-envio">
-                        <span>📦 Costo de entrega <small style="color:#777;">(solo Culiacán)</small></span>
-                        <span>${{ envio }}.00</span>
+                        <span>📦 Costo de entrega <small style="color:#777;">(se elige al finalizar)</small></span>
+                        <span>$40.00</span>
                     </div>
 
                     <div class="fila fila-total">
                         <span>Total</span>
-                        <span class="importe">${{ total }}.00</span>
+                        <span class="importe">${{ "%.2f"|format(subtotal|float) }}</span>
                     </div>
                 </div>
 
@@ -329,7 +333,7 @@
         <div class="pie">
             <form action="{{ url_for('checkout') }}" method="GET">
                 <button type="submit" class="btn-continuar">
-                    Continuar · ${{ total }}.00
+                    Continuar · ${{ "%.2f"|format(subtotal|float) }}
                 </button>
             </form>
         </div>
