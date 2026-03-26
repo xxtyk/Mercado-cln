@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar categoría</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
+        .panel {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .volver {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: white;
+            background: #3d3d3d;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        h1 {
+            margin-top: 0;
+            margin-bottom: 18px;
+        }
+        input, button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: 1px solid #cfcfcf;
+            font-size: 16px;
+        }
+        button {
+            background: black;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .mini-img {
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+            margin-top: 12px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+        }
+        .texto-suave {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
 
+<div class="panel">
+    <a href="{{ url_for('admin') }}" class="volver">← Volver al panel</a>
+
+    <h1>Editar categoría</h1>
+
+    <form action="{{ url_for('editar_categoria', categoria_id=categoria.id) }}" method="POST" enctype="multipart/form-data">
+        <input type="text" name="nombre" value="{{ categoria.nombre }}" placeholder="Nombre de la categoría" required>
+
+        <div class="texto-suave">Foto actual:</div>
+        {% if categoria.foto %}
+            <img src="{{ url_for('static', filename=categoria.foto) }}" class="mini-img" alt="{{ categoria.nombre }}">
+        {% else %}
+            <div class="texto-suave">Esta categoría no tiene foto.</div>
+        {% endif %}
+
+        <input type="file" name="foto_categoria" accept="image/*">
+        <div class="texto-suave">Solo sube una nueva foto si quieres reemplazar la actual.</div>
+
+        <button type="submit">Guardar cambios</button>
+    </form>
+</div>
+
+</body>
+</html>
