@@ -197,6 +197,10 @@
                     <option value="domicilio">Envío a domicilio en Culiacán (+$40)</option>
                 </select>
 
+                <div class="nota" style="margin-top: 10px;">
+                    Escribe tu vendedor quien te atendió.
+                </div>
+
                 <select name="vendedor">
                     <option value="Nadie">Nadie</option>
                     {% for nombre_vendedor in vendedores.keys() %}
@@ -206,11 +210,7 @@
                     {% endfor %}
                 </select>
 
-                <div class="nota" style="margin-top: 10px;">
-                    Escribe tu vendedor quien te atendió.
-                </div>
-
-                <button type="submit" class="btn-principal">Enviar pedido por WhatsApp</button>
+                <button type="submit" class="btn-principal">Finalizar pedido</button>
             </form>
         </div>
     </div>
