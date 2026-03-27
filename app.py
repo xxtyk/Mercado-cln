@@ -97,6 +97,15 @@ def guardar_imagen(archivo):
         return ""
 
     if not extension_permitida(archivo.filename):
+        print("Archivo no permitido:", archivo.filename)
+        return ""
+
+    cloud_name = os.environ.get("CLOUDINARY_CLOUD_NAME", "").strip()
+    api_key = os.environ.get("CLOUDINARY_API_KEY", "").strip()
+    api_secret = os.environ.get("CLOUDINARY_API_SECRET", "").strip()
+
+    if not cloud_name or not api_key or not api_secret:
+        print("Faltan variables de Cloudinary")
         return ""
 
     try:
@@ -107,10 +116,14 @@ def guardar_imagen(archivo):
             archivo,
             folder="mercado_cln",
             public_id=f"{uuid.uuid4().hex}_{nombre_base}",
-            resource_type="image"
+            resource_type="image",
+            overwrite=False
         )
 
-        return resultado.get("secure_url", "")
+        url_imagen = resultado.get("secure_url", "").strip()
+        print("Imagen subida a Cloudinary:", url_imagen)
+        return url_imagen
+
     except Exception as e:
         print("Error subiendo imagen a Cloudinary:", e)
         return ""
@@ -172,10 +185,13 @@ def total_importe_carrito():
 
 def resolver_imagen(imagen):
     if not imagen:
-        return ""
+        return url_for("static", filename="logo.png")
+
     imagen = str(imagen).strip()
+
     if imagen.startswith("http://") or imagen.startswith("https://"):
         return imagen
+
     return url_for("static", filename=imagen)
 
 
