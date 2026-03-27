@@ -12,6 +12,7 @@ body{
     background:#f5f5f5;
 }
 
+/* HEADER */
 .header{
     background:#1976d2;
     color:white;
@@ -28,10 +29,12 @@ body{
     font-size:24px;
 }
 
+/* CONTENIDO */
 .container{
     padding:10px;
 }
 
+/* PRODUCTO */
 .card{
     background:white;
     border-radius:10px;
@@ -62,6 +65,7 @@ body{
     margin-top:4px;
 }
 
+/* BOTONES */
 .botones{
     display:flex;
     gap:6px;
@@ -79,6 +83,7 @@ body{
 .azul{ background:#1976d2; }
 .rojo{ background:#d32f2f; }
 
+/* RESUMEN */
 .resumen{
     background:white;
     padding:15px;
@@ -86,11 +91,18 @@ body{
     margin-top:10px;
 }
 
+.linea{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+}
+
 .total{
     font-size:22px;
     font-weight:bold;
 }
 
+/* BOTONES GRANDES */
 .btn-final{
     width:100%;
     padding:12px;
@@ -103,6 +115,14 @@ body{
 
 .verde{ background:#2ecc71; color:white; }
 .gris{ background:#ccc; }
+
+/* VACIO */
+.vacio{
+    text-align:center;
+    margin-top:50px;
+    font-size:18px;
+    color:#666;
+}
 </style>
 </head>
 <body>
@@ -114,49 +134,81 @@ body{
 
 <div class="container">
 
-{% for item in carrito %}
-<div class="card">
-    {% if item.foto %}
-        <img src="{{ resolver_imagen(item.foto) }}" alt="{{ item.nombre }}">
-    {% endif %}
+{% if carrito and carrito|length > 0 %}
 
-    <div class="info">
-        <div class="nombre">{{ item.nombre }}</div>
-        <div class="precio">${{ item.precio|int }}</div>
-        <div>Cantidad: {{ item.cantidad }}</div>
+    {% for item in carrito %}
+    <div class="card">
 
-        <div class="botones">
-            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                <input type="hidden" name="accion" value="restar">
-                <button class="btn azul" type="submit">-</button>
-            </form>
+        {% if item.foto %}
+            <img src="{{ resolver_imagen(item.foto) }}">
+        {% else %}
+            <img src="{{ url_for('static', filename='logo.png') }}">
+        {% endif %}
 
-            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                <input type="hidden" name="accion" value="sumar">
-                <button class="btn azul" type="submit">+</button>
-            </form>
+        <div class="info">
+            <div class="nombre">{{ item.nombre }}</div>
+            <div class="precio">${{ item.precio|int }}</div>
+            <div>Cantidad: {{ item.cantidad }}</div>
 
-            <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
-                <input type="hidden" name="accion" value="eliminar">
-                <button class="btn rojo" type="submit">Eliminar</button>
-            </form>
+            <div class="botones">
+
+                <!-- RESTAR -->
+                <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                    <input type="hidden" name="accion" value="restar">
+                    <button class="btn azul">-</button>
+                </form>
+
+                <!-- SUMAR -->
+                <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                    <input type="hidden" name="accion" value="sumar">
+                    <button class="btn azul">+</button>
+                </form>
+
+                <!-- ELIMINAR -->
+                <form action="{{ url_for('actualizar_carrito', indice=loop.index0) }}" method="POST">
+                    <input type="hidden" name="accion" value="eliminar">
+                    <button class="btn rojo">Eliminar</button>
+                </form>
+
+            </div>
         </div>
     </div>
+    {% endfor %}
+
+    <div class="resumen">
+
+        <div class="linea">
+            <span>Subtotal</span>
+            <span>${{ subtotal|int }}</span>
+        </div>
+
+        <div class="linea">
+            <span>Envío</span>
+            <span>$40</span>
+        </div>
+
+        <div class="linea total">
+            <span>Total</span>
+            <span>${{ (subtotal + 40)|int }}</span>
+        </div>
+
+        <a href="{{ url_for('datos_entrega') }}">
+            <button class="btn-final verde">Continuar pedido</button>
+        </a>
+
+        <form action="{{ url_for('vaciar_carrito') }}" method="POST">
+            <button class="btn-final gris">Vaciar carrito</button>
+        </form>
+
+    </div>
+
+{% else %}
+
+<div class="vacio">
+    Tu carrito está vacío
 </div>
-{% endfor %}
 
-<div class="resumen">
-    <div>Subtotal: ${{ subtotal|int }}</div>
-    <div class="total">Total: ${{ total|int }}</div>
-
-    <a href="{{ url_for('datos_entrega') }}">
-        <button class="btn-final verde" type="button">Continuar pedido</button>
-    </a>
-
-    <form action="{{ url_for('vaciar_carrito') }}" method="POST">
-        <button class="btn-final gris" type="submit">Vaciar carrito</button>
-    </form>
-</div>
+{% endif %}
 
 </div>
 
