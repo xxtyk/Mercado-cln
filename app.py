@@ -7,7 +7,8 @@ import cloudinary.uploader
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
+from pymongo.errors import PyMongoError
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -26,11 +27,29 @@ cloudinary.config(
 # MONGODB
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
-mongo_client = MongoClient(MONGO_URI) if MONGO_URI else None
-mongo_db = mongo_client["mercado_cln"] if mongo_client is not None else None
 
-productos_col = mongo_db["productos"] if mongo_db is not None else None
-categorias_col = mongo_db["categorias"] if mongo_db is not None else None
+mongo_client = None
+mongo_db = None
+productos_col = None
+categorias_col = None
+
+if MONGO_URI:
+    try:
+        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        mongo_client.admin.command("ping")
+        mongo_db = mongo_client["mercado_cln"]
+        productos_col = mongo_db["productos"]
+        categorias_col = mongo_db["categorias"]
+
+        productos_col.create_index("id", unique=True)
+        categorias_col.create_index("id", unique=True)
+        productos_col.create_index("categoria_id")
+    except Exception as e:
+        print("Error conectando MongoDB:", e)
+        mongo_client = None
+        mongo_db = None
+        productos_col = None
+        categorias_col = None
 
 # ------------------------
 # CONFIG
@@ -57,6 +76,10 @@ VENDEDORES = {
 # ------------------------
 # UTILIDADES
 # ------------------------
+def db_disponible():
+    return productos_col is not None and categorias_col is not None
+
+
 def extension_permitida(nombre_archivo):
     return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
 
@@ -77,7 +100,7 @@ def obtener_siguiente_id(coleccion):
     if coleccion is None:
         return 1
 
-    ultimo = coleccion.find_one(sort=[("id", -1)])
+    ultimo = coleccion.find_one({}, {"id": 1, "_id": 0}, sort=[("id", DESCENDING)])
     return int(ultimo.get("id", 0)) + 1 if ultimo else 1
 
 
@@ -123,7 +146,13 @@ def total_importe_carrito():
 
 
 def total_items_carrito():
-    return sum(int(i.get("cantidad", 0)) for i in obtener_carrito())
+    total = 0
+    for item in obtener_carrito():
+        try:
+            total += int(item.get("cantidad", 0))
+        except Exception:
+            pass
+    return total
 
 
 def calcular_totales(tipo_entrega="recoger"):
@@ -146,25 +175,45 @@ def ctx():
 def listar_categorias():
     if categorias_col is None:
         return []
-    return list(categorias_col.find({}, {"_id": 0}).sort("id", 1))
+
+    try:
+        return list(categorias_col.find({}, {"_id": 0}).sort("id", 1))
+    except Exception as e:
+        print("Error listando categorías:", e)
+        return []
 
 
 def listar_productos():
     if productos_col is None:
         return []
-    return list(productos_col.find({}, {"_id": 0}).sort("id", 1))
+
+    try:
+        return list(productos_col.find({}, {"_id": 0}).sort("id", 1))
+    except Exception as e:
+        print("Error listando productos:", e)
+        return []
 
 
 def obtener_categoria_por_id(categoria_id):
     if categorias_col is None:
         return None
-    return categorias_col.find_one({"id": int(categoria_id)}, {"_id": 0})
+
+    try:
+        return categorias_col.find_one({"id": int(categoria_id)}, {"_id": 0})
+    except Exception as e:
+        print("Error obteniendo categoría:", e)
+        return None
 
 
 def obtener_producto_por_id(producto_id):
     if productos_col is None:
         return None
-    return productos_col.find_one({"id": int(producto_id)}, {"_id": 0})
+
+    try:
+        return productos_col.find_one({"id": int(producto_id)}, {"_id": 0})
+    except Exception as e:
+        print("Error obteniendo producto:", e)
+        return None
 
 
 # ------------------------
@@ -189,7 +238,12 @@ def ver_categoria(categoria_id):
 
     productos = []
     if productos_col is not None:
-        productos = list(productos_col.find({"categoria_id": int(categoria_id)}, {"_id": 0}).sort("id", 1))
+        try:
+            productos = list(
+                productos_col.find({"categoria_id": int(categoria_id)}, {"_id": 0}).sort("id", 1)
+            )
+        except Exception as e:
+            print("Error listando productos de categoría:", e)
 
     return render_template("categoria.html", categoria=categoria, productos=productos)
 
@@ -417,13 +471,16 @@ def agregar_categoria():
     if not nombre:
         return redirect(url_for("admin"))
 
-    nueva = {
-        "id": obtener_siguiente_id(categorias_col),
-        "nombre": nombre,
-        "foto": guardar_imagen(foto)
-    }
+    try:
+        nueva = {
+            "id": obtener_siguiente_id(categorias_col),
+            "nombre": nombre,
+            "foto": guardar_imagen(foto)
+        }
+        categorias_col.insert_one(nueva)
+    except Exception as e:
+        print("Error agregando categoría:", e)
 
-    categorias_col.insert_one(nueva)
     return redirect(url_for("admin"))
 
 
@@ -449,8 +506,11 @@ def editar_categoria(categoria_id):
         if nueva_foto:
             cambios["foto"] = nueva_foto
 
-        if cambios:
-            categorias_col.update_one({"id": categoria_id}, {"$set": cambios})
+        try:
+            if cambios:
+                categorias_col.update_one({"id": categoria_id}, {"$set": cambios})
+        except Exception as e:
+            print("Error editando categoría:", e)
 
         return redirect(url_for("admin"))
 
@@ -462,8 +522,12 @@ def eliminar_categoria(categoria_id):
     if categorias_col is None or productos_col is None:
         return redirect(url_for("admin"))
 
-    categorias_col.delete_one({"id": categoria_id})
-    productos_col.delete_many({"categoria_id": categoria_id})
+    try:
+        categorias_col.delete_one({"id": categoria_id})
+        productos_col.delete_many({"categoria_id": categoria_id})
+    except Exception as e:
+        print("Error eliminando categoría:", e)
+
     return redirect(url_for("admin"))
 
 
@@ -485,17 +549,20 @@ def agregar_producto():
     if vendedor not in VENDEDORES:
         vendedor = "Mercado en Línea Culiacán"
 
-    nuevo = {
-        "id": obtener_siguiente_id(productos_col),
-        "nombre": nombre,
-        "precio": float(precio or 0),
-        "descripcion": descripcion,
-        "categoria_id": int(categoria_id),
-        "foto": guardar_imagen(foto),
-        "vendedor": vendedor
-    }
+    try:
+        nuevo = {
+            "id": obtener_siguiente_id(productos_col),
+            "nombre": nombre,
+            "precio": float(precio or 0),
+            "descripcion": descripcion,
+            "categoria_id": int(categoria_id),
+            "foto": guardar_imagen(foto),
+            "vendedor": vendedor
+        }
+        productos_col.insert_one(nuevo)
+    except Exception as e:
+        print("Error agregando producto:", e)
 
-    productos_col.insert_one(nuevo)
     return redirect(url_for("admin"))
 
 
@@ -546,7 +613,11 @@ def editar_producto(producto_id):
         if nueva_foto:
             cambios["foto"] = nueva_foto
 
-        productos_col.update_one({"id": producto_id}, {"$set": cambios})
+        try:
+            productos_col.update_one({"id": producto_id}, {"$set": cambios})
+        except Exception as e:
+            print("Error editando producto:", e)
+
         return redirect(url_for("admin"))
 
     return render_template(
@@ -562,7 +633,11 @@ def eliminar_producto(producto_id):
     if productos_col is None:
         return redirect(url_for("admin"))
 
-    productos_col.delete_one({"id": producto_id})
+    try:
+        productos_col.delete_one({"id": producto_id})
+    except Exception as e:
+        print("Error eliminando producto:", e)
+
     return redirect(url_for("admin"))
 
 
