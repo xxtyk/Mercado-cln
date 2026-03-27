@@ -150,6 +150,10 @@
         color:#666;
         margin-top:6px;
     }
+
+    .oculto{
+        display:none;
+    }
 </style>
 </head>
 <body>
@@ -197,11 +201,13 @@
                     <option value="recoger">Pasa a recoger a bodega</option>
                 </select>
 
-                <label for="direccion">Dirección</label>
-                <input type="text" id="direccion" name="direccion">
+                <div id="campos_domicilio">
+                    <label for="direccion">Dirección</label>
+                    <input type="text" id="direccion" name="direccion">
 
-                <label for="colonia">Colonia</label>
-                <input type="text" id="colonia" name="colonia">
+                    <label for="colonia">Colonia</label>
+                    <input type="text" id="colonia" name="colonia">
+                </div>
 
                 <label for="nota">Nota</label>
                 <textarea id="nota" name="nota" placeholder="Ejemplo: casa color blanco, tocar el timbre, sin cebolla, etc."></textarea>
@@ -219,23 +225,17 @@
 
                 <div class="resumen-linea">
                     <span>Subtotal</span>
-                    <span>${{ subtotal|int }}</span>
+                    <span>$<span id="subtotal_texto">{{ subtotal|int }}</span></span>
                 </div>
 
                 <div class="resumen-linea">
                     <span>Envío</span>
-                    <span>
-                        {% if costo_envio %}
-                            ${{ costo_envio|int }}
-                        {% else %}
-                            $0
-                        {% endif %}
-                    </span>
+                    <span>$<span id="envio_texto">40</span></span>
                 </div>
 
                 <div class="resumen-linea total">
                     <span>Total</span>
-                    <span>${{ total|int }}</span>
+                    <span>$<span id="total_texto">{{ (subtotal + 40)|int }}</span></span>
                 </div>
 
                 <button type="submit" class="btn-finalizar">Finalizar pedido</button>
@@ -244,6 +244,43 @@
 
     </div>
 </div>
+
+<script>
+    const COSTO_ENVIO = 40;
+    const subtotal = {{ subtotal|int }};
+
+    const tipoEntrega = document.getElementById("tipo_entrega");
+    const envioTexto = document.getElementById("envio_texto");
+    const totalTexto = document.getElementById("total_texto");
+    const camposDomicilio = document.getElementById("campos_domicilio");
+    const direccion = document.getElementById("direccion");
+    const colonia = document.getElementById("colonia");
+
+    function actualizarResumenEntrega() {
+        const tipo = tipoEntrega.value;
+        let envio = 0;
+
+        if (tipo === "domicilio") {
+            envio = COSTO_ENVIO;
+            camposDomicilio.classList.remove("oculto");
+            direccion.required = true;
+            colonia.required = true;
+        } else {
+            envio = 0;
+            camposDomicilio.classList.add("oculto");
+            direccion.required = false;
+            colonia.required = false;
+            direccion.value = "";
+            colonia.value = "";
+        }
+
+        envioTexto.textContent = envio;
+        totalTexto.textContent = subtotal + envio;
+    }
+
+    tipoEntrega.addEventListener("change", actualizarResumenEntrega);
+    actualizarResumenEntrega();
+</script>
 
 </body>
 </html>
