@@ -60,6 +60,7 @@ body{
     height:150px;
     object-fit:cover;
     display:block;
+    background:#e0e0e0;
 }
 
 .info{
@@ -93,21 +94,31 @@ button{
     cursor:pointer;
     font-size:16px;
 }
+
+.vacio{
+    text-align:center;
+    padding:40px 20px;
+    color:#555;
+    font-size:18px;
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-    <a href="{{ url_for('inicio') }}">←</a>
+    <a href="javascript:history.back()">←</a>
     <h1>{{ categoria.nombre }}</h1>
 </div>
 
+{% if productos and productos|length > 0 %}
 <div class="grid">
 {% for p in productos %}
     <div class="card">
 
         {% if p.foto %}
             <img src="{{ resolver_imagen(p.foto) }}" alt="{{ p.nombre }}">
+        {% else %}
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="{{ p.nombre }}">
         {% endif %}
 
         <div class="info">
@@ -116,7 +127,6 @@ button{
 
             <form action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
                 <input type="hidden" name="cantidad" value="1">
-                <input type="hidden" name="siguiente" value="carrito">
                 <button type="submit">Agregar</button>
             </form>
 
@@ -124,6 +134,11 @@ button{
     </div>
 {% endfor %}
 </div>
+{% else %}
+<div class="vacio">
+    No hay productos en esta categoría todavía.
+</div>
+{% endif %}
 
 </body>
 </html>
