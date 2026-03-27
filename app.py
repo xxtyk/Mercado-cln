@@ -8,7 +8,6 @@ import cloudinary.uploader
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient, DESCENDING
-from pymongo.errors import PyMongoError
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -17,9 +16,9 @@ app.secret_key = os.environ.get("SECRET_KEY", "12345")
 # CLOUDINARY
 # ------------------------
 cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "").strip(),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", "").strip(),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", "").strip(),
     secure=True
 )
 
@@ -44,12 +43,16 @@ if MONGO_URI:
         productos_col.create_index("id", unique=True)
         categorias_col.create_index("id", unique=True)
         productos_col.create_index("categoria_id")
+
+        print("✅ MongoDB conectado correctamente")
     except Exception as e:
-        print("Error conectando MongoDB:", e)
+        print("❌ Error conectando MongoDB:", e)
         mongo_client = None
         mongo_db = None
         productos_col = None
         categorias_col = None
+else:
+    print("❌ Falta MONGO_URI en variables de entorno")
 
 # ------------------------
 # CONFIG
@@ -81,7 +84,10 @@ def db_disponible():
 
 
 def extension_permitida(nombre_archivo):
-    return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
+    return (
+        "." in nombre_archivo
+        and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
+    )
 
 
 def resolver_imagen(imagen):
@@ -101,27 +107,44 @@ def obtener_siguiente_id(coleccion):
         return 1
 
     ultimo = coleccion.find_one({}, {"id": 1, "_id": 0}, sort=[("id", DESCENDING)])
-    return int(ultimo.get("id", 0)) + 1 if ultimo else 1
+    if not ultimo:
+        return 1
+
+    try:
+        return int(ultimo.get("id", 0)) + 1
+    except Exception:
+        return 1
 
 
 def guardar_imagen(archivo):
     if not archivo or archivo.filename == "":
+        print("⚠️ No se recibió archivo")
         return ""
 
     if not extension_permitida(archivo.filename):
+        print("⚠️ Extensión no permitida:", archivo.filename)
         return ""
 
     try:
         nombre_seguro = secure_filename(archivo.filename)
+
         resultado = cloudinary.uploader.upload(
             archivo,
             folder="mercado_cln",
             public_id=f"{uuid.uuid4().hex}_{nombre_seguro}",
             resource_type="image"
         )
-        return resultado.get("secure_url", "")
+
+        url_imagen = resultado.get("secure_url", "").strip()
+
+        if url_imagen:
+            print("✅ Imagen subida a Cloudinary:", url_imagen)
+        else:
+            print("⚠️ Cloudinary respondió sin secure_url")
+
+        return url_imagen
     except Exception as e:
-        print("Error Cloudinary:", e)
+        print("❌ Error Cloudinary:", e)
         return ""
 
 
@@ -179,7 +202,7 @@ def listar_categorias():
     try:
         return list(categorias_col.find({}, {"_id": 0}).sort("id", 1))
     except Exception as e:
-        print("Error listando categorías:", e)
+        print("❌ Error listando categorías:", e)
         return []
 
 
@@ -190,7 +213,7 @@ def listar_productos():
     try:
         return list(productos_col.find({}, {"_id": 0}).sort("id", 1))
     except Exception as e:
-        print("Error listando productos:", e)
+        print("❌ Error listando productos:", e)
         return []
 
 
@@ -201,7 +224,7 @@ def obtener_categoria_por_id(categoria_id):
     try:
         return categorias_col.find_one({"id": int(categoria_id)}, {"_id": 0})
     except Exception as e:
-        print("Error obteniendo categoría:", e)
+        print("❌ Error obteniendo categoría:", e)
         return None
 
 
@@ -212,7 +235,7 @@ def obtener_producto_por_id(producto_id):
     try:
         return productos_col.find_one({"id": int(producto_id)}, {"_id": 0})
     except Exception as e:
-        print("Error obteniendo producto:", e)
+        print("❌ Error obteniendo producto:", e)
         return None
 
 
@@ -243,7 +266,7 @@ def ver_categoria(categoria_id):
                 productos_col.find({"categoria_id": int(categoria_id)}, {"_id": 0}).sort("id", 1)
             )
         except Exception as e:
-            print("Error listando productos de categoría:", e)
+            print("❌ Error listando productos de categoría:", e)
 
     return render_template("categoria.html", categoria=categoria, productos=productos)
 
@@ -421,7 +444,7 @@ def finalizar_pedido():
 
     try:
         if not GREEN_API_INSTANCE or not GREEN_API_TOKEN or not GREEN_API_CHAT_ID:
-            print("Faltan variables de Green API")
+            print("❌ Faltan variables de Green API")
             return redirect(url_for("datos_entrega"))
 
         url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
@@ -442,7 +465,7 @@ def finalizar_pedido():
             return redirect(url_for("datos_entrega"))
 
     except Exception as e:
-        print("Error WhatsApp:", e)
+        print("❌ Error WhatsApp:", e)
         return redirect(url_for("datos_entrega"))
 
     session.pop("carrito", None)
@@ -463,6 +486,7 @@ def admin():
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
     if categorias_col is None:
+        print("❌ Mongo no disponible para agregar categoría")
         return redirect(url_for("admin"))
 
     nombre = request.form.get("nombre", "").strip()
@@ -478,8 +502,9 @@ def agregar_categoria():
             "foto": guardar_imagen(foto)
         }
         categorias_col.insert_one(nueva)
+        print("✅ Categoría agregada:", nombre)
     except Exception as e:
-        print("Error agregando categoría:", e)
+        print("❌ Error agregando categoría:", e)
 
     return redirect(url_for("admin"))
 
@@ -509,8 +534,9 @@ def editar_categoria(categoria_id):
         try:
             if cambios:
                 categorias_col.update_one({"id": categoria_id}, {"$set": cambios})
+                print("✅ Categoría editada:", categoria_id)
         except Exception as e:
-            print("Error editando categoría:", e)
+            print("❌ Error editando categoría:", e)
 
         return redirect(url_for("admin"))
 
@@ -525,8 +551,9 @@ def eliminar_categoria(categoria_id):
     try:
         categorias_col.delete_one({"id": categoria_id})
         productos_col.delete_many({"categoria_id": categoria_id})
+        print("✅ Categoría eliminada:", categoria_id)
     except Exception as e:
-        print("Error eliminando categoría:", e)
+        print("❌ Error eliminando categoría:", e)
 
     return redirect(url_for("admin"))
 
@@ -534,6 +561,7 @@ def eliminar_categoria(categoria_id):
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
     if productos_col is None:
+        print("❌ Mongo no disponible para agregar producto")
         return redirect(url_for("admin"))
 
     nombre = request.form.get("nombre", "").strip()
@@ -544,24 +572,29 @@ def agregar_producto():
     foto = request.files.get("foto_producto")
 
     if not nombre or not categoria_id:
+        print("❌ Faltan nombre o categoria_id")
         return redirect(url_for("admin"))
 
     if vendedor not in VENDEDORES:
         vendedor = "Mercado en Línea Culiacán"
 
     try:
+        url_foto = guardar_imagen(foto)
+
         nuevo = {
             "id": obtener_siguiente_id(productos_col),
             "nombre": nombre,
             "precio": float(precio or 0),
             "descripcion": descripcion,
             "categoria_id": int(categoria_id),
-            "foto": guardar_imagen(foto),
+            "foto": url_foto,
             "vendedor": vendedor
         }
+
         productos_col.insert_one(nuevo)
+        print("✅ Producto agregado:", nuevo)
     except Exception as e:
-        print("Error agregando producto:", e)
+        print("❌ Error agregando producto:", e)
 
     return redirect(url_for("admin"))
 
@@ -615,8 +648,9 @@ def editar_producto(producto_id):
 
         try:
             productos_col.update_one({"id": producto_id}, {"$set": cambios})
+            print("✅ Producto editado:", producto_id)
         except Exception as e:
-            print("Error editando producto:", e)
+            print("❌ Error editando producto:", e)
 
         return redirect(url_for("admin"))
 
@@ -635,8 +669,9 @@ def eliminar_producto(producto_id):
 
     try:
         productos_col.delete_one({"id": producto_id})
+        print("✅ Producto eliminado:", producto_id)
     except Exception as e:
-        print("Error eliminando producto:", e)
+        print("❌ Error eliminando producto:", e)
 
     return redirect(url_for("admin"))
 
