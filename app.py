@@ -27,10 +27,10 @@ cloudinary.config(
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 mongo_client = MongoClient(MONGO_URI) if MONGO_URI else None
-mongo_db = mongo_client["mercado_cln"] if mongo_client else None
+mongo_db = mongo_client["mercado_cln"] if mongo_client is not None else None
 
-productos_col = mongo_db["productos"] if mongo_db else None
-categorias_col = mongo_db["categorias"] if mongo_db else None
+productos_col = mongo_db["productos"] if mongo_db is not None else None
+categorias_col = mongo_db["categorias"] if mongo_db is not None else None
 
 # ------------------------
 # CONFIG
