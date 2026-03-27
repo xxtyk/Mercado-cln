@@ -30,7 +30,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
 COSTO_ENVIO = 40
 
-GREEN_API_URL = os.environ.get("GREEN_API_URL", "").strip()
 GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
 GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
 GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
@@ -160,7 +159,9 @@ def normalizar_precio(valor):
 
 def obtener_carrito():
     carrito = session.get("carrito", [])
-    return carrito if isinstance(carrito, list) else []
+    if not isinstance(carrito, list):
+        return []
+    return carrito
 
 
 def guardar_carrito(carrito):
@@ -340,27 +341,19 @@ def actualizar_carrito(indice):
         elif accion == "eliminar":
             carrito.pop(indice)
 
-        else:
-            cantidad = request.form.get("cantidad", "1")
-            descripcion = request.form.get("descripcion", "").strip()
+    if len(carrito) == 0:
+        session.pop("carrito", None)
+    else:
+        session["carrito"] = carrito
 
-            try:
-                cantidad = int(cantidad)
-                if cantidad <= 0:
-                    carrito.pop(indice)
-                else:
-                    carrito[indice]["cantidad"] = cantidad
-                    carrito[indice]["descripcion"] = descripcion
-            except Exception:
-                pass
-
-    guardar_carrito(carrito)
+    session.modified = True
     return redirect(url_for("ver_carrito"))
 
 
 @app.route("/vaciar_carrito", methods=["POST"])
 def vaciar_carrito():
-    guardar_carrito([])
+    session.pop("carrito", None)
+    session.modified = True
     return redirect(url_for("ver_carrito"))
 
 
@@ -419,12 +412,18 @@ def finalizar_pedido():
     mensaje.append("")
     mensaje.append(f"👤 *Nombre:* {nombre}")
     mensaje.append(f"📞 *Teléfono:* {telefono}")
-    mensaje.append(f"📍 *Dirección:* {direccion}")
-    mensaje.append(f"🏘️ *Colonia:* {colonia}")
-    if nota:
-        mensaje.append(f"📝 *Nota:* {nota}")
     mensaje.append(f"🚚 *Entrega:* {texto_entrega}")
     mensaje.append(f"👨‍💼 *Vendedor:* {vendedor}")
+
+    if direccion:
+        mensaje.append(f"📍 *Dirección:* {direccion}")
+
+    if colonia:
+        mensaje.append(f"🏘️ *Colonia:* {colonia}")
+
+    if nota:
+        mensaje.append(f"📝 *Nota:* {nota}")
+
     mensaje.append("")
     mensaje.append("*Productos:*")
 
@@ -435,34 +434,46 @@ def finalizar_pedido():
         descripcion = item.get("descripcion", "").strip()
         importe = precio * cantidad
 
-        linea = f"- {cantidad} x {nombre_producto} - ${int(importe)}"
+        linea = f"• {cantidad} x {nombre_producto} - ${int(importe)}"
         if descripcion:
             linea += f" ({descripcion})"
         mensaje.append(linea)
 
     mensaje.append("")
     mensaje.append(f"Subtotal: ${int(subtotal)}")
-    if costo_envio > 0:
-        mensaje.append(f"Envío: ${int(costo_envio)}")
+    mensaje.append(f"Envío: ${int(costo_envio)}")
     mensaje.append(f"Total: ${int(total)}")
 
     texto = "\n".join(mensaje)
 
     try:
-        url = f"{GREEN_API_URL.rstrip('/')}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+        instance_id = os.environ.get("GREEN_API_INSTANCE", "").strip()
+        api_token = os.environ.get("GREEN_API_TOKEN", "").strip()
+        chat_id = os.environ.get("GREEN_API_CHAT_ID", "").strip()
+
+        if not instance_id or not api_token or not chat_id:
+            print("Faltan variables de Green API")
+            return redirect(url_for("datos_entrega"))
+
+        url = f"https://api.green-api.com/waInstance{instance_id}/sendMessage/{api_token}"
 
         payload = {
-            "chatId": GREEN_API_CHAT_ID,
+            "chatId": chat_id,
             "message": texto
         }
 
         response = requests.post(url, json=payload, timeout=30)
         print("Green API:", response.status_code, response.text)
 
+        if response.status_code not in [200, 201]:
+            return redirect(url_for("datos_entrega"))
+
     except Exception as e:
         print("Error enviando a Green API:", e)
+        return redirect(url_for("datos_entrega"))
 
-    guardar_carrito([])
+    session.pop("carrito", None)
+    session.modified = True
     return redirect(url_for("inicio"))
 
 
