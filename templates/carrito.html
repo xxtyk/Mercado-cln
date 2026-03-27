@@ -108,7 +108,7 @@ body{
 <body>
 
 <div class="header">
-    <a href="{{ url_for('inicio') }}">←</a>
+    <a href="javascript:history.back()">←</a>
     Carrito
 </div>
 
@@ -147,7 +147,7 @@ body{
 
 <div class="resumen">
     <div>Subtotal: ${{ subtotal|int }}</div>
-    <div class="total">Total: ${{ subtotal|int }}</div>
+    <div class="total">Total: ${{ total|int }}</div>
 
     <a href="{{ url_for('datos_entrega') }}">
         <button class="btn-final verde" type="button">Continuar pedido</button>
