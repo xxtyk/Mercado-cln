@@ -12,8 +12,9 @@
 
     body{
         margin:0;
-        font-family:Arial, sans-serif;
-        background:#ffffff;
+        font-family:Arial,sans-serif;
+        background:#000;
+        color:white;
     }
 
     .pantalla-inicio{
@@ -24,7 +25,7 @@
         justify-content:center;
         padding:24px;
         text-align:center;
-        background:linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+        background:#000;
     }
 
     .logo-wrap{
@@ -32,52 +33,42 @@
         display:flex;
         justify-content:center;
         align-items:center;
-        margin-bottom:24px;
+        margin-bottom:28px;
     }
 
     .logo-wrap img{
-        width:260px;
-        max-width:85vw;
+        width:320px;
+        max-width:88vw;
         height:auto;
         display:block;
         object-fit:contain;
     }
 
-    .titulo{
-        font-size:28px;
-        font-weight:bold;
-        color:#1976d2;
-        margin-bottom:14px;
-    }
-
     .texto{
-        font-size:18px;
-        color:#222;
-        margin-bottom:20px;
-        line-height:1.4;
+        font-size:24px;
+        color:white;
+        margin-bottom:28px;
+        line-height:1.5;
+        max-width:520px;
     }
 
     .btn{
         display:inline-block;
-        background:#25d366;
+        width:100%;
+        max-width:420px;
+        background:#1f49b6;
         color:white;
         text-decoration:none;
-        padding:14px 22px;
-        border-radius:12px;
-        font-size:17px;
+        padding:18px 22px;
+        border-radius:22px;
+        font-size:18px;
         font-weight:bold;
-        margin-bottom:14px;
+        margin-bottom:22px;
     }
 
-    .btn-secundario{
-        display:inline-block;
-        background:#1976d2;
-        color:white;
-        text-decoration:none;
-        padding:14px 22px;
-        border-radius:12px;
-        font-size:17px;
-        font-weight:bold;
+    .contador{
+        font-size:18px;
+        color:#d9d9d9;
     }
 </style>
 </head>
@@ -88,16 +79,40 @@
         <img src="{{ url_for('static', filename='logo.png') }}" alt="Mercado en Línea Culiacán">
     </div>
 
-    <div class="titulo">Mercado en Línea Culiacán</div>
-
     <div class="texto">
-        Descarga la aplicación para hacer tu pedido más rápido
+        ¿Quieres descargar la aplicación<br>
+        para hacer tu pedido más rápido?
     </div>
 
-    <a href="#" class="btn">Descargar aquí la aplicación</a>
+    <a href="#" class="btn">Descargar aplicación</a>
 
-    <a href="{{ url_for('catalogo') }}" class="btn-secundario">Entrar a la tienda</a>
+    <div class="contador">
+        Entrando a categorías en <span id="contador">5</span> segundos...
+    </div>
 </div>
+
+<script>
+    let segundos = 5;
+
+    function actualizarContador() {
+        const contador = document.getElementById("contador");
+        if (contador) {
+            contador.textContent = segundos;
+        }
+
+        if (segundos <= 0) {
+            window.location.href = "{{ url_for('catalogo') }}";
+            return;
+        }
+
+        segundos--;
+        setTimeout(actualizarContador, 1000);
+    }
+
+    window.onload = function () {
+        actualizarContador();
+    };
+</script>
 
 </body>
 </html>
