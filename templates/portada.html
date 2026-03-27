@@ -1,147 +1,103 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado en Línea Culiacán</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado en Línea Culiacán</title>
 
-    <meta name="theme-color" content="#000000">
-    <meta name="description" content="Haz tu pedido más rápido desde Mercado en Línea Culiacán.">
-    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+<style>
+    *{
+        box-sizing:border-box;
+    }
 
-    <style>
-        *{
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-        }
+    body{
+        margin:0;
+        font-family:Arial, sans-serif;
+        background:#ffffff;
+    }
 
-        body{
-            font-family: Arial, sans-serif;
-            background:#000;
-            min-height:100vh;
-            overflow:hidden;
-        }
+    .pantalla-inicio{
+        min-height:100vh;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        padding:24px;
+        text-align:center;
+        background:linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%);
+    }
 
-        .pantalla{
-            width:100%;
-            min-height:100vh;
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-            align-items:center;
-            text-align:center;
-            padding:30px 20px;
-            background:#000;
-        }
+    .logo-wrap{
+        width:100%;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        margin-bottom:24px;
+    }
 
-        .logo{
-            width:220px;
-            max-width:85%;
-            margin-bottom:24px;
-            animation:latido 1.4s infinite;
-            object-fit:contain;
-        }
+    .logo-wrap img{
+        width:260px;
+        max-width:85vw;
+        height:auto;
+        display:block;
+        object-fit:contain;
+    }
 
-        .mensaje{
-            font-size:22px;
-            color:#ffffff;
-            line-height:1.5;
-            margin-bottom:24px;
-            max-width:340px;
-        }
+    .titulo{
+        font-size:28px;
+        font-weight:bold;
+        color:#1976d2;
+        margin-bottom:14px;
+    }
 
-        .boton{
-            display:inline-block;
-            background:#153ea8;
-            color:#fff;
-            text-decoration:none;
-            padding:15px 24px;
-            border-radius:14px;
-            font-size:18px;
-            font-weight:bold;
-            box-shadow:0 4px 14px rgba(0,0,0,0.35);
-            border:none;
-            cursor:pointer;
-            min-width:280px;
-        }
+    .texto{
+        font-size:18px;
+        color:#222;
+        margin-bottom:20px;
+        line-height:1.4;
+    }
 
-        .contador{
-            margin-top:18px;
-            color:#cfcfcf;
-            font-size:15px;
-        }
+    .btn{
+        display:inline-block;
+        background:#25d366;
+        color:white;
+        text-decoration:none;
+        padding:14px 22px;
+        border-radius:12px;
+        font-size:17px;
+        font-weight:bold;
+        margin-bottom:14px;
+    }
 
-        @keyframes latido{
-            0%{transform:scale(1);}
-            50%{transform:scale(1.05);}
-            100%{transform:scale(1);}
-        }
-    </style>
+    .btn-secundario{
+        display:inline-block;
+        background:#1976d2;
+        color:white;
+        text-decoration:none;
+        padding:14px 22px;
+        border-radius:12px;
+        font-size:17px;
+        font-weight:bold;
+    }
+</style>
 </head>
 <body>
 
-<div class="pantalla">
-    <img class="logo" src="{{ url_for('static', filename='logo.png') }}" alt="Logo Mercado en Línea Culiacán">
-
-    <div class="mensaje">
-        ¿Quieres descargar la aplicación para hacer tu pedido más rápido?
+<div class="pantalla-inicio">
+    <div class="logo-wrap">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Mercado en Línea Culiacán">
     </div>
 
-    <button id="btnInstalar" class="boton">
-        Descargar aplicación
-    </button>
+    <div class="titulo">Mercado en Línea Culiacán</div>
 
-    <div class="contador" id="contador">
-        Entrando a categorías en 10 segundos...
+    <div class="texto">
+        Descarga la aplicación para hacer tu pedido más rápido
     </div>
+
+    <a href="#" class="btn">Descargar aquí la aplicación</a>
+
+    <a href="{{ url_for('catalogo') }}" class="btn-secundario">Entrar a la tienda</a>
 </div>
-
-<script>
-    if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function() {
-            navigator.serviceWorker.register("/static/sw.js");
-        });
-    }
-
-    let deferredPrompt = null;
-    const btnInstalar = document.getElementById("btnInstalar");
-    const contador = document.getElementById("contador");
-
-    window.addEventListener("beforeinstallprompt", function(e) {
-        e.preventDefault();
-        deferredPrompt = e;
-    });
-
-    btnInstalar.addEventListener("click", async function() {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            return;
-        }
-
-        alert("Para instalarla, abre los 3 puntos del navegador y elige: Agregar a pantalla principal o Instalar aplicación.");
-    });
-
-    let segundos = 10;
-
-    const intervalo = setInterval(function() {
-        segundos--;
-        if (segundos > 0) {
-            contador.textContent = "Entrando a categorías en " + segundos + " segundos...";
-        } else {
-            clearInterval(intervalo);
-            contador.textContent = "Entrando...";
-        }
-    }, 1000);
-
-    setTimeout(function() {
-        window.location.href = "{{ url_for('catalogo') }}";
-    }, 10000);
-</script>
 
 </body>
 </html>
