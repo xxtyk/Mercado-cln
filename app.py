@@ -179,6 +179,19 @@ def resolver_imagen(imagen):
     return url_for("static", filename=imagen)
 
 
+def calcular_totales(tipo_entrega="recoger"):
+    subtotal = total_importe_carrito()
+    tipo = str(tipo_entrega).strip().lower()
+
+    if tipo == "domicilio":
+        costo_envio = COSTO_ENVIO
+    else:
+        costo_envio = 0
+
+    total = subtotal + costo_envio
+    return subtotal, costo_envio, total
+
+
 # ------------------------
 # CONTEXTO GLOBAL
 # ------------------------
@@ -249,12 +262,15 @@ def agregar_al_carrito(producto_id):
 
     item_existente = None
     for item in carrito:
-        if str(item.get("producto_id")) == str(producto_id) and item.get("descripcion", "") == descripcion:
+        if (
+            str(item.get("producto_id")) == str(producto_id)
+            and item.get("descripcion", "") == descripcion
+        ):
             item_existente = item
             break
 
     if item_existente:
-        item_existente["cantidad"] += cantidad
+        item_existente["cantidad"] = int(item_existente.get("cantidad", 0)) + cantidad
     else:
         carrito.append({
             "producto_id": producto.get("id"),
@@ -267,24 +283,24 @@ def agregar_al_carrito(producto_id):
 
     guardar_carrito(carrito)
 
-    siguiente = request.form.get("siguiente")
+    siguiente = request.form.get("siguiente", "").strip().lower()
     if siguiente == "carrito":
         return redirect(url_for("ver_carrito"))
 
-    return redirect(url_for("ver_categoria", categoria_id=producto.get("categoria_id")))
+    return redirect(request.referrer or url_for("ver_categoria", categoria_id=producto.get("categoria_id")))
 
 
 @app.route("/carrito")
 def ver_carrito():
     carrito = obtener_carrito()
-    subtotal = total_importe_carrito()
+    subtotal, costo_envio, total = calcular_totales("recoger")
 
     return render_template(
         "carrito.html",
         carrito=carrito,
         subtotal=subtotal,
-        costo_envio=0,
-        total=subtotal
+        costo_envio=costo_envio,
+        total=total
     )
 
 
@@ -335,20 +351,22 @@ def vaciar_carrito():
 # ------------------------
 # PEDIDO / GREEN API
 # ------------------------
-@app.route("/datos_entrega")
+@app.route("/datos_entrega", methods=["GET", "POST"])
 def datos_entrega():
     carrito = obtener_carrito()
     if not carrito:
         return redirect(url_for("ver_carrito"))
 
-    subtotal = total_importe_carrito()
+    tipo_entrega = request.values.get("tipo_entrega", "recoger").strip().lower()
+    subtotal, costo_envio, total = calcular_totales(tipo_entrega)
 
     return render_template(
         "datos_entrega.html",
         carrito=carrito,
         subtotal=subtotal,
-        costo_envio=0,
-        total=subtotal,
+        costo_envio=costo_envio,
+        total=total,
+        tipo_entrega=tipo_entrega,
         vendedores=VENDEDORES
     )
 
@@ -364,8 +382,11 @@ def finalizar_pedido():
     direccion = request.form.get("direccion", "").strip()
     colonia = request.form.get("colonia", "").strip()
     nota = request.form.get("nota", "").strip()
-    tipo_entrega = request.form.get("tipo_entrega", "").strip()
+    tipo_entrega = request.form.get("tipo_entrega", "recoger").strip().lower()
     vendedor = request.form.get("vendedor", "Mercado en Línea Culiacán").strip()
+
+    if vendedor not in VENDEDORES:
+        vendedor = "Mercado en Línea Culiacán"
 
     if tipo_entrega == "domicilio":
         costo_envio = COSTO_ENVIO
