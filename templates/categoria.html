@@ -43,6 +43,7 @@ body{
     grid-template-columns: repeat(2,1fr);
     gap:10px;
     padding:10px;
+    padding-bottom:100px;
 }
 
 /* CARD */
@@ -101,6 +102,34 @@ button{
     color:#555;
     font-size:18px;
 }
+
+/* CARRITO FLOTANTE */
+.carrito-fijo{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:12px;
+    background:#1976d2;
+    color:white;
+    text-decoration:none;
+    border-radius:14px;
+    padding:14px 16px;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:bold;
+    z-index:50;
+}
+
+.carrito-fijo .texto{
+    font-size:16px;
+}
+
+.carrito-fijo .total{
+    font-size:16px;
+    white-space:nowrap;
+}
 </style>
 </head>
 <body>
@@ -138,6 +167,13 @@ button{
 <div class="vacio">
     No hay productos en esta categoría todavía.
 </div>
+{% endif %}
+
+{% if carrito_cantidad_total > 0 %}
+<a href="{{ url_for('ver_carrito') }}" class="carrito-fijo">
+    <span class="texto">🛒 Ver carrito ({{ carrito_cantidad_total }})</span>
+    <span class="total">${{ carrito_importe_total|int }}</span>
+</a>
 {% endif %}
 
 </body>
