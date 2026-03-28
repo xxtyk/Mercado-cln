@@ -52,7 +52,7 @@ if MONGO_URI:
         categorias_col.create_index("id", unique=True)
         productos_col.create_index("categoria_id")
 
-        print("✅ MongoDB conectado correctamente")
+        print("✅ MONGO NUEVO - PRUEBA HECTOR")
 
     except Exception as e:
         print("❌ Error conectando MongoDB:", e)
@@ -277,9 +277,6 @@ def enviar_whatsapp_green_api(texto):
         return False
 
 
-# ------------------------
-# RUTAS
-# ------------------------
 @app.route("/")
 def inicio():
     categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
@@ -292,9 +289,6 @@ def categoria(id):
     return render_template("categoria.html", productos=productos)
 
 
-# ------------------------
-# ADMIN
-# ------------------------
 @app.route("/admin")
 def admin():
     categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
@@ -366,9 +360,6 @@ def agregar_producto():
     return redirect("/admin")
 
 
-# ------------------------
-# WHATSAPP
-# ------------------------
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
     texto = construir_mensaje_pedido()
@@ -380,8 +371,5 @@ def finalizar_pedido():
     return redirect("/")
 
 
-# ------------------------
-# RUN
-# ------------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
