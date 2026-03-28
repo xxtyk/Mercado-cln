@@ -6,7 +6,6 @@ import cloudinary
 import cloudinary.uploader
 
 from flask import Flask, render_template, request, redirect, url_for, session
-from werkzeug.utils import secure_filename
 from pymongo import MongoClient, DESCENDING
 
 app = Flask(__name__)
@@ -102,8 +101,180 @@ def guardar_imagen(archivo):
 
 
 def obtener_siguiente_id(coleccion):
+    if coleccion is None:
+        return 1
+
     ultimo = coleccion.find_one({}, {"id": 1}, sort=[("id", DESCENDING)])
     return int(ultimo.get("id", 0)) + 1 if ultimo else 1
+
+
+def convertir_float(valor, default=0):
+    try:
+        if valor is None or valor == "":
+            return float(default)
+        return float(valor)
+    except Exception:
+        return float(default)
+
+
+def obtener_carrito_desde_session():
+    carrito = session.get("carrito", [])
+
+    if isinstance(carrito, dict):
+        carrito = list(carrito.values())
+
+    if not isinstance(carrito, list):
+        carrito = []
+
+    return carrito
+
+
+def obtener_datos_entrega():
+    datos_session = session.get("datos_entrega", {})
+    if not isinstance(datos_session, dict):
+        datos_session = {}
+
+    datos = {
+        "nombre": (
+            request.form.get("nombre")
+            or datos_session.get("nombre")
+            or session.get("nombre_cliente")
+            or session.get("nombre")
+            or ""
+        ),
+        "telefono": (
+            request.form.get("telefono")
+            or datos_session.get("telefono")
+            or session.get("telefono_cliente")
+            or session.get("telefono")
+            or ""
+        ),
+        "direccion": (
+            request.form.get("direccion")
+            or datos_session.get("direccion")
+            or session.get("direccion")
+            or ""
+        ),
+        "colonia": (
+            request.form.get("colonia")
+            or datos_session.get("colonia")
+            or session.get("colonia")
+            or ""
+        ),
+        "referencia": (
+            request.form.get("referencia")
+            or datos_session.get("referencia")
+            or session.get("referencia")
+            or ""
+        ),
+        "metodo_pago": (
+            request.form.get("metodo_pago")
+            or datos_session.get("metodo_pago")
+            or session.get("metodo_pago")
+            or ""
+        ),
+        "tipo_entrega": (
+            request.form.get("tipo_entrega")
+            or datos_session.get("tipo_entrega")
+            or session.get("tipo_entrega")
+            or ""
+        ),
+        "comentarios": (
+            request.form.get("comentarios")
+            or datos_session.get("comentarios")
+            or session.get("comentarios")
+            or ""
+        ),
+    }
+
+    return datos
+
+
+def construir_mensaje_pedido():
+    carrito = obtener_carrito_desde_session()
+    datos = obtener_datos_entrega()
+
+    lineas = []
+    lineas.append("🛒 *NUEVO PEDIDO DESDE LA APP*")
+    lineas.append("")
+
+    if carrito:
+        lineas.append("*Productos:*")
+        subtotal = 0
+
+        for i, item in enumerate(carrito, start=1):
+            nombre = str(item.get("nombre", "Producto")).strip()
+            cantidad = int(item.get("cantidad", 1) or 1)
+            precio = convertir_float(item.get("precio", 0))
+            descripcion = str(item.get("descripcion", "") or "").strip()
+
+            total_item = precio * cantidad
+            subtotal += total_item
+
+            lineas.append(f"{i}. {nombre}")
+            lineas.append(f"   Cantidad: {cantidad}")
+            lineas.append(f"   Precio: ${precio:.2f}")
+            lineas.append(f"   Total: ${total_item:.2f}")
+
+            if descripcion:
+                lineas.append(f"   Nota: {descripcion}")
+
+        envio = 0
+        tipo_entrega = datos.get("tipo_entrega", "").lower()
+
+        if "domicilio" in tipo_entrega or "envio" in tipo_entrega:
+            envio = COSTO_ENVIO
+
+        total_general = subtotal + envio
+
+        lineas.append("")
+        lineas.append(f"*Subtotal:* ${subtotal:.2f}")
+        lineas.append(f"*Envío:* ${envio:.2f}")
+        lineas.append(f"*Total:* ${total_general:.2f}")
+    else:
+        lineas.append("No se encontraron productos en el carrito.")
+        lineas.append("")
+
+    lineas.append("")
+    lineas.append("*Datos de entrega:*")
+    lineas.append(f"Nombre: {datos.get('nombre', '') or 'No capturado'}")
+    lineas.append(f"Teléfono: {datos.get('telefono', '') or 'No capturado'}")
+    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega', '') or 'No capturado'}")
+    lineas.append(f"Dirección: {datos.get('direccion', '') or 'No capturada'}")
+    lineas.append(f"Colonia: {datos.get('colonia', '') or 'No capturada'}")
+    lineas.append(f"Referencia: {datos.get('referencia', '') or 'No capturada'}")
+    lineas.append(f"Método de pago: {datos.get('metodo_pago', '') or 'No capturado'}")
+
+    comentarios = datos.get("comentarios", "")
+    if comentarios:
+        lineas.append(f"Comentarios: {comentarios}")
+
+    return "\n".join(lineas)
+
+
+def enviar_whatsapp_green_api(texto):
+    if not GREEN_API_INSTANCE or not GREEN_API_TOKEN or not GREEN_API_CHAT_ID:
+        print("❌ Faltan variables de Green API")
+        return False
+
+    chat_id = GREEN_API_CHAT_ID.strip()
+    if not chat_id.endswith("@g.us") and not chat_id.endswith("@c.us"):
+        chat_id = f"{chat_id}@g.us"
+
+    url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+
+    payload = {
+        "chatId": chat_id,
+        "message": texto
+    }
+
+    try:
+        respuesta = requests.post(url, json=payload, timeout=30)
+        print("✅ Respuesta Green API:", respuesta.status_code, respuesta.text)
+        return respuesta.ok
+    except Exception as e:
+        print("❌ Error WhatsApp:", e)
+        return False
 
 
 # ------------------------
@@ -133,7 +304,11 @@ def admin():
 
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
-    nombre = request.form.get("nombre")
+    if categorias_col is None:
+        print("❌ No hay conexión con categorias_col")
+        return redirect("/admin")
+
+    nombre = (request.form.get("nombre") or "").strip()
     foto = request.files.get("foto_categoria")
 
     if not nombre:
@@ -150,10 +325,14 @@ def agregar_categoria():
 
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
-    nombre = request.form.get("nombre")
+    if productos_col is None:
+        print("❌ No hay conexión con productos_col")
+        return redirect("/admin")
+
+    nombre = (request.form.get("nombre") or "").strip()
     precio = request.form.get("precio")
     categoria_id = request.form.get("categoria_id")
-    descripcion = request.form.get("descripcion")
+    descripcion = (request.form.get("descripcion") or "").strip()
     foto = request.files.get("foto_producto")
 
     if not nombre or not categoria_id:
@@ -162,7 +341,7 @@ def agregar_producto():
     productos_col.insert_one({
         "id": obtener_siguiente_id(productos_col),
         "nombre": nombre,
-        "precio": float(precio),
+        "precio": convertir_float(precio, 0),
         "categoria_id": int(categoria_id),
         "descripcion": descripcion,
         "foto": guardar_imagen(foto)
@@ -176,19 +355,11 @@ def agregar_producto():
 # ------------------------
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
-    texto = "Nuevo pedido desde la app"
+    texto = construir_mensaje_pedido()
+    enviado = enviar_whatsapp_green_api(texto)
 
-    url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-
-    payload = {
-        "chatId": f"{GREEN_API_CHAT_ID}@g.us",
-        "message": texto
-    }
-
-    try:
-        requests.post(url, json=payload)
-    except Exception as e:
-        print("Error WhatsApp:", e)
+    if enviado:
+        session.pop("carrito", None)
 
     return redirect("/")
 
