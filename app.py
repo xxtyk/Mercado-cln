@@ -304,23 +304,39 @@ def admin():
 
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
-    if categorias_col is None:
-        print("❌ No hay conexión con categorias_col")
+    try:
+        if categorias_col is None:
+            print("❌ No hay conexión con categorias_col")
+            return redirect("/admin")
+
+        nombre = (request.form.get("nombre") or "").strip()
+        foto = request.files.get("foto_categoria")
+
+        print("📌 Nombre recibido:", nombre)
+        print("📌 Trae foto:", bool(foto and foto.filename))
+
+        if not nombre:
+            print("❌ Nombre vacío")
+            return redirect("/admin")
+
+        foto_url = guardar_imagen(foto) if foto and foto.filename else ""
+
+        nuevo_id = obtener_siguiente_id(categorias_col)
+        print("📌 Siguiente id:", nuevo_id)
+        print("📌 Foto URL:", foto_url)
+
+        categorias_col.insert_one({
+            "id": nuevo_id,
+            "nombre": nombre,
+            "foto": foto_url
+        })
+
+        print("✅ Categoría guardada correctamente")
         return redirect("/admin")
 
-    nombre = (request.form.get("nombre") or "").strip()
-    foto = request.files.get("foto_categoria")
-
-    if not nombre:
+    except Exception as e:
+        print("❌ Error en agregar_categoria:", e)
         return redirect("/admin")
-
-    categorias_col.insert_one({
-        "id": obtener_siguiente_id(categorias_col),
-        "nombre": nombre,
-        "foto": guardar_imagen(foto)
-    })
-
-    return redirect("/admin")
 
 
 @app.route("/agregar_producto", methods=["POST"])
