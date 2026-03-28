@@ -35,11 +35,7 @@ if MONGO_URI:
     try:
         mongo_client = MongoClient(
             MONGO_URI,
-            serverSelectionTimeoutMS=30000,
-            connectTimeoutMS=30000,
-            socketTimeoutMS=30000,
-            tls=True,
-            retryWrites=True
+            serverSelectionTimeoutMS=30000
         )
 
         mongo_client.admin.command("ping")
