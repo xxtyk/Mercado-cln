@@ -10,9 +10,13 @@
 <meta http-equiv="Expires" content="0">
 
 <style>
+*{
+    box-sizing:border-box;
+}
+
 body{
     margin:0;
-    font-family: Arial, sans-serif;
+    font-family:Arial, sans-serif;
     background:#f5f5f5;
 }
 
@@ -33,18 +37,23 @@ body{
     display:flex;
     align-items:center;
     gap:12px;
+    min-width:0;
 }
 
 .header a.volver{
     color:white;
     text-decoration:none;
     font-size:24px;
+    line-height:1;
 }
 
 .header h1{
     color:#fff;
     margin:0;
     font-size:18px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 .btn-siguiente{
@@ -55,12 +64,13 @@ body{
     border-radius:10px;
     font-size:14px;
     font-weight:bold;
+    white-space:nowrap;
 }
 
 /* GRID */
 .grid{
     display:grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns:repeat(2, 1fr);
     gap:10px;
     padding:10px;
     padding-bottom:110px;
@@ -69,17 +79,25 @@ body{
 /* CARD */
 .card{
     background:#fff;
-    border-radius:10px;
+    border-radius:12px;
     overflow:hidden;
     box-shadow:0 2px 8px rgba(0,0,0,0.12);
     display:flex;
     flex-direction:column;
 }
 
+.link-producto{
+    text-decoration:none;
+    color:inherit;
+    display:block;
+}
+
 .card img{
     width:100%;
     height:150px;
     object-fit:cover;
+    display:block;
+    background:#ececec;
 }
 
 .info{
@@ -89,12 +107,17 @@ body{
 .nombre{
     font-size:14px;
     font-weight:bold;
+    line-height:1.3;
+    min-height:36px;
+    margin-bottom:6px;
+    color:#111;
 }
 
 .precio{
     color:#2e7d32;
     font-weight:bold;
     font-size:16px;
+    margin-bottom:8px;
 }
 
 /* FORM */
@@ -114,6 +137,7 @@ body{
     color:white;
     border-radius:8px;
     font-size:20px;
+    font-weight:bold;
 }
 
 .cantidad-input{
@@ -122,6 +146,13 @@ body{
     text-align:center;
     border:1px solid #ccc;
     border-radius:8px;
+    font-size:16px;
+}
+
+.cantidad-input::-webkit-outer-spin-button,
+.cantidad-input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
 }
 
 /* BOTÓN */
@@ -133,6 +164,7 @@ body{
     color:white;
     border-radius:8px;
     font-weight:bold;
+    font-size:14px;
 }
 
 /* CARRITO */
@@ -149,6 +181,7 @@ body{
     display:flex;
     justify-content:space-between;
     font-weight:bold;
+    box-shadow:0 4px 14px rgba(0,0,0,0.18);
 }
 </style>
 </head>
@@ -168,24 +201,27 @@ body{
 {% for p in productos %}
 <div class="card">
 
-    <img src="{{ resolver_imagen(p.foto) if p.foto else url_for('static', filename='logo.png') }}">
+    <a href="{{ url_for('producto', id=p.id) }}" class="link-producto">
+        <img src="{{ resolver_imagen(p.foto) if p.foto else url_for('static', filename='logo.png') }}" alt="{{ p.nombre }}">
+    </a>
 
     <div class="info">
-        <div class="nombre">{{ p.nombre }}</div>
-        <div class="precio">${{ p.precio|int }}</div>
+        <a href="{{ url_for('producto', id=p.id) }}" class="link-producto">
+            <div class="nombre">{{ p.nombre }}</div>
+        </a>
 
-        <form action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
+        <div class="precio">${{ '%.2f'|format(p.precio or 0) }}</div>
 
+        <form action="{{ url_for('agregar_al_carrito', id=p.id) }}" method="POST">
             <div class="cantidad-box">
-                <button type="button" onclick="cambiarCantidad('c{{p.id}}', -1)">-</button>
+                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', -1)">-</button>
 
-                <input id="c{{p.id}}" type="number" name="cantidad" value="1" min="0">
+                <input id="c{{ p.id }}" class="cantidad-input" type="number" name="cantidad" value="1" min="1">
 
-                <button type="button" onclick="cambiarCantidad('c{{p.id}}', 1)">+</button>
+                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', 1)">+</button>
             </div>
 
             <button type="submit" class="btn-agregar">Agregar</button>
-
         </form>
     </div>
 </div>
@@ -194,19 +230,21 @@ body{
 
 {% if carrito_cantidad_total > 0 %}
 <a href="{{ url_for('ver_carrito') }}" class="carrito-fijo">
-<span>🛒 Siguiente ({{ carrito_cantidad_total }})</span>
-<span>${{ carrito_importe_total|int }}</span>
+    <span>🛒 Siguiente ({{ carrito_cantidad_total }})</span>
+    <span>${{ '%.2f'|format(carrito_importe_total) }}</span>
 </a>
 {% endif %}
 
 <script>
 function cambiarCantidad(id, cambio){
     const input = document.getElementById(id);
-    let valor = parseInt(input.value) || 0;
+    let valor = parseInt(input.value) || 1;
 
     valor += cambio;
 
-    if (valor < 0) valor = 0;
+    if (valor < 1){
+        valor = 1;
+    }
 
     input.value = valor;
 }
