@@ -1,7 +1,6 @@
 import os
 import uuid
 import requests
-import certifi
 
 import cloudinary
 import cloudinary.uploader
@@ -23,7 +22,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB (VERSIÓN DE COMPATIBILIDAD TOTAL)
+# MONGODB (CONEXIÓN FINAL DE FUERZA BRUTA)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -34,39 +33,35 @@ categorias_col = None
 
 if MONGO_URI:
     try:
-        # Simplificamos al máximo: permitimos certificados inválidos y quitamos certifi directo
-        # para que MongoDB use su propia lógica de conexión en la nube.
+        # Usamos los parámetros mínimos para que Render no se bloquee
         mongo_client = MongoClient(
             MONGO_URI,
-            tlsAllowInvalidCertificates=True, 
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=5000,
-            retryWrites=True
+            tls=True,
+            tlsAllowInvalidCertificates=True,
+            serverSelectionTimeoutMS=10000,
+            connectTimeoutMS=10000
         )
 
-        # Prueba de conexión rápida
+        # Prueba de fuego: Ping a la base de datos
         mongo_client.admin.command("ping")
 
-        # Conectamos a la base de datos
         mongo_db = mongo_client["mercado_cln"]
         productos_col = mongo_db["productos"]
         categorias_col = mongo_db["categorias"]
 
-        # Creamos índices si no existen
-        productos_col.create_index("id", unique=True)
-        categorias_col.create_index("id", unique=True)
-        productos_col.create_index("categoria_id")
+        # Índices automáticos
+        if productos_col is not None:
+            productos_col.create_index("id", unique=True)
+            productos_col.create_index("categoria_id")
+        if categorias_col is not None:
+            categorias_col.create_index("id", unique=True)
 
         print("✅ MONGO CONECTADO OK")
 
     except Exception as e:
-        print(f"❌ Error crítico en MongoDB: {e}")
-        mongo_client = None
-        mongo_db = None
-        productos_col = None
-        categorias_col = None
+        print(f"❌ Error final en MongoDB: {e}")
 else:
-    print("❌ Falta la variable MONGO_URI en el panel de Render")
+    print("❌ Falta la variable MONGO_URI en Render")
 
 # ------------------------
 # CONFIGURACIÓN GENERAL
