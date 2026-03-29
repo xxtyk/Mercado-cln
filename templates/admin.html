@@ -1,318 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de administración - Mercado CLN</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel - Mercado CLN</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f5f5f5;
+}
 
-        body {
-            margin: 0;
-            padding: 20px;
-            background: #f4f4f4;
-            font-family: Arial, sans-serif;
-        }
+.header{
+    background:#000;
+    color:#fff;
+    padding:15px;
+    text-align:center;
+    font-size:20px;
+}
 
-        .panel {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
+.contenedor{
+    padding:12px;
+}
 
-        .volver {
-            display: inline-block;
-            margin-bottom: 20px;
-            text-decoration: none;
-            color: white;
-            background: #3d3d3d;
-            padding: 14px 18px;
-            border-radius: 12px;
-            font-weight: bold;
-        }
+.card{
+    background:#fff;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 10px;
-        }
+.btn{
+    display:block;
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
 
-        h2 {
-            margin-top: 28px;
-            margin-bottom: 12px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-        }
+.whatsapp{
+    background:#25D366;
+    color:#fff;
+}
 
-        .bloque {
-            background: #fafafa;
-            border: 1px solid #e5e5e5;
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        input, select, button, textarea {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            border-radius: 10px;
-            border: 1px solid #cfcfcf;
-            font-size: 16px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 90px;
-        }
-
-        button {
-            background: black;
-            color: white;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .lista {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .item {
-            background: #fafafa;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 12px;
-        }
-
-        .mini-img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            display: block;
-            margin-top: 10px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-        }
-
-        .texto-suave {
-            color: #666;
-            font-size: 14px;
-            margin-top: 6px;
-        }
-
-        .ayuda {
-            font-size: 14px;
-            color: #666;
-            margin-top: 6px;
-        }
-
-        .fila-superior {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .acciones {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 14px;
-        }
-
-        .acciones form {
-            margin: 0;
-        }
-
-        .btn-accion,
-        .btn-link {
-            display: inline-block;
-            text-decoration: none;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            width: auto;
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .btn-editar {
-            background: #ff9800;
-            color: white;
-        }
-
-        .btn-categoria {
-            background: #1976d2;
-            color: white;
-        }
-
-        .btn-eliminar {
-            background: #d32f2f;
-            color: white;
-        }
-
-        .precio {
-            font-weight: bold;
-            color: #1976d2;
-            margin-top: 6px;
-        }
-
-        .categoria-txt {
-            margin-top: 4px;
-            color: #444;
-        }
-
-        @media (max-width: 520px) {
-            body {
-                padding: 10px;
-            }
-
-            .panel {
-                padding: 14px;
-            }
-
-            .acciones {
-                flex-direction: column;
-            }
-
-            .btn-accion,
-            .btn-link,
-            .acciones form {
-                width: 100%;
-            }
-
-            .acciones form button {
-                width: 100%;
-            }
-        }
-    </style>
+.vacio{
+    text-align:center;
+    padding:40px;
+    color:#777;
+}
+</style>
 </head>
+
 <body>
 
-<div class="panel">
-    <a href="{{ url_for('inicio') }}" class="volver">← Volver a la tienda</a>
+<div class="header">
+    📦 Pedidos nuevos
+</div>
 
-    <h1>Panel de administración</h1>
+<div class="contenedor">
 
-    <h2>1. Agregar nueva categoría</h2>
-    <div class="bloque">
-        <form action="{{ url_for('agregar_categoria') }}" method="POST" enctype="multipart/form-data">
-            <input type="text" name="nombre" placeholder="Ejemplo: Electrónica, Ropa, Hogar" required>
-            <input type="file" name="foto" accept="image/*">
-            <div class="ayuda">Aquí sí puedes subir la foto desde tu celular.</div>
-            <button type="submit">Guardar categoría</button>
+{% if pedidos %}
+    {% for p in pedidos %}
+    <div class="card">
+
+        <b>Cliente:</b> {{ p.nombre }}<br>
+        <b>Tel:</b> {{ p.telefono }}<br>
+        <b>Dirección:</b> {{ p.direccion }}<br><br>
+
+        <b>Pedido:</b><br>
+        <pre>{{ p.texto }}</pre>
+
+        <form method="POST" action="/enviar_pedido/{{ p._id }}">
+            <button class="btn whatsapp">
+                Enviar a WhatsApp y borrar
+            </button>
         </form>
+
     </div>
-
-    <h2>2. Agregar producto</h2>
-    <div class="bloque">
-        <form action="{{ url_for('agregar_producto') }}" method="POST" enctype="multipart/form-data">
-            <input type="text" name="nombre" placeholder="Nombre del producto" required>
-
-            <input type="number" step="0.01" name="precio" placeholder="Precio" required>
-
-            <select name="categoria_id" required>
-                <option value="">Selecciona una categoría</option>
-                {% for c in categorias %}
-                    <option value="{{ c.id }}">{{ c.nombre }}</option>
-                {% endfor %}
-            </select>
-
-            <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
-
-            <input type="file" name="foto_producto" accept="image/*">
-            <div class="ayuda">Sube la foto del producto desde tu celular.</div>
-
-            <button type="submit">Guardar producto</button>
-        </form>
+    {% endfor %}
+{% else %}
+    <div class="vacio">
+        No hay pedidos nuevos
     </div>
+{% endif %}
 
-    <h2>Categorías actuales</h2>
-    <ul class="lista">
-        {% for c in categorias %}
-        <li class="item">
-            <div class="fila-superior">
-                <div>
-                    <strong>{{ c.nombre }}</strong>
-                </div>
-            </div>
-
-            {% if c.imagen %}
-                <img src="{{ resolver_imagen(c.imagen) }}" class="mini-img" alt="{{ c.nombre }}">
-            {% elif c.foto %}
-                <img src="{{ resolver_imagen(c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
-            {% endif %}
-
-            <div class="acciones">
-                <a href="{{ url_for('editar_categoria', categoria_id=c.id) }}" class="btn-link btn-categoria">
-                    Editar categoría
-                </a>
-
-                <form action="{{ url_for('eliminar_categoria', categoria_id=c.id) }}" method="POST">
-                    <button type="submit" class="btn-accion btn-eliminar">Eliminar categoría</button>
-                </form>
-            </div>
-        </li>
-        {% else %}
-        <li class="item">No hay categorías registradas todavía.</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Productos actuales</h2>
-    <ul class="lista">
-        {% for p in productos %}
-        <li class="item">
-            <div class="fila-superior">
-                <div>
-                    <strong>{{ p.nombre }}</strong>
-
-                    <div class="precio">
-                        ${{ "%.2f"|format(p.precio|float) }}
-                    </div>
-
-                    <div class="categoria-txt">
-                        ID categoría: {{ p.categoria_id }}
-                    </div>
-                </div>
-            </div>
-
-            {% if p.descripcion %}
-                <div class="texto-suave">{{ p.descripcion }}</div>
-            {% endif %}
-
-            {% if p.foto %}
-                <img src="{{ resolver_imagen(p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
-            {% elif p.imagen %}
-                <img src="{{ resolver_imagen(p.imagen) }}" class="mini-img" alt="{{ p.nombre }}">
-            {% endif %}
-
-            <div class="acciones">
-                <a href="{{ url_for('editar_producto', producto_id=p.id) }}" class="btn-link btn-editar">
-                    Editar producto
-                </a>
-
-                <form action="{{ url_for('eliminar_producto', producto_id=p.id) }}" method="POST">
-                    <button type="submit" class="btn-accion btn-eliminar">Eliminar producto</button>
-                </form>
-            </div>
-        </li>
-        {% else %}
-        <li class="item">No hay productos registrados todavía.</li>
-        {% endfor %}
-    </ul>
 </div>
 
 </body>
