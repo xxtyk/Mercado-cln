@@ -3,138 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Mercado en Línea Culiacán</title>
 
 <style>
-    *{
-        box-sizing:border-box;
-    }
+body{
+    margin:0;
+    background:#000;
+    font-family:Arial, sans-serif;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    text-align:center;
+    color:white;
+}
 
-    body{
-        margin:0;
-        font-family:Arial,sans-serif;
-        background:#000;
-        color:white;
-    }
+/* LOGO */
+.logo{
+    width:160px;
+    margin-bottom:20px;
+    animation: zoom 1.5s ease;
+}
 
-    .pantalla-inicio{
-        min-height:100vh;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        padding:24px;
-        text-align:center;
-        background:#000;
-    }
+@keyframes zoom{
+    from{ transform:scale(0.5); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+}
 
-    .logo-wrap{
-        width:100%;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        margin-bottom:28px;
-    }
+/* TEXTO */
+.texto{
+    font-size:18px;
+    margin-bottom:25px;
+}
 
-    .logo-wrap img{
-        width:320px;
-        max-width:88vw;
-        height:auto;
-        display:block;
-        object-fit:contain;
-    }
+/* BOTÓN DESCARGA */
+.boton{
+    background:#1976d2;
+    color:white;
+    padding:14px 20px;
+    border-radius:12px;
+    text-decoration:none;
+    font-size:16px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
 
-    .texto{
-        font-size:24px;
-        color:white;
-        margin-bottom:28px;
-        line-height:1.5;
-        max-width:520px;
-    }
-
-    .btn{
-        display:inline-block;
-        width:100%;
-        max-width:420px;
-        background:#1f49b6;
-        color:white;
-        border:none;
-        padding:18px 22px;
-        border-radius:22px;
-        font-size:18px;
-        font-weight:bold;
-        margin-bottom:22px;
-        cursor:pointer;
-    }
-
-    .contador{
-        font-size:18px;
-        color:#d9d9d9;
-    }
+/* CONTADOR */
+.contador{
+    font-size:14px;
+    opacity:0.7;
+}
 </style>
 </head>
+
 <body>
 
-<div class="pantalla-inicio">
-    <div class="logo-wrap">
-        <img src="{{ url_for('static', filename='logo.png') }}" alt="Mercado en Línea Culiacán">
-    </div>
+<img src="{{ url_for('static', filename='logo.png') }}" class="logo">
 
-    <div class="texto">
-        ¿Quieres descargar la aplicación<br>
-        para hacer tu pedido más rápido?
-    </div>
+<div class="texto">
+Descarga la aplicación para pedidos más rápidos
+</div>
 
-    <button id="btnInstalar" class="btn">
-        Descargar aplicación
-    </button>
+<a href="#" id="btnInstalar" class="boton">
+📲 Descargar aplicación
+</a>
 
-    <div class="contador">
-        Entrando a categorías en <span id="contador">5</span> segundos...
-    </div>
+<div class="contador">
+Entrando en <span id="tiempo">5</span>...
 </div>
 
 <script>
 let deferredPrompt;
 
-// detectar instalación
+// detectar instalación PWA
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 });
 
 // botón instalar
-document.getElementById("btnInstalar").addEventListener("click", async () => {
+document.getElementById('btnInstalar').addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
-        deferredPrompt = null;
     } else {
-        alert("Abre el menú del navegador y selecciona 'Instalar aplicación'");
+        alert("Para instalar, usa el menú del navegador (Agregar a pantalla de inicio)");
     }
 });
 
-// contador automático
-let segundos = 5;
+// contador y redirección
+let tiempo = 5;
+const span = document.getElementById("tiempo");
 
-function actualizarContador() {
-    const contador = document.getElementById("contador");
-    if (contador) {
-        contador.textContent = segundos;
+const intervalo = setInterval(()=>{
+    tiempo--;
+    span.innerText = tiempo;
+
+    if(tiempo <= 0){
+        clearInterval(intervalo);
+        window.location.href = "/catalogo";
     }
-
-    if (segundos <= 0) {
-        window.location.href = "{{ url_for('inicio') }}";
-        return;
-    }
-
-    segundos--;
-    setTimeout(actualizarContador, 1000);
-}
-
-window.onload = function () {
-    actualizarContador();
-};
+},1000);
 </script>
 
 </body>
