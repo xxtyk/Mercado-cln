@@ -1,13 +1,13 @@
 import os
 import uuid
 import requests
-import certifi
+import psycopg2
+import psycopg2.extras
 
 import cloudinary
 import cloudinary.uploader
 
-from flask import Flask, render_template, request, redirect, url_for, session
-from pymongo import MongoClient, DESCENDING
+from flask import Flask, render_template, request, redirect, session
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -23,56 +23,58 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB
+# DATABASE
 # ------------------------
-MONGO_URI = os.environ.get("MONGO_URI", "").strip()
-
-mongo_client = None
-mongo_db = None
-productos_col = None
-categorias_col = None
-
-if MONGO_URI:
-    try:
-        mongo_client = MongoClient(
-            MONGO_URI,
-            tls=True,
-            tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=15000,
-            connectTimeoutMS=15000,
-            socketTimeoutMS=15000
-        )
-
-        mongo_client.admin.command("ping")
-
-        mongo_db = mongo_client["mercado_cln"]
-        productos_col = mongo_db["productos"]
-        categorias_col = mongo_db["categorias"]
-
-        print("✅ MONGO CONECTADO OK")
-
-    except Exception as e:
-        print("❌ Error conectando MongoDB:", str(e))
-        mongo_client = None
-        mongo_db = None
-        productos_col = None
-        categorias_col = None
-else:
-    print("❌ Falta MONGO_URI")
-
-# ------------------------
-# CONFIG
-# ------------------------
-EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
-COSTO_ENVIO = 40
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
 GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
 GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
 GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
 
-# ------------------------
-# UTILIDADES
-# ------------------------
+EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+COSTO_ENVIO = 40
+
+
+def get_conn():
+    return psycopg2.connect(DATABASE_URL)
+
+
+def init_db():
+    if not DATABASE_URL:
+        print("❌ Falta DATABASE_URL")
+        return
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS categorias (
+                id SERIAL PRIMARY KEY,
+                nombre TEXT NOT NULL,
+                foto TEXT DEFAULT ''
+            );
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS productos (
+                id SERIAL PRIMARY KEY,
+                nombre TEXT NOT NULL,
+                precio DOUBLE PRECISION NOT NULL DEFAULT 0,
+                categoria_id INTEGER NOT NULL REFERENCES categorias(id) ON DELETE CASCADE,
+                descripcion TEXT DEFAULT '',
+                foto TEXT DEFAULT ''
+            );
+        """)
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ POSTGRES CONECTADO OK")
+    except Exception as e:
+        print("❌ Error conectando PostgreSQL:", str(e))
+
+
 def extension_permitida(nombre_archivo):
     return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
 
@@ -88,7 +90,7 @@ def guardar_imagen(archivo):
         resultado = cloudinary.uploader.upload(
             archivo,
             folder="mercado_cln",
-            public_id=f"{uuid.uuid4().hex}",
+            public_id=uuid.uuid4().hex,
             resource_type="image"
         )
         return resultado.get("secure_url", "")
@@ -97,100 +99,172 @@ def guardar_imagen(archivo):
         return ""
 
 
-def obtener_siguiente_id(coleccion):
-    if coleccion is None:
-        return 1
-
-    ultimo = coleccion.find_one({}, {"id": 1}, sort=[("id", DESCENDING)])
-    return int(ultimo.get("id", 0)) + 1 if ultimo else 1
-
-
 def convertir_float(valor, default=0):
     try:
+        if valor is None or valor == "":
+            return float(default)
         return float(valor)
-    except:
+    except Exception:
         return float(default)
 
 
-# ------------------------
-# RUTAS
-# ------------------------
-@app.route("/")
-def inicio():
-    categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
-    return render_template("index.html", categorias=categorias)
+def obtener_categorias():
+    if not DATABASE_URL:
+        return []
 
-
-@app.route("/admin")
-def admin():
-    categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
-    productos = list(productos_col.find({}, {"_id": 0})) if productos_col else []
-    return render_template("admin.html", categorias=categorias, productos=productos)
-
-
-@app.route("/agregar_categoria", methods=["POST"])
-def agregar_categoria():
     try:
-        if categorias_col is None:
-            print("❌ Mongo no conectado")
-            return redirect("/admin")
-
-        nombre = request.form.get("nombre")
-        foto = request.files.get("foto")
-
-        if not nombre:
-            return redirect("/admin")
-
-        foto_url = guardar_imagen(foto) if foto else ""
-
-        categorias_col.insert_one({
-            "id": obtener_siguiente_id(categorias_col),
-            "nombre": nombre,
-            "foto": foto_url
-        })
-
-        print("✅ Categoría guardada")
-        return redirect("/admin")
-
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("SELECT id, nombre, foto FROM categorias ORDER BY id ASC;")
+        filas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return list(filas)
     except Exception as e:
-        print("❌ Error guardando categoría:", str(e))
-        return redirect("/admin")
+        print("❌ Error obteniendo categorías:", str(e))
+        return []
 
 
-@app.route("/agregar_producto", methods=["POST"])
-def agregar_producto():
+def obtener_productos():
+    if not DATABASE_URL:
+        return []
+
     try:
-        if productos_col is None:
-            print("❌ Mongo no conectado")
-            return redirect("/admin")
-
-        nombre = request.form.get("nombre")
-        precio = request.form.get("precio")
-        categoria_id = request.form.get("categoria_id")
-        descripcion = request.form.get("descripcion")
-        foto = request.files.get("foto_producto")
-
-        productos_col.insert_one({
-            "id": obtener_siguiente_id(productos_col),
-            "nombre": nombre,
-            "precio": convertir_float(precio),
-            "categoria_id": int(categoria_id),
-            "descripcion": descripcion,
-            "foto": guardar_imagen(foto)
-        })
-
-        print("✅ Producto guardado")
-        return redirect("/admin")
-
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT id, nombre, precio, categoria_id, descripcion, foto
+            FROM productos
+            ORDER BY id ASC;
+        """)
+        filas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return list(filas)
     except Exception as e:
-        print("❌ Error producto:", str(e))
-        return redirect("/admin")
+        print("❌ Error obteniendo productos:", str(e))
+        return []
 
 
-@app.route("/finalizar_pedido", methods=["POST"])
-def finalizar_pedido():
-    return redirect("/")
+def obtener_productos_por_categoria(categoria_id):
+    if not DATABASE_URL:
+        return []
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT id, nombre, precio, categoria_id, descripcion, foto
+            FROM productos
+            WHERE categoria_id = %s
+            ORDER BY id ASC;
+        """, (categoria_id,))
+        filas = cur.fetchall()
+        cur.close()
+        conn.close()
+        return list(filas)
+    except Exception as e:
+        print("❌ Error obteniendo productos por categoría:", str(e))
+        return []
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+def obtener_categoria(categoria_id):
+    if not DATABASE_URL:
+        return None
+
+    try:
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT id, nombre, foto
+            FROM categorias
+            WHERE id = %s;
+        """, (categoria_id,))
+        fila = cur.fetchone()
+        cur.close()
+        conn.close()
+        return fila
+    except Exception as e:
+        print("❌ Error obteniendo categoría:", str(e))
+        return None
+
+
+def obtener_carrito_desde_session():
+    carrito = session.get("carrito", [])
+    if isinstance(carrito, dict):
+        carrito = list(carrito.values())
+    if not isinstance(carrito, list):
+        carrito = []
+    return carrito
+
+
+def obtener_datos_entrega():
+    datos_session = session.get("datos_entrega", {})
+    if not isinstance(datos_session, dict):
+        datos_session = {}
+
+    return {
+        "nombre": request.form.get("nombre") or datos_session.get("nombre") or "",
+        "telefono": request.form.get("telefono") or datos_session.get("telefono") or "",
+        "direccion": request.form.get("direccion") or datos_session.get("direccion") or "",
+        "colonia": request.form.get("colonia") or datos_session.get("colonia") or "",
+        "referencia": request.form.get("referencia") or datos_session.get("referencia") or "",
+        "metodo_pago": request.form.get("metodo_pago") or datos_session.get("metodo_pago") or "",
+        "tipo_entrega": request.form.get("tipo_entrega") or datos_session.get("tipo_entrega") or "",
+        "comentarios": request.form.get("comentarios") or datos_session.get("comentarios") or "",
+    }
+
+
+def construir_mensaje_pedido():
+    carrito = obtener_carrito_desde_session()
+    datos = obtener_datos_entrega()
+
+    lineas = []
+    lineas.append("🛒 *NUEVO PEDIDO DESDE LA APP*")
+    lineas.append("")
+
+    if carrito:
+        lineas.append("*Productos:*")
+        subtotal = 0
+
+        for i, item in enumerate(carrito, start=1):
+            nombre = str(item.get("nombre", "Producto")).strip()
+            cantidad = int(item.get("cantidad", 1) or 1)
+            precio = convertir_float(item.get("precio", 0))
+            descripcion = str(item.get("descripcion", "") or "").strip()
+
+            total_item = precio * cantidad
+            subtotal += total_item
+
+            lineas.append(f"{i}. {nombre}")
+            lineas.append(f"   Cantidad: {cantidad}")
+            lineas.append(f"   Precio: ${precio:.2f}")
+            lineas.append(f"   Total: ${total_item:.2f}")
+
+            if descripcion:
+                lineas.append(f"   Nota: {descripcion}")
+
+        envio = 0
+        tipo_entrega = datos.get("tipo_entrega", "").lower()
+
+        if "domicilio" in tipo_entrega or "envio" in tipo_entrega:
+            envio = COSTO_ENVIO
+
+        total_general = subtotal + envio
+
+        lineas.append("")
+        lineas.append(f"*Subtotal:* ${subtotal:.2f}")
+        lineas.append(f"*Envío:* ${envio:.2f}")
+        lineas.append(f"*Total:* ${total_general:.2f}")
+    else:
+        lineas.append("No se encontraron productos en el carrito.")
+        lineas.append("")
+
+    lineas.append("")
+    lineas.append("*Datos de entrega:*")
+    lineas.append(f"Nombre: {datos.get('nombre', '') or 'No capturado'}")
+    lineas.append(f"Teléfono: {datos.get('telefono', '') or 'No capturado'}")
+    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega', '') or 'No capturado'}")
+    lineas.append(f"Dirección: {datos.get('direccion', '') or 'No capturada'}")
+    lineas.append(f"Colonia: {datos.get('colonia', '') or 'No capturada'}")
+    lineas
