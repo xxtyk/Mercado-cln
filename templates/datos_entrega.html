@@ -174,9 +174,6 @@
                 <div class="item-carrito">
                     <div class="nombre-item">
                         {{ item.cantidad }} x {{ item.nombre }}
-                        {% if item.descripcion %}
-                            <div class="texto-suave">{{ item.descripcion }}</div>
-                        {% endif %}
                     </div>
                     <div class="importe-item">
                         ${{ (item.precio * item.cantidad)|int }}
@@ -190,34 +187,43 @@
                 <div class="subtitulo">Datos de entrega</div>
 
                 <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" required>
+                <input type="text" id="nombre" name="nombre" value="{{ datos.nombre if datos else '' }}" required>
 
                 <label for="telefono">Teléfono</label>
-                <input type="tel" id="telefono" name="telefono" required>
+                <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono if datos else '' }}" required>
 
                 <label for="tipo_entrega">Tipo de entrega</label>
                 <select id="tipo_entrega" name="tipo_entrega" required>
-                    <option value="domicilio">Envío a domicilio</option>
-                    <option value="recoger">Pasa a recoger a bodega</option>
+                    <option value="domicilio" {% if datos and datos.tipo_entrega == 'domicilio' %}selected{% endif %}>Envío a domicilio</option>
+                    <option value="bodega" {% if datos and datos.tipo_entrega == 'bodega' %}selected{% endif %}>Recoger en bodega</option>
                 </select>
 
                 <div id="campos_domicilio">
                     <label for="direccion">Dirección</label>
-                    <input type="text" id="direccion" name="direccion">
+                    <input type="text" id="direccion" name="direccion" value="{{ datos.direccion if datos else '' }}">
 
                     <label for="colonia">Colonia</label>
-                    <input type="text" id="colonia" name="colonia">
+                    <input type="text" id="colonia" name="colonia" value="{{ datos.colonia if datos else '' }}">
+
+                    <label for="referencia">Referencia</label>
+                    <input type="text" id="referencia" name="referencia" value="{{ datos.referencia if datos else '' }}" placeholder="Casa color, entre calles, portón, etc.">
                 </div>
 
                 <label for="nota">Nota</label>
-                <textarea id="nota" name="nota" placeholder="Ejemplo: casa color blanco, tocar el timbre, sin cebolla, etc."></textarea>
+                <textarea id="nota" name="nota" placeholder="Ejemplo: casa color blanco, tocar el timbre, sin cebolla, etc.">{{ datos.nota if datos else '' }}</textarea>
 
                 <label for="vendedor">Vendedor</label>
                 <select id="vendedor" name="vendedor" required>
-                    {% for nombre_vendedor, telefono_vendedor in vendedores.items() %}
-                        <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                    {% for nombre_vendedor in vendedores %}
+                        <option value="{{ nombre_vendedor }}" {% if datos and datos.vendedor == nombre_vendedor %}selected{% endif %}>
+                            {{ nombre_vendedor }}
+                        </option>
                     {% endfor %}
                 </select>
+
+                <div class="texto-suave">
+                    Pagas solamente cuando te entreguen tu pedido, en efectivo o transferencia.
+                </div>
             </div>
 
             <div class="bloque">
