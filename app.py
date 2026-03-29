@@ -62,14 +62,16 @@ def init_db():
 init_db()
 
 # ------------------------
-# CONFIG
+# CONFIG (Aquí ya puse tus datos de Green API)
 # ------------------------
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
 COSTO_ENVIO = 40
 
-GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
-GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
-GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
+# TUS DATOS REALES DE GREEN API:
+GREEN_API_INSTANCE = "7107547964"
+GREEN_API_TOKEN = "1e6ec2470cfe4808a27cee392009c87bda99eaf03fa64a70b6"
+# RECUERDA: Cambia el ID de abajo por el de tu grupo cuando lo tengas
+GREEN_API_CHAT_ID = "120363321558514561@g.us" 
 
 # ------------------------
 # UTILIDADES
@@ -123,13 +125,13 @@ def carrito_total():
     return total
 
 # ------------------------
-# WHATSAPP
+# WHATSAPP (CONECTADO A GREEN API)
 # ------------------------
 def construir_mensaje():
     carrito = obtener_carrito()
     datos = session.get("datos_entrega", {})
 
-    texto = "🛒 *NUEVO PEDIDO*\n\n"
+    texto = "🛒 *NUEVO PEDIDO DE MERCADO EN LÍNEA*\n\n"
     total = 0
 
     for item in carrito:
@@ -141,9 +143,9 @@ def construir_mensaje():
     total += envio
 
     texto += f"\n💰 Total: ${total:.2f}\n\n"
-    texto += f"👤 {datos.get('nombre')}\n"
-    texto += f"📱 {datos.get('telefono')}\n"
-    texto += f"📍 {datos.get('direccion')}\n"
+    texto += f"👤 Cliente: {datos.get('nombre', 'N/A')}\n"
+    texto += f"📱 Tel: {datos.get('telefono', 'N/A')}\n"
+    texto += f"📍 Dir: {datos.get('direccion', 'N/A')}\n"
 
     return texto
 
@@ -154,10 +156,14 @@ def enviar_whatsapp(texto):
             "chatId": GREEN_API_CHAT_ID,
             "message": texto
         }
-        requests.post(url, json=payload)
-        print("✅ enviado a WhatsApp")
+        headers = {'Content-Type': 'application/json'}
+        r = requests.post(url, json=payload, headers=headers, timeout=10)
+        if r.status_code == 200:
+            print("✅ Enviado a WhatsApp correctamente")
+        else:
+            print(f"❌ Error API: {r.text}")
     except Exception as e:
-        print("❌ WhatsApp:", str(e))
+        print("❌ WhatsApp Error:", str(e))
 
 # ------------------------
 # RUTAS
@@ -191,17 +197,17 @@ def datos():
 # 🔥 FINALIZAR (AQUÍ ESTÁ LA CONEXIÓN)
 @app.route("/finalizar_pedido", methods=["GET","POST"])
 def finalizar():
-
     carrito = obtener_carrito()
     if not carrito:
         return redirect("/")
 
+    # Construye el mensaje completo
     texto = construir_mensaje()
 
-    # 🔥 ENVÍA A GREEN API
+    # 🔥 ENVÍA A GREEN API DIRECTO AL GRUPO
     enviar_whatsapp(texto)
 
-    # limpiar
+    # Limpiar carrito y datos después de enviar
     session.pop("carrito", None)
     session.pop("datos_entrega", None)
 
