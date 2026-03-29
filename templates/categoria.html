@@ -179,9 +179,11 @@ body{
     border-radius:14px;
     padding:14px 16px;
     display:flex;
-    justify-content:space-between;
+    justify-content:center;
+    align-items:center;
     font-weight:bold;
     box-shadow:0 4px 14px rgba(0,0,0,0.18);
+    text-align:center;
 }
 </style>
 </head>
@@ -230,8 +232,7 @@ body{
 
 {% if carrito_cantidad_total > 0 %}
 <a href="{{ url_for('ver_carrito') }}" class="carrito-fijo">
-    <span>🛒 Siguiente ({{ carrito_cantidad_total }})</span>
-    <span>${{ '%.2f'|format(carrito_importe_total) }}</span>
+    🛒 Siguiente ({{ carrito_cantidad_total }})
 </a>
 {% endif %}
 
