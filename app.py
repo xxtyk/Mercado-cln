@@ -130,6 +130,15 @@ def convertir_float(valor, default=0):
         return float(default)
 
 
+def convertir_int(valor, default=0):
+    try:
+        if valor is None or valor == "":
+            return int(default)
+        return int(valor)
+    except Exception:
+        return int(default)
+
+
 def resolver_imagen(url):
     if not url:
         return ""
@@ -176,12 +185,30 @@ def obtener_datos_entrega():
     return {
         "nombre": datos_session.get("nombre", ""),
         "telefono": datos_session.get("telefono", ""),
-        "vendedor": datos_session.get("vendedor", ""),
-        "tipo_entrega": datos_session.get("tipo_entrega", ""),
+        "vendedor": datos_session.get("vendedor", "Mercado en Línea Culiacán"),
+        "tipo_entrega": datos_session.get("tipo_entrega", "domicilio"),
         "direccion": datos_session.get("direccion", ""),
         "colonia": datos_session.get("colonia", ""),
         "referencia": datos_session.get("referencia", ""),
+        "nota": datos_session.get("nota", ""),
     }
+
+
+def guardar_datos_entrega_desde_formulario(formulario):
+    datos = {
+        "nombre": (formulario.get("nombre") or "").strip(),
+        "telefono": (formulario.get("telefono") or "").strip(),
+        "vendedor": (formulario.get("vendedor") or "Mercado en Línea Culiacán").strip(),
+        "tipo_entrega": (formulario.get("tipo_entrega") or "domicilio").strip(),
+        "direccion": (formulario.get("direccion") or "").strip(),
+        "colonia": (formulario.get("colonia") or "").strip(),
+        "referencia": (formulario.get("referencia") or "").strip(),
+        "nota": (formulario.get("nota") or "").strip(),
+    }
+
+    session["datos_entrega"] = datos
+    session.modified = True
+    return datos
 
 # ------------------------
 # WHATSAPP
@@ -201,9 +228,11 @@ def construir_mensaje_pedido():
 
         for i, item in enumerate(carrito, start=1):
             nombre = str(item.get("nombre", "Producto")).strip()
-            cantidad = int(item.get("cantidad", 1) or 1)
-            precio = convertir_float(item.get("precio", 0))
+            cantidad = convertir_int(item.get("cantidad", 1), 1)
+            if cantidad < 1:
+                cantidad = 1
 
+            precio = convertir_float(item.get("precio", 0))
             total_item = precio * cantidad
             subtotal += total_item
 
@@ -217,20 +246,23 @@ def construir_mensaje_pedido():
     envio = COSTO_ENVIO if datos.get("tipo_entrega") == "domicilio" else 0
     total_general = subtotal + envio
 
+    tipo_entrega_texto = "Entrega a domicilio" if datos.get("tipo_entrega") == "domicilio" else "Recoger en bodega"
+
     lineas.append("")
     lineas.append(f"*Subtotal:* ${subtotal:.2f}")
     lineas.append(f"*Envío:* ${envio:.2f}")
     lineas.append(f"*Total:* ${total_general:.2f}")
 
     lineas.append("")
-    lineas.append("*Datos de entrega:*")
+    lineas.append("*Datos del cliente:*")
     lineas.append(f"Nombre: {datos.get('nombre') or 'No capturado'}")
     lineas.append(f"Teléfono: {datos.get('telefono') or 'No capturado'}")
-    lineas.append(f"Vendedor: {datos.get('vendedor') or 'No capturado'}")
-    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega') or 'No capturado'}")
+    lineas.append(f"Vendedor: {datos.get('vendedor') or 'Mercado en Línea Culiacán'}")
+    lineas.append(f"Tipo de entrega: {tipo_entrega_texto}")
     lineas.append(f"Dirección: {datos.get('direccion') or 'No capturada'}")
     lineas.append(f"Colonia: {datos.get('colonia') or 'No capturada'}")
     lineas.append(f"Referencia: {datos.get('referencia') or 'No capturada'}")
+    lineas.append(f"Nota: {datos.get('nota') or 'Sin nota'}")
     lineas.append("")
     lineas.append("💵 Pago contra entrega. El cliente paga al momento que recibe su pedido.")
 
@@ -243,6 +275,7 @@ def enviar_whatsapp_green_api(texto):
         return False
 
     chat_id = GREEN_API_CHAT_ID.strip()
+
     if not chat_id.endswith("@g.us") and not chat_id.endswith("@c.us"):
         chat_id = f"{chat_id}@g.us"
 
@@ -374,12 +407,20 @@ def listar_productos_por_categoria(categoria_id):
 @app.route("/")
 def inicio():
     categorias = listar_categorias()
-    return render_template("index.html", categorias=categorias)
+    return render_template(
+        "index.html",
+        categorias=categorias,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
 
 
 @app.route("/categoria/<int:id>")
 def categoria(id):
     categoria_actual = obtener_categoria_por_id(id)
+    if not categoria_actual:
+        return redirect(url_for("inicio"))
+
     productos = listar_productos_por_categoria(id)
     return render_template(
         "categoria.html",
@@ -393,7 +434,7 @@ def categoria(id):
 @app.route("/agregar_al_carrito/<int:producto_id>", methods=["POST"])
 def agregar_al_carrito(producto_id):
     try:
-        cantidad = int(request.form.get("cantidad", 1))
+        cantidad = convertir_int(request.form.get("cantidad", 1), 1)
         if cantidad < 1:
             cantidad = 1
 
@@ -431,12 +472,18 @@ def agregar_al_carrito(producto_id):
 def ver_carrito():
     carrito = obtener_carrito()
     subtotal = carrito_importe_total()
-    return render_template("carrito.html", carrito=carrito, subtotal=subtotal)
+    return render_template(
+        "carrito.html",
+        carrito=carrito,
+        subtotal=subtotal,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
 
 
 @app.route("/carrito/actualizar/<int:producto_id>", methods=["POST"])
 def actualizar_carrito(producto_id):
-    accion = request.form.get("accion", "").strip()
+    accion = (request.form.get("accion") or "").strip()
     carrito = obtener_carrito()
 
     for item in carrito[:]:
@@ -446,7 +493,11 @@ def actualizar_carrito(producto_id):
             if accion == "sumar":
                 item["cantidad"] = cantidad_actual + 1
             elif accion == "restar":
-                item["cantidad"] = max(1, cantidad_actual - 1)
+                nueva = cantidad_actual - 1
+                if nueva <= 0:
+                    carrito.remove(item)
+                else:
+                    item["cantidad"] = nueva
             elif accion == "eliminar":
                 carrito.remove(item)
 
@@ -463,7 +514,7 @@ def vaciar_carrito():
     return redirect(url_for("ver_carrito"))
 
 
-@app.route("/datos_entrega", methods=["GET", "POST"])
+@app.route("/datos_entrega", methods=["GET"])
 def datos_entrega():
     carrito = obtener_carrito()
     subtotal = carrito_importe_total()
@@ -471,52 +522,36 @@ def datos_entrega():
     if not carrito:
         return redirect(url_for("inicio"))
 
-    if request.method == "POST":
-        session["datos_entrega"] = {
-            "nombre": (request.form.get("nombre") or "").strip(),
-            "telefono": (request.form.get("telefono") or "").strip(),
-            "vendedor": (request.form.get("vendedor") or "").strip(),
-            "tipo_entrega": (request.form.get("tipo_entrega") or "").strip(),
-            "direccion": (request.form.get("direccion") or "").strip(),
-            "colonia": (request.form.get("colonia") or "").strip(),
-            "referencia": (request.form.get("referencia") or "").strip(),
-        }
-        session.modified = True
-        return redirect(url_for("confirmar_pedido"))
-
-    datos = session.get("datos_entrega", {})
+    datos = obtener_datos_entrega()
     return render_template(
         "datos_entrega.html",
         subtotal=subtotal,
         datos=datos,
-        vendedores=VENDEDORES
+        vendedores=VENDEDORES,
+        carrito=carrito
     )
 
 
 @app.route("/confirmar_pedido")
 def confirmar_pedido():
-    carrito = obtener_carrito()
-    datos = session.get("datos_entrega", {})
-
-    if not carrito:
-        return redirect(url_for("inicio"))
-
-    subtotal = carrito_importe_total()
-    envio = COSTO_ENVIO if datos.get("tipo_entrega") == "domicilio" else 0
-    total = subtotal + envio
-
-    return render_template(
-        "confirmar_pedido.html",
-        carrito=carrito,
-        datos=datos,
-        subtotal=subtotal,
-        envio=envio,
-        total=total
-    )
+    return redirect(url_for("datos_entrega"))
 
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
+    carrito = obtener_carrito()
+
+    if not carrito:
+        return redirect(url_for("inicio"))
+
+    datos = guardar_datos_entrega_desde_formulario(request.form)
+
+    if not datos.get("nombre") or not datos.get("telefono"):
+        return redirect(url_for("datos_entrega"))
+
+    if datos.get("tipo_entrega") == "domicilio" and not datos.get("direccion"):
+        return redirect(url_for("datos_entrega"))
+
     texto = construir_mensaje_pedido()
     enviado = enviar_whatsapp_green_api(texto)
 
@@ -524,8 +559,9 @@ def finalizar_pedido():
         session.pop("carrito", None)
         session.pop("datos_entrega", None)
         session.modified = True
+        return redirect(url_for("inicio"))
 
-    return redirect(url_for("inicio"))
+    return redirect(url_for("datos_entrega"))
 
 # ------------------------
 # RUTAS ADMIN
@@ -575,9 +611,14 @@ def editar_categoria(categoria_id):
             nombre = (request.form.get("nombre") or "").strip()
             foto = request.files.get("foto")
 
+            if not nombre:
+                return redirect("/admin")
+
             nueva_foto = categoria.get("foto", "")
             if foto and foto.filename:
-                nueva_foto = guardar_imagen(foto)
+                subida = guardar_imagen(foto)
+                if subida:
+                    nueva_foto = subida
 
             with get_conn() as conexion:
                 with conexion.cursor() as cur:
@@ -658,9 +699,14 @@ def editar_producto(producto_id):
             descripcion = (request.form.get("descripcion") or "").strip()
             foto = request.files.get("foto_producto")
 
+            if not nombre or not categoria_id:
+                return redirect("/admin")
+
             nueva_foto = producto.get("foto", "")
             if foto and foto.filename:
-                nueva_foto = guardar_imagen(foto)
+                subida = guardar_imagen(foto)
+                if subida:
+                    nueva_foto = subida
 
             with get_conn() as conexion:
                 with conexion.cursor() as cur:
@@ -696,4 +742,5 @@ def eliminar_producto(producto_id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    puerto = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=puerto)
