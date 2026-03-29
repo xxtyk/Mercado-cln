@@ -212,11 +212,11 @@ body{
 
         <div class="precio">${{ '%.2f'|format(p.precio or 0) }}</div>
 
-        <form action="{{ url_for('agregar_al_carrito', id=p.id) }}" method="POST">
+        <form action="{{ url_for('agregar_al_carrito', id=p.id) }}" method="POST" onsubmit="return validarCantidad('c{{ p.id }}')">
             <div class="cantidad-box">
                 <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', -1)">-</button>
 
-                <input id="c{{ p.id }}" class="cantidad-input" type="number" name="cantidad" value="1" min="1">
+                <input id="c{{ p.id }}" class="cantidad-input" type="number" name="cantidad" value="1" min="0">
 
                 <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', 1)">+</button>
             </div>
@@ -238,15 +238,27 @@ body{
 <script>
 function cambiarCantidad(id, cambio){
     const input = document.getElementById(id);
-    let valor = parseInt(input.value) || 1;
+    let valor = parseInt(input.value) || 0;
 
     valor += cambio;
 
-    if (valor < 1){
-        valor = 1;
+    if (valor < 0){
+        valor = 0;
     }
 
     input.value = valor;
+}
+
+function validarCantidad(id){
+    const input = document.getElementById(id);
+    let valor = parseInt(input.value) || 0;
+
+    if (valor <= 0){
+        alert("Selecciona mínimo 1 pieza para agregar.");
+        return false;
+    }
+
+    return true;
 }
 </script>
 
