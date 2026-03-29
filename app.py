@@ -22,7 +22,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB (CONEXIÓN FINAL DE FUERZA BRUTA)
+# MONGODB (SOLUCIÓN DEFINITIVA RENDER)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -33,11 +33,14 @@ categorias_col = None
 
 if MONGO_URI:
     try:
-        # Usamos los parámetros mínimos para que Render no se bloquee
+        # Forzamos parámetros de conexión directa para saltar el error de TLS de Render
+        # Se recomienda usar la URL de conexión que no tiene el '+srv' en el panel de Render
         mongo_client = MongoClient(
             MONGO_URI,
+            connect=True,
             tls=True,
             tlsAllowInvalidCertificates=True,
+            retryWrites=False,
             serverSelectionTimeoutMS=10000,
             connectTimeoutMS=10000
         )
@@ -60,8 +63,9 @@ if MONGO_URI:
 
     except Exception as e:
         print(f"❌ Error final en MongoDB: {e}")
+        mongo_client = None
 else:
-    print("❌ Falta la variable MONGO_URI en Render")
+    print("❌ Falta la variable MONGO_URI en el panel de Render")
 
 # ------------------------
 # CONFIGURACIÓN GENERAL
