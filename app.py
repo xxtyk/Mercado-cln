@@ -23,7 +23,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB (CORREGIDO PARA RENDER)
+# MONGODB (AJUSTE FINAL PARA RENDER)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -34,18 +34,19 @@ categorias_col = None
 
 if MONGO_URI:
     try:
-        # Usamos certifi para el handshake SSL y bajamos los timeouts a 5s
+        # Forzamos la conexión ignorando errores de certificados locales de Render
         mongo_client = MongoClient(
             MONGO_URI,
             tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=5000
+            tlsAllowInvalidCertificates=True,  # <--- ESTO ES CLAVE
+            serverSelectionTimeoutMS=10000,
+            connectTimeoutMS=10000
         )
 
         # Prueba de conexión rápida
         mongo_client.admin.command("ping")
 
-        # Conectamos a la base de datos de "Mercado CLN"
+        # Conectamos a la base de datos
         mongo_db = mongo_client["mercado_cln"]
         productos_col = mongo_db["productos"]
         categorias_col = mongo_db["categorias"]
@@ -216,9 +217,8 @@ def finalizar_pedido():
     return redirect("/")
 
 # ------------------------
-# LANZAMIENTO (PUERTO DINÁMICO)
+# LANZAMIENTO
 # ------------------------
 if __name__ == "__main__":
-    # Render usa la variable PORT, si no existe usa 5000 por defecto
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
