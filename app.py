@@ -79,9 +79,9 @@ init_db()
 # ------------------------
 # GREEN API
 # ------------------------
-GREEN_API_INSTANCE = "7107547964"
-GREEN_API_TOKEN = "1e6ec2470cfe4808a27cee392009c87bda99eaf03fa64a70b6"
-GREEN_API_CHAT_ID = "120363321558514561@g.us"
+GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
+GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
+GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
 
 VENDEDORES = [
     "Mercado en Línea Culiacán",
@@ -96,16 +96,44 @@ VENDEDORES = [
 ]
 
 def enviar_whatsapp(texto):
+    if not GREEN_API_INSTANCE:
+        print("❌ Green API: falta GREEN_API_INSTANCE")
+        return False
+
+    if not GREEN_API_TOKEN:
+        print("❌ Green API: falta GREEN_API_TOKEN")
+        return False
+
+    if not GREEN_API_CHAT_ID:
+        print("❌ Green API: falta GREEN_API_CHAT_ID")
+        return False
+
+    url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+    payload = {
+        "chatId": GREEN_API_CHAT_ID,
+        "message": texto
+    }
+
     try:
-        url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-        payload = {
-            "chatId": GREEN_API_CHAT_ID,
-            "message": texto
-        }
-        requests.post(url, json=payload, timeout=15)
-        print("✅ enviado a WhatsApp")
+        respuesta = requests.post(url, json=payload, timeout=20)
+        print("📨 Green status:", respuesta.status_code)
+        print("📨 Green respuesta:", respuesta.text)
+
+        if respuesta.status_code == 200:
+            try:
+                data = respuesta.json()
+                if data.get("idMessage"):
+                    print("✅ enviado a WhatsApp")
+                    return True
+            except Exception:
+                pass
+
+        print("❌ Green API no confirmó envío")
+        return False
+
     except Exception as e:
         print("❌ WhatsApp:", str(e))
+        return False
 
 # ------------------------
 # UTILIDADES
@@ -237,18 +265,20 @@ def construir_mensaje():
     datos = session.get("datos_entrega", {})
 
     texto = "🛒 *NUEVO PEDIDO DE MERCADO EN LÍNEA*\n\n"
-    total = 0
+    subtotal = 0
 
     for item in carrito:
         sub = float(item["precio"]) * int(item["cantidad"])
-        total += sub
+        subtotal += sub
         texto += f"• {item['nombre']} x{item['cantidad']} = ${sub:.2f}\n"
 
-    tipo_entrega = datos.get("tipo_entrega", "domicilio")
+    tipo_entrega = (datos.get("tipo_entrega", "domicilio") or "domicilio").strip().lower()
     envio = 40 if tipo_entrega == "domicilio" else 0
-    total += envio
+    total = subtotal + envio
 
-    texto += f"\n💰 Total: ${total:.2f}\n\n"
+    texto += f"\n💰 Subtotal: ${subtotal:.2f}\n"
+    texto += f"🚚 Envío: ${envio:.2f}\n"
+    texto += f"✅ Total: ${total:.2f}\n\n"
     texto += f"👤 Cliente: {datos.get('nombre', '')}\n"
     texto += f"📱 Tel: {datos.get('telefono', '')}\n"
     texto += f"📍 Dir: {datos.get('direccion', '')}\n"
@@ -316,7 +346,11 @@ def agregar_al_carrito(id):
         return redirect(url_for("inicio"))
 
     carrito = obtener_carrito()
-    cantidad = int(request.form.get("cantidad", 1) or 1)
+
+    try:
+        cantidad = int(request.form.get("cantidad", 1) or 1)
+    except Exception:
+        cantidad = 1
 
     if cantidad < 1:
         cantidad = 1
@@ -419,14 +453,17 @@ def finalizar_pedido():
         return redirect(url_for("inicio"))
 
     texto = construir_mensaje()
-    enviar_whatsapp(texto)
+    enviado = enviar_whatsapp(texto)
 
-    session.pop("carrito", None)
-    session.pop("datos_entrega", None)
-    session.pop("ultimo_producto_id", None)
-    session.modified = True
+    if enviado:
+        session.pop("carrito", None)
+        session.pop("datos_entrega", None)
+        session.pop("ultimo_producto_id", None)
+        session.modified = True
+        return redirect(url_for("inicio"))
 
-    return redirect(url_for("inicio"))
+    print("❌ No se vació carrito porque Green API falló")
+    return redirect(url_for("datos_entrega"))
 
 # ------------------------
 if __name__ == "__main__":
