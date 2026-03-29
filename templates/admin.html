@@ -211,7 +211,7 @@
     <div class="bloque">
         <form action="{{ url_for('agregar_categoria') }}" method="POST" enctype="multipart/form-data">
             <input type="text" name="nombre" placeholder="Ejemplo: Electrónica, Ropa, Hogar" required>
-            <input type="file" name="foto_categoria" accept="image/*">
+            <input type="file" name="foto" accept="image/*">
             <div class="ayuda">Aquí sí puedes subir la foto desde tu celular.</div>
             <button type="submit">Guardar categoría</button>
         </form>
@@ -250,7 +250,9 @@
                 </div>
             </div>
 
-            {% if c.foto %}
+            {% if c.imagen %}
+                <img src="{{ resolver_imagen(c.imagen) }}" class="mini-img" alt="{{ c.nombre }}">
+            {% elif c.foto %}
                 <img src="{{ resolver_imagen(c.foto) }}" class="mini-img" alt="{{ c.nombre }}">
             {% endif %}
 
@@ -293,6 +295,8 @@
 
             {% if p.foto %}
                 <img src="{{ resolver_imagen(p.foto) }}" class="mini-img" alt="{{ p.nombre }}">
+            {% elif p.imagen %}
+                <img src="{{ resolver_imagen(p.imagen) }}" class="mini-img" alt="{{ p.nombre }}">
             {% endif %}
 
             <div class="acciones">
