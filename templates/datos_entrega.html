@@ -109,6 +109,7 @@
         padding:12px;
         font-size:15px;
         outline:none;
+        background:#fff;
     }
 
     textarea{
@@ -214,6 +215,7 @@
 
                 <label for="vendedor">Vendedor</label>
                 <select id="vendedor" name="vendedor" required>
+                    <option value="" {% if not datos or not datos.vendedor %}selected{% endif %}>Selecciona un vendedor</option>
                     {% for nombre_vendedor in vendedores %}
                         <option value="{{ nombre_vendedor }}" {% if datos and datos.vendedor == nombre_vendedor %}selected{% endif %}>
                             {{ nombre_vendedor }}
