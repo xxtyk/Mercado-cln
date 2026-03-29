@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ categoria.nombre }}</title>
+<title>{{ categoria.nombre if categoria else 'Categoría' }}</title>
 
 <style>
 body{
@@ -42,24 +42,13 @@ body{
     font-size:18px;
 }
 
-.btn-carrito{
-    background:#1976d2;
-    color:white;
-    text-decoration:none;
-    padding:8px 12px;
-    border-radius:10px;
-    font-size:14px;
-    font-weight:bold;
-    white-space:nowrap;
-}
-
 /* GRID */
 .grid{
     display:grid;
     grid-template-columns: repeat(2,1fr);
     gap:10px;
     padding:10px;
-    padding-bottom:90px;
+    padding-bottom:30px;
 }
 
 /* CARD */
@@ -97,85 +86,18 @@ body{
     font-size:16px;
 }
 
-/* CANTIDAD */
-.form-agregar{
-    margin-top:10px;
+.descripcion{
+    color:#666;
+    font-size:13px;
+    margin-top:6px;
 }
 
-.cantidad-box{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-    margin-bottom:8px;
-}
-
-.cantidad-btn{
-    width:34px;
-    height:34px;
-    border:none;
-    background:#1976d2;
-    color:white;
-    border-radius:8px;
-    font-size:20px;
-    cursor:pointer;
-}
-
-.cantidad-input{
-    width:50px;
-    height:34px;
-    text-align:center;
-    border:1px solid #ccc;
-    border-radius:8px;
-    font-size:16px;
-}
-
-/* BOTÓN AGREGAR */
-.btn-agregar{
-    width:100%;
-    padding:10px;
-    border:none;
-    background:#000;
-    color:white;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
-    font-weight:bold;
-}
-
+/* VACIO */
 .vacio{
     text-align:center;
     padding:40px 20px;
     color:#555;
     font-size:18px;
-}
-
-/* CARRITO FLOTANTE */
-.carrito-fijo{
-    position:fixed;
-    left:10px;
-    right:10px;
-    bottom:12px;
-    background:#1976d2;
-    color:white;
-    text-decoration:none;
-    border-radius:14px;
-    padding:14px 16px;
-    box-shadow:0 4px 14px rgba(0,0,0,0.25);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    font-weight:bold;
-    z-index:50;
-}
-
-.carrito-fijo .texto{
-    font-size:16px;
-}
-
-.carrito-fijo .total{
-    font-size:16px;
-    white-space:nowrap;
 }
 </style>
 </head>
@@ -183,13 +105,9 @@ body{
 
 <div class="header">
     <div class="header-izq">
-        <a href="javascript:history.back()" class="volver">←</a>
-        <h1>{{ categoria.nombre }}</h1>
+        <a href="{{ url_for('inicio') }}" class="volver">←</a>
+        <h1>{{ categoria.nombre if categoria else 'Categoría' }}</h1>
     </div>
-
-    <a href="{{ url_for('ver_carrito') }}" class="btn-carrito">
-        🛒 {{ carrito_cantidad_total }}
-    </a>
 </div>
 
 {% if productos and productos|length > 0 %}
@@ -207,23 +125,9 @@ body{
             <div class="nombre">{{ p.nombre }}</div>
             <div class="precio">${{ p.precio|int }}</div>
 
-            <form class="form-agregar" action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
-                <div class="cantidad-box">
-                    <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', -1)">-</button>
-                    <input
-                        id="cantidad_{{ p.id }}"
-                        class="cantidad-input"
-                        type="number"
-                        name="cantidad"
-                        value="1"
-                        min="1"
-                        readonly
-                    >
-                    <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', 1)">+</button>
-                </div>
-
-                <button type="submit" class="btn-agregar">Agregar</button>
-            </form>
+            {% if p.descripcion %}
+                <div class="descripcion">{{ p.descripcion }}</div>
+            {% endif %}
         </div>
     </div>
 {% endfor %}
@@ -233,25 +137,6 @@ body{
     No hay productos en esta categoría todavía.
 </div>
 {% endif %}
-
-{% if carrito_cantidad_total > 0 %}
-<a href="{{ url_for('ver_carrito') }}" class="carrito-fijo">
-    <span class="texto">🛒 Ver carrito ({{ carrito_cantidad_total }})</span>
-    <span class="total">${{ carrito_importe_total|int }}</span>
-</a>
-{% endif %}
-
-<script>
-function cambiarCantidad(id, cambio){
-    const input = document.getElementById(id);
-    let valor = parseInt(input.value) || 1;
-    valor += cambio;
-    if(valor < 1){
-        valor = 1;
-    }
-    input.value = valor;
-}
-</script>
 
 </body>
 </html>
