@@ -48,7 +48,7 @@ body{
     font-size:18px;
 }
 
-/* BOTÓN SIGUIENTE */
+/* BOTÓN CARRITO */
 .btn-siguiente{
     background:#1976d2;
     color:white;
@@ -57,7 +57,6 @@ body{
     border-radius:10px;
     font-size:14px;
     font-weight:bold;
-    white-space:nowrap;
 }
 
 /* GRID */
@@ -83,7 +82,6 @@ body{
     width:100%;
     height:150px;
     object-fit:cover;
-    display:block;
     background:#e0e0e0;
 }
 
@@ -104,39 +102,39 @@ body{
     font-size:16px;
 }
 
-/* FORM AGREGAR */
+/* FORM */
 .form-agregar{
     margin-top:10px;
 }
 
 .cantidad-box{
     display:flex;
-    align-items:center;
     justify-content:center;
+    align-items:center;
     gap:8px;
     margin-bottom:8px;
 }
 
 .cantidad-btn{
-    width:34px;
-    height:34px;
+    width:36px;
+    height:36px;
     border:none;
     background:#1976d2;
     color:white;
     border-radius:8px;
     font-size:20px;
-    cursor:pointer;
 }
 
 .cantidad-input{
-    width:50px;
-    height:34px;
+    width:55px;
+    height:36px;
     text-align:center;
     border:1px solid #ccc;
     border-radius:8px;
     font-size:16px;
 }
 
+/* BOTÓN AGREGAR */
 .btn-agregar{
     width:100%;
     padding:10px;
@@ -144,7 +142,6 @@ body{
     background:#000;
     color:white;
     border-radius:8px;
-    cursor:pointer;
     font-size:16px;
     font-weight:bold;
 }
@@ -154,10 +151,9 @@ body{
     text-align:center;
     padding:40px 20px;
     color:#555;
-    font-size:18px;
 }
 
-/* BOTÓN FLOTANTE CARRITO */
+/* BOTÓN FLOTANTE */
 .carrito-fijo{
     position:fixed;
     left:10px;
@@ -168,24 +164,15 @@ body{
     text-decoration:none;
     border-radius:14px;
     padding:14px 16px;
-    box-shadow:0 4px 14px rgba(0,0,0,0.25);
     display:flex;
     justify-content:space-between;
     align-items:center;
     font-weight:bold;
     z-index:50;
 }
-
-.carrito-fijo .texto{
-    font-size:16px;
-}
-
-.carrito-fijo .total{
-    font-size:16px;
-    white-space:nowrap;
-}
 </style>
 </head>
+
 <body>
 
 <div class="header">
@@ -199,76 +186,74 @@ body{
     </a>
 </div>
 
-{% if productos and productos|length > 0 %}
+{% if productos %}
 <div class="grid">
 {% for p in productos %}
-    <div class="card">
+<div class="card">
 
-        {% if p.foto %}
-            <img src="{{ resolver_imagen(p.foto) }}" alt="{{ p.nombre }}">
-        {% else %}
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="{{ p.nombre }}">
-        {% endif %}
+    {% if p.foto %}
+        <img src="{{ resolver_imagen(p.foto) }}">
+    {% else %}
+        <img src="{{ url_for('static', filename='logo.png') }}">
+    {% endif %}
 
-        <div class="info">
-            <div class="nombre">{{ p.nombre }}</div>
-            <div class="precio">${{ p.precio|int }}</div>
+    <div class="info">
+        <div class="nombre">{{ p.nombre }}</div>
+        <div class="precio">${{ p.precio|int }}</div>
 
-            <form class="form-agregar" action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
-                <div class="cantidad-box">
-                    <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', -1); return false;">-</button>
+        <form class="form-agregar" action="{{ url_for('agregar_al_carrito', producto_id=p.id) }}" method="POST">
 
-                    <input
-                        id="cantidad_{{ p.id }}"
-                        class="cantidad-input"
-                        type="number"
-                        name="cantidad"
-                        value="1"
-                        min="1"
-                        readonly
-                    >
+            <div class="cantidad-box">
+                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', -1)">-</button>
 
-                    <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', 1); return false;">+</button>
-                </div>
+                <input
+                    id="cantidad_{{ p.id }}"
+                    class="cantidad-input"
+                    type="number"
+                    name="cantidad"
+                    value="1"
+                    min="1"
+                >
 
-                <button type="submit" class="btn-agregar">Agregar</button>
-            </form>
-        </div>
+                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('cantidad_{{ p.id }}', 1)">+</button>
+            </div>
+
+            <button type="submit" class="btn-agregar">Agregar</button>
+        </form>
     </div>
+</div>
 {% endfor %}
 </div>
 {% else %}
 <div class="vacio">
-    No hay productos en esta categoría todavía.
+No hay productos
 </div>
 {% endif %}
 
 {% if carrito_cantidad_total > 0 %}
 <a href="{{ url_for('ver_carrito') }}" class="carrito-fijo">
-    <span class="texto">🛒 Siguiente ({{ carrito_cantidad_total }})</span>
-    <span class="total">${{ carrito_importe_total|int }}</span>
+<span>🛒 Siguiente ({{ carrito_cantidad_total }})</span>
+<span>${{ carrito_importe_total|int }}</span>
 </a>
 {% endif %}
 
 <script>
 function cambiarCantidad(id, cambio){
     const input = document.getElementById(id);
+    if(!input) return;
+
     let valor = parseInt(input.value);
 
-    if (isNaN(valor)) {
-        valor = 1;
-    }
+    if (isNaN(valor)) valor = 1;
 
-    valor = valor + cambio;
+    valor += cambio;
 
-    if (valor < 1) {
-        valor = 1;
-    }
+    if (valor < 1) valor = 1;
 
     input.value = valor;
 }
 
-// Fuerza recarga cuando vuelves con el botón atrás
+// evita cache
 window.addEventListener("pageshow", function(event) {
     if (event.persisted) {
         window.location.reload();
