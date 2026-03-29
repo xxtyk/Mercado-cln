@@ -160,7 +160,7 @@ body{
 
 <div class="barra">
     <div class="barra-izq">
-        <a href="{{ url_for('inicio') }}">←</a>
+        <a href="javascript:history.back()">←</a>
         <h1>Carrito</h1>
     </div>
 </div>
@@ -189,7 +189,7 @@ body{
         <div class="vacio">
             <h2>Tu carrito está vacío</h2>
             <p>Agrega productos para continuar.</p>
-            <a href="{{ url_for('inicio') }}" class="btn-finalizar" style="margin-top:14px;">Ir a comprar</a>
+            <a href="javascript:history.back()" class="btn-finalizar" style="margin-top:14px;">Ir a comprar</a>
         </div>
     {% endif %}
 </div>
