@@ -133,7 +133,7 @@
         {% if categorias and categorias|length > 0 %}
             <div class="grid-categorias">
                 {% for categoria in categorias %}
-                    <a class="card-categoria" href="{{ url_for('ver_categoria', categoria_id=categoria.id) }}">
+                    <a class="card-categoria" href="{{ url_for('categoria', id=categoria.id) }}">
                         <div class="imagen-categoria">
                             {% if categoria.foto %}
                                 <img src="{{ resolver_imagen(categoria.foto) }}" alt="{{ categoria.nombre }}">
