@@ -1,12 +1,21 @@
 import os
 import uuid
 import requests
+import ssl
+import pymongo
 
 import cloudinary
 import cloudinary.uploader
 
 from flask import Flask, render_template, request, redirect, url_for, session
 from pymongo import MongoClient, DESCENDING
+
+# --- BLOQUE DE DEPURACIÓN PARA SERGIO ---
+# Esto imprimirá las versiones exactas en tus logs de Render
+print("--- DATOS DE ENTORNO PARA SERGIO ---")
+print("OPENSSL:", ssl.OPENSSL_VERSION)
+print("PYMONGO:", pymongo.version)
+print("------------------------------------")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -22,7 +31,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB (SOLUCIÓN DEFINITIVA RENDER)
+# MONGODB (AJUSTADO PARA RENDER)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -33,8 +42,7 @@ categorias_col = None
 
 if MONGO_URI:
     try:
-        # Forzamos parámetros de conexión directa para saltar el error de TLS de Render
-        # Se recomienda usar la URL de conexión que no tiene el '+srv' en el panel de Render
+        # Usamos los parámetros de compatibilidad para el handshake TLS
         mongo_client = MongoClient(
             MONGO_URI,
             connect=True,
