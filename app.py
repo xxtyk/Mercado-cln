@@ -7,7 +7,7 @@ import psycopg2.extras
 import cloudinary
 import cloudinary.uploader
 
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, url_for
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -27,26 +27,16 @@ cloudinary.config(
 # ------------------------
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
-conn = None
-
 if DATABASE_URL:
-    try:
-        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
-        conn.autocommit = True
-        print("✅ POSTGRES CONECTADO OK")
-    except Exception as e:
-        conn = None
-        print("❌ Error conectando Postgres:", str(e))
+    print("✅ DATABASE_URL detectada")
 else:
     print("❌ Falta DATABASE_URL")
 
 
 def get_conn():
-    global conn
-    if conn is None:
-        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
-        conn.autocommit = True
-    return conn
+    if not DATABASE_URL:
+        raise Exception("Falta DATABASE_URL")
+    return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 
 def init_db():
@@ -54,26 +44,27 @@ def init_db():
         return
 
     try:
-        conexion = get_conn()
-        with conexion.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS categorias (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT NOT NULL,
-                    foto TEXT DEFAULT ''
-                );
-            """)
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS categorias (
+                        id SERIAL PRIMARY KEY,
+                        nombre TEXT NOT NULL,
+                        foto TEXT DEFAULT ''
+                    );
+                """)
 
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS productos (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT NOT NULL,
-                    precio NUMERIC(10,2) DEFAULT 0,
-                    categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
-                    descripcion TEXT DEFAULT '',
-                    foto TEXT DEFAULT ''
-                );
-            """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS productos (
+                        id SERIAL PRIMARY KEY,
+                        nombre TEXT NOT NULL,
+                        precio NUMERIC(10,2) DEFAULT 0,
+                        categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
+                        descripcion TEXT DEFAULT '',
+                        foto TEXT DEFAULT ''
+                    );
+                """)
+
         print("✅ TABLAS LISTAS")
     except Exception as e:
         print("❌ Error creando tablas:", str(e))
@@ -299,81 +290,105 @@ app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 # CONSULTAS
 # ------------------------
 def listar_categorias():
-    if conn is None:
+    if not DATABASE_URL:
         return []
 
     try:
-        conexion = get_conn()
-        with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT id, nombre, foto FROM categorias ORDER BY id ASC")
-            return [dict(x) for x in cur.fetchall()]
+        with get_conn() as conexion:
+            with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("SELECT id, nombre, foto FROM categorias ORDER BY id ASC")
+                filas = cur.fetchall()
+                return [dict(x) for x in filas]
     except Exception as e:
         print("❌ Error listando categorías:", str(e))
         return []
 
 
 def listar_productos():
-    if conn is None:
+    if not DATABASE_URL:
         return []
 
     try:
-        conexion = get_conn()
-        with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("""
-                SELECT id, nombre, precio, categoria_id, descripcion, foto
-                FROM productos
-                ORDER BY id ASC
-            """)
-            filas = cur.fetchall()
-            productos = []
-            for x in filas:
-                item = dict(x)
-                item["precio"] = float(item["precio"] or 0)
-                productos.append(item)
-            return productos
+        with get_conn() as conexion:
+            with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    ORDER BY id ASC
+                """)
+                filas = cur.fetchall()
+                productos = []
+                for x in filas:
+                    item = dict(x)
+                    item["precio"] = float(item["precio"] or 0)
+                    productos.append(item)
+                return productos
     except Exception as e:
         print("❌ Error listando productos:", str(e))
         return []
 
 
 def obtener_categoria_por_id(categoria_id):
-    if conn is None:
+    if not DATABASE_URL:
         return None
 
     try:
-        conexion = get_conn()
-        with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(
-                "SELECT id, nombre, foto FROM categorias WHERE id = %s",
-                (categoria_id,)
-            )
-            fila = cur.fetchone()
-            return dict(fila) if fila else None
+        with get_conn() as conexion:
+            with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT id, nombre, foto FROM categorias WHERE id = %s",
+                    (categoria_id,)
+                )
+                fila = cur.fetchone()
+                return dict(fila) if fila else None
     except Exception as e:
         print("❌ Error obteniendo categoría:", str(e))
         return None
 
 
+def obtener_producto_por_id(producto_id):
+    if not DATABASE_URL:
+        return None
+
+    try:
+        with get_conn() as conexion:
+            with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    WHERE id = %s
+                """, (producto_id,))
+                fila = cur.fetchone()
+                if not fila:
+                    return None
+                item = dict(fila)
+                item["precio"] = float(item["precio"] or 0)
+                return item
+    except Exception as e:
+        print("❌ Error obteniendo producto:", str(e))
+        return None
+
+
 def listar_productos_por_categoria(categoria_id):
-    if conn is None:
+    if not DATABASE_URL:
         return []
 
     try:
-        conexion = get_conn()
-        with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("""
-                SELECT id, nombre, precio, categoria_id, descripcion, foto
-                FROM productos
-                WHERE categoria_id = %s
-                ORDER BY id ASC
-            """, (categoria_id,))
-            filas = cur.fetchall()
-            productos = []
-            for x in filas:
-                item = dict(x)
-                item["precio"] = float(item["precio"] or 0)
-                productos.append(item)
-            return productos
+        with get_conn() as conexion:
+            with conexion.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    WHERE categoria_id = %s
+                    ORDER BY id ASC
+                """, (categoria_id,))
+                filas = cur.fetchall()
+                productos = []
+                for x in filas:
+                    item = dict(x)
+                    item["precio"] = float(item["precio"] or 0)
+                    productos.append(item)
+                return productos
     except Exception as e:
         print("❌ Error productos por categoría:", str(e))
         return []
@@ -404,25 +419,25 @@ def admin():
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
     try:
-        if conn is None:
-            print("❌ Postgres no conectado")
-            return redirect("/admin")
-
         nombre = (request.form.get("nombre") or "").strip()
         foto = request.files.get("foto")
+
+        print("👉 Entró a /agregar_categoria")
+        print("📌 nombre:", nombre)
 
         if not nombre:
             print("❌ Nombre vacío")
             return redirect("/admin")
 
         foto_url = guardar_imagen(foto) if foto and foto.filename else ""
+        print("📌 foto_url:", foto_url)
 
-        conexion = get_conn()
-        with conexion.cursor() as cur:
-            cur.execute(
-                "INSERT INTO categorias (nombre, foto) VALUES (%s, %s)",
-                (nombre, foto_url)
-            )
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO categorias (nombre, foto) VALUES (%s, %s)",
+                    (nombre, foto_url)
+                )
 
         print("✅ Categoría guardada")
         return redirect("/admin")
@@ -432,13 +447,59 @@ def agregar_categoria():
         return redirect("/admin")
 
 
+@app.route("/editar_categoria/<int:categoria_id>", methods=["GET", "POST"])
+def editar_categoria(categoria_id):
+    categoria = obtener_categoria_por_id(categoria_id)
+
+    if not categoria:
+        return redirect("/admin")
+
+    if request.method == "POST":
+        try:
+            nombre = (request.form.get("nombre") or "").strip()
+            foto = request.files.get("foto")
+
+            nueva_foto = categoria.get("foto", "")
+            if foto and foto.filename:
+                nueva_foto = guardar_imagen(foto)
+
+            with get_conn() as conexion:
+                with conexion.cursor() as cur:
+                    cur.execute("""
+                        UPDATE categorias
+                        SET nombre = %s, foto = %s
+                        WHERE id = %s
+                    """, (nombre, nueva_foto, categoria_id))
+
+            print("✅ Categoría editada")
+            return redirect("/admin")
+
+        except Exception as e:
+            print("❌ Error editando categoría:", str(e))
+            return redirect("/admin")
+
+    return render_template("editar_categoria.html", categoria=categoria)
+
+
+@app.route("/eliminar_categoria/<int:categoria_id>", methods=["POST"])
+def eliminar_categoria(categoria_id):
+    try:
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
+                cur.execute("UPDATE productos SET categoria_id = NULL WHERE categoria_id = %s", (categoria_id,))
+                cur.execute("DELETE FROM categorias WHERE id = %s", (categoria_id,))
+
+        print("✅ Categoría eliminada")
+        return redirect("/admin")
+
+    except Exception as e:
+        print("❌ Error eliminando categoría:", str(e))
+        return redirect("/admin")
+
+
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
     try:
-        if conn is None:
-            print("❌ Postgres no conectado")
-            return redirect("/admin")
-
         nombre = (request.form.get("nombre") or "").strip()
         precio = convertir_float(request.form.get("precio"), 0)
         categoria_id = request.form.get("categoria_id")
@@ -451,18 +512,71 @@ def agregar_producto():
 
         foto_url = guardar_imagen(foto) if foto and foto.filename else ""
 
-        conexion = get_conn()
-        with conexion.cursor() as cur:
-            cur.execute("""
-                INSERT INTO productos (nombre, precio, categoria_id, descripcion, foto)
-                VALUES (%s, %s, %s, %s, %s)
-            """, (nombre, precio, int(categoria_id), descripcion, foto_url))
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO productos (nombre, precio, categoria_id, descripcion, foto)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (nombre, precio, int(categoria_id), descripcion, foto_url))
 
         print("✅ Producto guardado")
         return redirect("/admin")
 
     except Exception as e:
         print("❌ Error guardando producto:", str(e))
+        return redirect("/admin")
+
+
+@app.route("/editar_producto/<int:producto_id>", methods=["GET", "POST"])
+def editar_producto(producto_id):
+    producto = obtener_producto_por_id(producto_id)
+    categorias = listar_categorias()
+
+    if not producto:
+        return redirect("/admin")
+
+    if request.method == "POST":
+        try:
+            nombre = (request.form.get("nombre") or "").strip()
+            precio = convertir_float(request.form.get("precio"), 0)
+            categoria_id = request.form.get("categoria_id")
+            descripcion = (request.form.get("descripcion") or "").strip()
+            foto = request.files.get("foto_producto")
+
+            nueva_foto = producto.get("foto", "")
+            if foto and foto.filename:
+                nueva_foto = guardar_imagen(foto)
+
+            with get_conn() as conexion:
+                with conexion.cursor() as cur:
+                    cur.execute("""
+                        UPDATE productos
+                        SET nombre = %s, precio = %s, categoria_id = %s, descripcion = %s, foto = %s
+                        WHERE id = %s
+                    """, (nombre, precio, int(categoria_id), descripcion, nueva_foto, producto_id))
+
+            print("✅ Producto editado")
+            return redirect("/admin")
+
+        except Exception as e:
+            print("❌ Error editando producto:", str(e))
+            return redirect("/admin")
+
+    return render_template("editar_producto.html", producto=producto, categorias=categorias)
+
+
+@app.route("/eliminar_producto/<int:producto_id>", methods=["POST"])
+def eliminar_producto(producto_id):
+    try:
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
+                cur.execute("DELETE FROM productos WHERE id = %s", (producto_id,))
+
+        print("✅ Producto eliminado")
+        return redirect("/admin")
+
+    except Exception as e:
+        print("❌ Error eliminando producto:", str(e))
         return redirect("/admin")
 
 
