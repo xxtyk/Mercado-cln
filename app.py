@@ -1,6 +1,7 @@
 import os
 import uuid
 import requests
+import certifi
 
 import cloudinary
 import cloudinary.uploader
@@ -35,7 +36,11 @@ if MONGO_URI:
     try:
         mongo_client = MongoClient(
             MONGO_URI,
-            serverSelectionTimeoutMS=30000
+            tls=True,
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=30000,
+            socketTimeoutMS=30000
         )
 
         mongo_client.admin.command("ping")
@@ -48,10 +53,14 @@ if MONGO_URI:
         categorias_col.create_index("id", unique=True)
         productos_col.create_index("categoria_id")
 
-        print("✅ MONGO NUEVO - PRUEBA HECTOR")
+        print("✅ MONGO CONECTADO OK")
 
     except Exception as e:
-        print("❌ Error conectando MongoDB:", e)
+        print("❌ Error conectando MongoDB:", str(e))
+        mongo_client = None
+        mongo_db = None
+        productos_col = None
+        categorias_col = None
 else:
     print("❌ Falta MONGO_URI")
 
@@ -92,7 +101,7 @@ def guardar_imagen(archivo):
         )
         return resultado.get("secure_url", "")
     except Exception as e:
-        print("❌ Error Cloudinary:", e)
+        print("❌ Error Cloudinary:", str(e))
         return ""
 
 
@@ -269,26 +278,38 @@ def enviar_whatsapp_green_api(texto):
         print("✅ Respuesta Green API:", respuesta.status_code, respuesta.text)
         return respuesta.ok
     except Exception as e:
-        print("❌ Error WhatsApp:", e)
+        print("❌ Error WhatsApp:", str(e))
         return False
 
 
+def resolver_imagen(url):
+    if not url:
+        return ""
+    return url
+
+
+app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
+
+# ------------------------
+# RUTAS
+# ------------------------
 @app.route("/")
 def inicio():
-    categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
+    categorias = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
     return render_template("index.html", categorias=categorias)
 
 
 @app.route("/categoria/<int:id>")
 def categoria(id):
-    productos = list(productos_col.find({"categoria_id": id}, {"_id": 0})) if productos_col else []
-    return render_template("categoria.html", productos=productos)
+    categoria_actual = categorias_col.find_one({"id": id}, {"_id": 0}) if categorias_col else None
+    productos = list(productos_col.find({"categoria_id": id}, {"_id": 0}).sort("id", 1)) if productos_col else []
+    return render_template("categoria.html", categoria=categoria_actual, productos=productos)
 
 
 @app.route("/admin")
 def admin():
-    categorias = list(categorias_col.find({}, {"_id": 0})) if categorias_col else []
-    productos = list(productos_col.find({}, {"_id": 0})) if productos_col else []
+    categorias = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
+    productos = list(productos_col.find({}, {"_id": 0}).sort("id", 1)) if productos_col else []
     return render_template("admin.html", categorias=categorias, productos=productos)
 
 
@@ -300,7 +321,7 @@ def agregar_categoria():
             return redirect("/admin")
 
         nombre = (request.form.get("nombre") or "").strip()
-        foto = request.files.get("foto_categoria")
+        foto = request.files.get("foto")
 
         print("📌 Nombre recibido:", nombre)
         print("📌 Trae foto:", bool(foto and foto.filename))
@@ -325,35 +346,42 @@ def agregar_categoria():
         return redirect("/admin")
 
     except Exception as e:
-        print("❌ Error en agregar_categoria:", e)
+        print("❌ Error en agregar_categoria:", str(e))
         return redirect("/admin")
 
 
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
-    if productos_col is None:
-        print("❌ No hay conexión con productos_col")
+    try:
+        if productos_col is None:
+            print("❌ No hay conexión con productos_col")
+            return redirect("/admin")
+
+        nombre = (request.form.get("nombre") or "").strip()
+        precio = request.form.get("precio")
+        categoria_id = request.form.get("categoria_id")
+        descripcion = (request.form.get("descripcion") or "").strip()
+        foto = request.files.get("foto_producto")
+
+        if not nombre or not categoria_id:
+            print("❌ Faltan datos en producto")
+            return redirect("/admin")
+
+        productos_col.insert_one({
+            "id": obtener_siguiente_id(productos_col),
+            "nombre": nombre,
+            "precio": convertir_float(precio, 0),
+            "categoria_id": int(categoria_id),
+            "descripcion": descripcion,
+            "foto": guardar_imagen(foto)
+        })
+
+        print("✅ Producto guardado correctamente")
         return redirect("/admin")
 
-    nombre = (request.form.get("nombre") or "").strip()
-    precio = request.form.get("precio")
-    categoria_id = request.form.get("categoria_id")
-    descripcion = (request.form.get("descripcion") or "").strip()
-    foto = request.files.get("foto_producto")
-
-    if not nombre or not categoria_id:
+    except Exception as e:
+        print("❌ Error en agregar_producto:", str(e))
         return redirect("/admin")
-
-    productos_col.insert_one({
-        "id": obtener_siguiente_id(productos_col),
-        "nombre": nombre,
-        "precio": convertir_float(precio, 0),
-        "categoria_id": int(categoria_id),
-        "descripcion": descripcion,
-        "foto": guardar_imagen(foto)
-    })
-
-    return redirect("/admin")
 
 
 @app.route("/finalizar_pedido", methods=["POST"])
