@@ -1,6 +1,5 @@
 import os
 import uuid
-import requests
 import psycopg2
 import psycopg2.extras
 
@@ -16,6 +15,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "12345")
 # CONFIG
 # ------------------------
 COSTO_ENVIO = 40
+ENLACE_GRUPO_WHATSAPP = "https://chat.whatsapp.com/HtBWXyZmMAxJImgPY5SRXU?mode=gi_t"
 
 # ------------------------
 # CLOUDINARY
@@ -63,6 +63,40 @@ def init_db():
                     );
                 """)
 
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS pedidos (
+                        id SERIAL PRIMARY KEY,
+                        codigo TEXT NOT NULL UNIQUE,
+                        nombre TEXT DEFAULT '',
+                        telefono TEXT DEFAULT '',
+                        direccion TEXT DEFAULT '',
+                        colonia TEXT DEFAULT '',
+                        referencia TEXT DEFAULT '',
+                        nota TEXT DEFAULT '',
+                        tipo_entrega TEXT DEFAULT '',
+                        vendedor TEXT DEFAULT '',
+                        forma_pago TEXT DEFAULT 'EFECTIVO (CONTRA ENTREGA)',
+                        subtotal NUMERIC(10,2) DEFAULT 0,
+                        envio NUMERIC(10,2) DEFAULT 0,
+                        total NUMERIC(10,2) DEFAULT 0,
+                        mensaje TEXT DEFAULT '',
+                        estado TEXT DEFAULT 'nuevo',
+                        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    );
+                """)
+
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS pedido_productos (
+                        id SERIAL PRIMARY KEY,
+                        pedido_id INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
+                        producto_id INTEGER,
+                        nombre TEXT NOT NULL,
+                        precio NUMERIC(10,2) DEFAULT 0,
+                        cantidad INTEGER DEFAULT 1,
+                        foto TEXT DEFAULT ''
+                    );
+                """)
+
                 cur.execute("SELECT COUNT(*) FROM categorias")
                 if cur.fetchone()[0] == 0:
                     cur.execute("""
@@ -81,14 +115,6 @@ def init_db():
 
 init_db()
 
-# ------------------------
-# GREEN API
-# ------------------------
-GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
-GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
-GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
-GREEN_API_HOST = os.environ.get("GREEN_API_HOST", "").strip().rstrip("/")
-
 VENDEDORES = [
     "Mercado en Línea Culiacán",
     "Silvia",
@@ -100,43 +126,6 @@ VENDEDORES = [
     "Claudia",
     "Natalia"
 ]
-
-def enviar_whatsapp(texto):
-    if not GREEN_API_INSTANCE:
-        return False, "Falta GREEN_API_INSTANCE"
-
-    if not GREEN_API_TOKEN:
-        return False, "Falta GREEN_API_TOKEN"
-
-    if not GREEN_API_CHAT_ID:
-        return False, "Falta GREEN_API_CHAT_ID"
-
-    if not GREEN_API_HOST:
-        return False, "Falta GREEN_API_HOST"
-
-    url = f"{GREEN_API_HOST}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-
-    payload = {
-        "chatId": GREEN_API_CHAT_ID,
-        "message": texto
-    }
-
-    try:
-        respuesta = requests.post(url, json=payload, timeout=30)
-
-        print("📨 Green URL:", url, flush=True)
-        print("📨 Green payload:", payload, flush=True)
-        print("📨 Green status:", respuesta.status_code, flush=True)
-        print("📨 Green respuesta:", respuesta.text, flush=True)
-
-        if respuesta.status_code in (200, 201):
-            return True, f"OK {respuesta.status_code}"
-
-        return False, f"Error {respuesta.status_code} - {respuesta.text}"
-
-    except Exception as e:
-        print("❌ WhatsApp error:", str(e), flush=True)
-        return False, str(e)
 
 # ------------------------
 # UTILIDADES
@@ -166,6 +155,9 @@ def resolver_imagen(url):
     if not url:
         return ""
     return url
+
+def generar_codigo_pedido():
+    return uuid.uuid4().hex[:10].upper()
 
 app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 
@@ -291,6 +283,164 @@ def construir_mensaje():
     texto += f"📝 Nota: {datos.get('nota', '')}\n"
 
     return texto
+
+# ------------------------
+# PEDIDOS
+# ------------------------
+def guardar_pedido():
+    carrito = obtener_carrito()
+    datos = session.get("datos_entrega", {})
+
+    if not carrito or not datos:
+        return None
+
+    subtotal = carrito_importe_total()
+    tipo_entrega = (datos.get("tipo_entrega", "domicilio") or "domicilio").strip().lower()
+    envio = COSTO_ENVIO if tipo_entrega == "domicilio" else 0
+    total = subtotal + envio
+    mensaje = construir_mensaje()
+    codigo = generar_codigo_pedido()
+
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    INSERT INTO pedidos (
+                        codigo, nombre, telefono, direccion, colonia, referencia, nota,
+                        tipo_entrega, vendedor, forma_pago, subtotal, envio, total, mensaje, estado
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'nuevo')
+                    RETURNING id
+                """, (
+                    codigo,
+                    datos.get("nombre", ""),
+                    datos.get("telefono", ""),
+                    datos.get("direccion", ""),
+                    datos.get("colonia", ""),
+                    datos.get("referencia", ""),
+                    datos.get("nota", ""),
+                    datos.get("tipo_entrega", ""),
+                    datos.get("vendedor", ""),
+                    "EFECTIVO (CONTRA ENTREGA)",
+                    subtotal,
+                    envio,
+                    total,
+                    mensaje
+                ))
+                fila = cur.fetchone()
+                if not fila:
+                    return None
+
+                pedido_id = fila["id"]
+
+                for item in carrito:
+                    cur.execute("""
+                        INSERT INTO pedido_productos (
+                            pedido_id, producto_id, nombre, precio, cantidad, foto
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (
+                        pedido_id,
+                        item.get("id"),
+                        item.get("nombre", ""),
+                        float(item.get("precio", 0)),
+                        int(item.get("cantidad", 1)),
+                        item.get("foto", "")
+                    ))
+
+                return pedido_id
+    except Exception as e:
+        print("❌ guardar_pedido:", str(e), flush=True)
+        return None
+
+def contar_pedidos_nuevos():
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM pedidos WHERE estado='nuevo'")
+                return int(cur.fetchone()[0] or 0)
+    except Exception as e:
+        print("❌ contar_pedidos_nuevos:", str(e), flush=True)
+        return 0
+
+def listar_pedidos():
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, codigo, nombre, telefono, direccion, colonia, referencia, nota,
+                           tipo_entrega, vendedor, forma_pago, subtotal, envio, total, mensaje,
+                           estado, creado_en
+                    FROM pedidos
+                    ORDER BY id DESC
+                """)
+                filas = cur.fetchall()
+                pedidos = []
+                for item in filas:
+                    item = dict(item)
+                    item["subtotal"] = float(item.get("subtotal") or 0)
+                    item["envio"] = float(item.get("envio") or 0)
+                    item["total"] = float(item.get("total") or 0)
+                    pedidos.append(item)
+                return pedidos
+    except Exception as e:
+        print("❌ listar_pedidos:", str(e), flush=True)
+        return []
+
+def obtener_pedido_por_id(pedido_id):
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, codigo, nombre, telefono, direccion, colonia, referencia, nota,
+                           tipo_entrega, vendedor, forma_pago, subtotal, envio, total, mensaje,
+                           estado, creado_en
+                    FROM pedidos
+                    WHERE id=%s
+                """, (pedido_id,))
+                item = cur.fetchone()
+                if not item:
+                    return None
+                item = dict(item)
+                item["subtotal"] = float(item.get("subtotal") or 0)
+                item["envio"] = float(item.get("envio") or 0)
+                item["total"] = float(item.get("total") or 0)
+                return item
+    except Exception as e:
+        print("❌ obtener_pedido_por_id:", str(e), flush=True)
+        return None
+
+def listar_productos_de_pedido(pedido_id):
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, nombre, precio, cantidad, foto
+                    FROM pedido_productos
+                    WHERE pedido_id=%s
+                    ORDER BY id ASC
+                """, (pedido_id,))
+                filas = cur.fetchall()
+                productos = []
+                for item in filas:
+                    item = dict(item)
+                    item["precio"] = float(item.get("precio") or 0)
+                    item["cantidad"] = int(item.get("cantidad") or 0)
+                    productos.append(item)
+                return productos
+    except Exception as e:
+        print("❌ listar_productos_de_pedido:", str(e), flush=True)
+        return []
+
+def cambiar_estado_pedido(pedido_id, estado):
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE pedidos SET estado=%s WHERE id=%s", (estado, pedido_id))
+        return True
+    except Exception as e:
+        print("❌ cambiar_estado_pedido:", str(e), flush=True)
+        return False
 
 # ------------------------
 # RUTAS
@@ -445,6 +595,7 @@ def datos_entrega():
         carrito=obtener_carrito(),
         subtotal=carrito_importe_total(),
         vendedores=VENDEDORES,
+        datos=session.get("datos_entrega", {}),
         carrito_cantidad_total=carrito_cantidad_total(),
         carrito_importe_total=carrito_importe_total()
     )
@@ -459,17 +610,54 @@ def finalizar_pedido():
     if not datos:
         return "Faltan los datos de entrega"
 
-    texto = construir_mensaje()
-    enviado, detalle = enviar_whatsapp(texto)
+    pedido_id = guardar_pedido()
+    if not pedido_id:
+        return "No se pudo guardar el pedido"
 
-    if enviado:
-        session.pop("carrito", None)
-        session.pop("datos_entrega", None)
-        session.pop("ultimo_producto_id", None)
-        session.modified = True
-        return redirect(url_for("inicio"))
+    session.pop("carrito", None)
+    session.pop("datos_entrega", None)
+    session.pop("ultimo_producto_id", None)
+    session.modified = True
 
-    return f"No se pudo enviar el pedido. Detalle: {detalle}"
+    return render_template("pedido_recibido.html")
+
+@app.route("/pedidos")
+def ver_pedidos():
+    pedidos = listar_pedidos()
+    pedidos_nuevos = contar_pedidos_nuevos()
+    return render_template(
+        "pedidos.html",
+        pedidos=pedidos,
+        pedidos_nuevos=pedidos_nuevos
+    )
+
+@app.route("/pedido/<int:id>")
+def ver_pedido(id):
+    pedido = obtener_pedido_por_id(id)
+    if not pedido:
+        return redirect(url_for("ver_pedidos"))
+
+    if pedido.get("estado") == "nuevo":
+        cambiar_estado_pedido(id, "en_proceso")
+        pedido["estado"] = "en_proceso"
+
+    productos = listar_productos_de_pedido(id)
+
+    return render_template(
+        "pedido_detalle.html",
+        pedido=pedido,
+        productos=productos,
+        enlace_grupo=ENLACE_GRUPO_WHATSAPP
+    )
+
+@app.route("/pedido/<int:id>/estado/<estado>", methods=["POST"])
+def actualizar_estado_pedido(id, estado):
+    estados_validos = ["nuevo", "en_proceso", "despachado", "entregado"]
+    if estado not in estados_validos:
+        return redirect(url_for("ver_pedido", id=id))
+
+    cambiar_estado_pedido(id, estado)
+    return redirect(url_for("ver_pedido", id=id))
 
 # ------------------------
 if __name__ == "__main__":
