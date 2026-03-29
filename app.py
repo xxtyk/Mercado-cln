@@ -83,6 +83,18 @@ GREEN_API_INSTANCE = "7107547964"
 GREEN_API_TOKEN = "1e6ec2470cfe4808a27cee392009c87bda99eaf03fa64a70b6"
 GREEN_API_CHAT_ID = "120363321558514561@g.us"
 
+VENDEDORES = [
+    "Mercado en Línea Culiacán",
+    "Silvia",
+    "Hector",
+    "Juan",
+    "Cristian",
+    "Amayrani",
+    "Brisa",
+    "Claudia",
+    "Natalia"
+]
+
 def enviar_whatsapp(texto):
     try:
         url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
@@ -240,6 +252,10 @@ def construir_mensaje():
     texto += f"👤 Cliente: {datos.get('nombre', '')}\n"
     texto += f"📱 Tel: {datos.get('telefono', '')}\n"
     texto += f"📍 Dir: {datos.get('direccion', '')}\n"
+    texto += f"🏪 Entrega: {datos.get('tipo_entrega', '')}\n"
+    texto += f"👨‍💼 Vendedor: {datos.get('vendedor', '')}\n"
+    texto += f"🏠 Colonia: {datos.get('colonia', '')}\n"
+    texto += f"📝 Nota: {datos.get('nota', '')}\n"
 
     return texto
 
@@ -276,6 +292,9 @@ def producto(id):
     producto_actual = obtener_producto(id)
     if not producto_actual:
         return redirect(url_for("inicio"))
+
+    session["ultimo_producto_id"] = id
+    session.modified = True
 
     categoria_actual = None
     categoria_id = producto_actual.get("categoria_id")
@@ -325,10 +344,18 @@ def agregar_al_carrito(id):
 def ver_carrito():
     carrito = obtener_carrito()
     subtotal = carrito_importe_total()
+
+    ultimo_producto_id = session.get("ultimo_producto_id")
+    if ultimo_producto_id:
+        volver_url = url_for("producto", id=ultimo_producto_id)
+    else:
+        volver_url = url_for("inicio")
+
     return render_template(
         "carrito.html",
         carrito=carrito,
         subtotal=subtotal,
+        volver_url=volver_url,
         carrito_cantidad_total=carrito_cantidad_total(),
         carrito_importe_total=carrito_importe_total()
     )
@@ -380,6 +407,7 @@ def datos_entrega():
         "datos_entrega.html",
         carrito=obtener_carrito(),
         subtotal=carrito_importe_total(),
+        vendedores=VENDEDORES,
         carrito_cantidad_total=carrito_cantidad_total(),
         carrito_importe_total=carrito_importe_total()
     )
@@ -395,6 +423,7 @@ def finalizar_pedido():
 
     session.pop("carrito", None)
     session.pop("datos_entrega", None)
+    session.pop("ultimo_producto_id", None)
     session.modified = True
 
     return redirect(url_for("inicio"))
