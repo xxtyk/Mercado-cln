@@ -58,7 +58,6 @@ def init_db():
                     );
                 """)
 
-                # 🔥 CREA CATEGORÍAS SI NO EXISTEN
                 cur.execute("SELECT COUNT(*) FROM categorias")
                 if cur.fetchone()[0] == 0:
                     cur.execute("""
@@ -91,10 +90,41 @@ def enviar_whatsapp(texto):
             "chatId": GREEN_API_CHAT_ID,
             "message": texto
         }
-        requests.post(url, json=payload)
+        requests.post(url, json=payload, timeout=15)
         print("✅ enviado a WhatsApp")
     except Exception as e:
         print("❌ WhatsApp:", str(e))
+
+# ------------------------
+# UTILIDADES
+# ------------------------
+def extension_permitida(nombre_archivo):
+    permitidas = {"png", "jpg", "jpeg", "webp", "gif"}
+    return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in permitidas
+
+def guardar_imagen(archivo):
+    if not archivo or archivo.filename == "":
+        return ""
+    if not extension_permitida(archivo.filename):
+        return ""
+    try:
+        resultado = cloudinary.uploader.upload(
+            archivo,
+            folder="mercado_cln",
+            public_id=f"{uuid.uuid4().hex}",
+            resource_type="image"
+        )
+        return resultado.get("secure_url", "")
+    except Exception as e:
+        print("❌ Cloudinary:", str(e))
+        return ""
+
+def resolver_imagen(url):
+    if not url:
+        return ""
+    return url
+
+app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 
 # ------------------------
 # CONSULTAS
@@ -103,38 +133,89 @@ def listar_categorias():
     try:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT * FROM categorias ORDER BY id")
+                cur.execute("SELECT id, nombre, foto FROM categorias ORDER BY id ASC")
                 return cur.fetchall()
-    except:
+    except Exception as e:
+        print("❌ categorias:", str(e))
         return []
+
+def obtener_categoria_por_id(categoria_id):
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT id, nombre, foto FROM categorias WHERE id=%s",
+                    (categoria_id,)
+                )
+                return cur.fetchone()
+    except Exception as e:
+        print("❌ categoria:", str(e))
+        return None
 
 def listar_productos(cat_id):
     try:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT * FROM productos WHERE categoria_id=%s", (cat_id,))
-                return cur.fetchall()
-    except:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    WHERE categoria_id=%s
+                    ORDER BY id ASC
+                """, (cat_id,))
+                filas = cur.fetchall()
+                productos = []
+                for item in filas:
+                    item = dict(item)
+                    item["precio"] = float(item.get("precio") or 0)
+                    productos.append(item)
+                return productos
+    except Exception as e:
+        print("❌ productos:", str(e))
         return []
 
 def obtener_producto(id):
     try:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute("SELECT * FROM productos WHERE id=%s", (id,))
-                return cur.fetchone()
-    except:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    WHERE id=%s
+                """, (id,))
+                producto = cur.fetchone()
+                if not producto:
+                    return None
+                producto = dict(producto)
+                producto["precio"] = float(producto.get("precio") or 0)
+                return producto
+    except Exception as e:
+        print("❌ producto:", str(e))
         return None
 
 # ------------------------
 # CARRITO
 # ------------------------
 def obtener_carrito():
-    return session.get("carrito", [])
+    carrito = session.get("carrito", [])
+    if not isinstance(carrito, list):
+        carrito = []
+    return carrito
 
 def guardar_carrito(c):
     session["carrito"] = c
     session.modified = True
+
+def carrito_cantidad_total():
+    total = 0
+    for item in obtener_carrito():
+        total += int(item.get("cantidad", 1))
+    return total
+
+def carrito_importe_total():
+    total = 0
+    for item in obtener_carrito():
+        total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+    return total
 
 # ------------------------
 # MENSAJE
@@ -143,7 +224,7 @@ def construir_mensaje():
     carrito = obtener_carrito()
     datos = session.get("datos_entrega", {})
 
-    texto = "🛒 *NUEVO PEDIDO*\n\n"
+    texto = "🛒 *NUEVO PEDIDO DE MERCADO EN LÍNEA*\n\n"
     total = 0
 
     for item in carrito:
@@ -151,10 +232,14 @@ def construir_mensaje():
         total += sub
         texto += f"• {item['nombre']} x{item['cantidad']} = ${sub:.2f}\n"
 
+    tipo_entrega = datos.get("tipo_entrega", "domicilio")
+    envio = 40 if tipo_entrega == "domicilio" else 0
+    total += envio
+
     texto += f"\n💰 Total: ${total:.2f}\n\n"
-    texto += f"👤 {datos.get('nombre','')}\n"
-    texto += f"📱 {datos.get('telefono','')}\n"
-    texto += f"📍 {datos.get('direccion','')}"
+    texto += f"👤 Cliente: {datos.get('nombre', '')}\n"
+    texto += f"📱 Tel: {datos.get('telefono', '')}\n"
+    texto += f"📍 Dir: {datos.get('direccion', '')}\n"
 
     return texto
 
@@ -164,53 +249,99 @@ def construir_mensaje():
 @app.route("/")
 def inicio():
     categorias = listar_categorias()
-    return render_template("index.html", categorias=categorias)
+    return render_template(
+        "index.html",
+        categorias=categorias,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
 
 @app.route("/categoria/<int:id>")
 def categoria(id):
+    categoria_actual = obtener_categoria_por_id(id)
+    if not categoria_actual:
+        return redirect(url_for("inicio"))
+
     productos = listar_productos(id)
-    return render_template("categoria.html", productos=productos)
+    return render_template(
+        "categoria.html",
+        categoria=categoria_actual,
+        productos=productos,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
 
 @app.route("/agregar_al_carrito/<int:id>", methods=["POST"])
-def agregar(id):
+def agregar_al_carrito(id):
     producto = obtener_producto(id)
     if not producto:
-        return redirect("/")
+        return redirect(url_for("inicio"))
 
     carrito = obtener_carrito()
-    cantidad = int(request.form.get("cantidad", 1))
+    cantidad = int(request.form.get("cantidad", 1) or 1)
 
-    carrito.append({
-        "id": producto["id"],
-        "nombre": producto["nombre"],
-        "precio": float(producto["precio"]),
-        "cantidad": cantidad
-    })
+    encontrado = False
+    for item in carrito:
+        if int(item.get("id")) == int(id):
+            item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
+            encontrado = True
+            break
+
+    if not encontrado:
+        carrito.append({
+            "id": producto["id"],
+            "nombre": producto["nombre"],
+            "precio": float(producto["precio"]),
+            "foto": producto.get("foto", ""),
+            "cantidad": cantidad
+        })
 
     guardar_carrito(carrito)
-    return redirect(request.referrer or "/")
+    return redirect(request.referrer or url_for("inicio"))
 
-@app.route("/datos_entrega", methods=["GET","POST"])
-def datos():
+@app.route("/carrito")
+def ver_carrito():
+    carrito = obtener_carrito()
+    subtotal = carrito_importe_total()
+    return render_template(
+        "carrito.html",
+        carrito=carrito,
+        subtotal=subtotal,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
+
+@app.route("/datos_entrega", methods=["GET", "POST"])
+def datos_entrega():
     if request.method == "POST":
-        session["datos_entrega"] = request.form
-        return redirect("/finalizar_pedido")
-    return render_template("datos_entrega.html")
+        session["datos_entrega"] = request.form.to_dict()
+        session.modified = True
+        return redirect(url_for("finalizar_pedido"))
 
-@app.route("/finalizar_pedido", methods=["GET","POST"])
-def finalizar():
+    return render_template(
+        "datos_entrega.html",
+        carrito=obtener_carrito(),
+        subtotal=carrito_importe_total(),
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
+
+@app.route("/finalizar_pedido", methods=["GET", "POST"])
+def finalizar_pedido():
     carrito = obtener_carrito()
     if not carrito:
-        return redirect("/")
+        return redirect(url_for("inicio"))
 
     texto = construir_mensaje()
     enviar_whatsapp(texto)
 
     session.pop("carrito", None)
     session.pop("datos_entrega", None)
+    session.modified = True
 
-    return redirect("/")
+    return redirect(url_for("inicio"))
 
 # ------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    puerto = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=puerto)
