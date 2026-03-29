@@ -50,6 +50,33 @@
             padding:14px;
         }
 
+        .instalar-box{
+            background:#ffffff;
+            border-radius:18px;
+            padding:16px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.10);
+            margin-bottom:16px;
+            text-align:center;
+        }
+
+        .instalar-texto{
+            font-size:16px;
+            font-weight:bold;
+            margin-bottom:12px;
+            color:#111;
+        }
+
+        .btn-instalar{
+            display:inline-block;
+            background:#25D366;
+            color:white;
+            text-decoration:none;
+            padding:14px 18px;
+            border-radius:12px;
+            font-size:16px;
+            font-weight:bold;
+        }
+
         .grid-categorias{
             display:grid;
             grid-template-columns:repeat(2, 1fr);
@@ -119,6 +146,10 @@
             .nombre-categoria{
                 font-size:16px;
             }
+
+            .btn-instalar{
+                width:100%;
+            }
         }
     </style>
 </head>
@@ -130,6 +161,14 @@
     </div>
 
     <div class="contenedor">
+
+        <div class="instalar-box">
+            <div class="instalar-texto">
+                Instalar aplicación para pedir más fácil
+            </div>
+            <a href="#" id="btnInstalar" class="btn-instalar">Instalar aplicación</a>
+        </div>
+
         {% if categorias and categorias|length > 0 %}
             <div class="grid-categorias">
                 {% for categoria in categorias %}
@@ -153,6 +192,29 @@
             </div>
         {% endif %}
     </div>
+
+    <script>
+        let deferredPrompt = null;
+        const btnInstalar = document.getElementById("btnInstalar");
+
+        window.addEventListener("beforeinstallprompt", (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            btnInstalar.style.display = "inline-block";
+        });
+
+        btnInstalar.addEventListener("click", async function(e){
+            e.preventDefault();
+
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+            } else {
+                alert("Si tu teléfono lo permite, abre el menú del navegador y selecciona 'Instalar aplicación' o 'Agregar a pantalla de inicio'.");
+            }
+        });
+    </script>
 
 </body>
 </html>
