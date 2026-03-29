@@ -23,7 +23,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB (AJUSTE FINAL PARA RENDER)
+# MONGODB (VERSIÓN DE COMPATIBILIDAD TOTAL)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -34,13 +34,14 @@ categorias_col = None
 
 if MONGO_URI:
     try:
-        # Forzamos la conexión ignorando errores de certificados locales de Render
+        # Simplificamos al máximo: permitimos certificados inválidos y quitamos certifi directo
+        # para que MongoDB use su propia lógica de conexión en la nube.
         mongo_client = MongoClient(
             MONGO_URI,
-            tlsCAFile=certifi.where(),
-            tlsAllowInvalidCertificates=True,  # <--- ESTO ES CLAVE
-            serverSelectionTimeoutMS=10000,
-            connectTimeoutMS=10000
+            tlsAllowInvalidCertificates=True, 
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            retryWrites=True
         )
 
         # Prueba de conexión rápida
@@ -59,7 +60,7 @@ if MONGO_URI:
         print("✅ MONGO CONECTADO OK")
 
     except Exception as e:
-        print(f"❌ Error conectando MongoDB: {e}")
+        print(f"❌ Error crítico en MongoDB: {e}")
         mongo_client = None
         mongo_db = None
         productos_col = None
