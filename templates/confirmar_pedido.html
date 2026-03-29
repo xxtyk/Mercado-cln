@@ -1,1 +1,176 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmar pedido</title>
+
+<style>
+*{ box-sizing:border-box; }
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f5f5f5;
+    color:#111;
+}
+
+/* HEADER */
+.barra{
+    background:#000;
+    color:#fff;
+    padding:14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:sticky;
+    top:0;
+    z-index:20;
+}
+
+.barra a{
+    color:#fff;
+    text-decoration:none;
+    font-size:24px;
+}
+
+/* CONTENIDO */
+.contenedor{
+    padding:12px;
+    padding-bottom:130px;
+}
+
+.bloque{
+    background:#fff;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.10);
+}
+
+.titulo{
+    font-weight:bold;
+    margin-bottom:10px;
+    font-size:18px;
+}
+
+.item{
+    margin-bottom:8px;
+}
+
+.linea{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+}
+
+.total{
+    font-size:22px;
+    font-weight:bold;
+}
+
+/* MENSAJE CONTRA ENTREGA */
+.contra{
+    background:#e8f5e9;
+    color:#1b5e20;
+    border-radius:12px;
+    padding:14px;
+    font-size:15px;
+    font-weight:bold;
+    line-height:1.4;
+}
+
+/* BOTÓN FINAL */
+.boton-fijo{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:12px;
+    z-index:50;
+}
+
+.btn-finalizar{
+    width:100%;
+    border:none;
+    border-radius:16px;
+    padding:18px;
+    font-size:18px;
+    font-weight:bold;
+    background:#25D366;
+    color:white;
+    box-shadow:0 4px 14px rgba(0,0,0,0.25);
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="barra">
+    <a href="javascript:history.back()">←</a>
+    <div>Confirmar pedido</div>
+</div>
+
+<div class="contenedor">
+
+    <!-- PRODUCTOS -->
+    <div class="bloque">
+        <div class="titulo">Productos</div>
+
+        {% for item in carrito %}
+        <div class="item">
+            {{ item.nombre }} x{{ item.cantidad }} - ${{ (item.precio * item.cantidad)|int }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- DATOS -->
+    <div class="bloque">
+        <div class="titulo">Datos</div>
+
+        <div class="item"><strong>Nombre:</strong> {{ datos.nombre }}</div>
+        <div class="item"><strong>Teléfono:</strong> {{ datos.telefono }}</div>
+        <div class="item"><strong>Vendedor:</strong> {{ datos.vendedor }}</div>
+        <div class="item"><strong>Entrega:</strong> {{ datos.tipo_entrega }}</div>
+        <div class="item"><strong>Dirección:</strong> {{ datos.direccion }}</div>
+        <div class="item"><strong>Colonia:</strong> {{ datos.colonia }}</div>
+        <div class="item"><strong>Referencia:</strong> {{ datos.referencia }}</div>
+    </div>
+
+    <!-- TOTAL -->
+    <div class="bloque">
+        <div class="linea">
+            <span>Subtotal</span>
+            <span>${{ subtotal|int }}</span>
+        </div>
+
+        <div class="linea">
+            <span>Envío</span>
+            <span>${{ envio }}</span>
+        </div>
+
+        <div class="linea total">
+            <span>Total</span>
+            <span>${{ total|int }}</span>
+        </div>
+    </div>
+
+    <!-- CONTRA ENTREGA -->
+    <div class="contra">
+        💵 PAGO CONTRA ENTREGA  
+        <br><br>
+        Pagas únicamente cuando recibas tu pedido, en efectivo o transferencia al momento de la entrega.
+    </div>
+
+</div>
+
+<form action="{{ url_for('finalizar_pedido') }}" method="POST">
+    <div class="boton-fijo">
+        <button type="submit" class="btn-finalizar">
+            FINALIZAR PEDIDO
+        </button>
+    </div>
+</form>
+
+</body>
+</html>
