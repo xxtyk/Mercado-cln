@@ -75,9 +75,9 @@ def init_db():
                         ('Otros');
                     """)
 
-        print("✅ DB OK")
+        print("✅ DB OK", flush=True)
     except Exception as e:
-        print("❌ DB:", str(e))
+        print("❌ DB:", str(e), flush=True)
 
 init_db()
 
@@ -103,20 +103,16 @@ VENDEDORES = [
 
 def enviar_whatsapp(texto):
     if not GREEN_API_INSTANCE:
-        print("❌ Green API: falta GREEN_API_INSTANCE")
-        return False
+        return False, "Falta GREEN_API_INSTANCE"
 
     if not GREEN_API_TOKEN:
-        print("❌ Green API: falta GREEN_API_TOKEN")
-        return False
+        return False, "Falta GREEN_API_TOKEN"
 
     if not GREEN_API_CHAT_ID:
-        print("❌ Green API: falta GREEN_API_CHAT_ID")
-        return False
+        return False, "Falta GREEN_API_CHAT_ID"
 
     if not GREEN_API_HOST:
-        print("❌ Green API: falta GREEN_API_HOST")
-        return False
+        return False, "Falta GREEN_API_HOST"
 
     url = f"{GREEN_API_HOST}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
 
@@ -128,30 +124,19 @@ def enviar_whatsapp(texto):
     try:
         respuesta = requests.post(url, json=payload, timeout=30)
 
-        print("📨 Green URL:", url)
-        print("📨 Green status:", respuesta.status_code)
-        print("📨 Green respuesta:", respuesta.text)
+        print("📨 Green URL:", url, flush=True)
+        print("📨 Green payload:", payload, flush=True)
+        print("📨 Green status:", respuesta.status_code, flush=True)
+        print("📨 Green respuesta:", respuesta.text, flush=True)
 
-        if respuesta.status_code not in (200, 201):
-            print("❌ Green API devolvió error")
-            return False
+        if respuesta.status_code in (200, 201):
+            return True, f"OK {respuesta.status_code}"
 
-        try:
-            data = respuesta.json()
-            if data.get("idMessage") or data.get("id_message") or respuesta.status_code in (200, 201):
-                print("✅ enviado a WhatsApp")
-                return True
-        except Exception:
-            if respuesta.status_code in (200, 201):
-                print("✅ enviado a WhatsApp")
-                return True
-
-        print("❌ Green API no confirmó envío")
-        return False
+        return False, f"Error {respuesta.status_code} - {respuesta.text}"
 
     except Exception as e:
-        print("❌ WhatsApp:", str(e))
-        return False
+        print("❌ WhatsApp error:", str(e), flush=True)
+        return False, str(e)
 
 # ------------------------
 # UTILIDADES
@@ -174,7 +159,7 @@ def guardar_imagen(archivo):
         )
         return resultado.get("secure_url", "")
     except Exception as e:
-        print("❌ Cloudinary:", str(e))
+        print("❌ Cloudinary:", str(e), flush=True)
         return ""
 
 def resolver_imagen(url):
@@ -194,7 +179,7 @@ def listar_categorias():
                 cur.execute("SELECT id, nombre, foto FROM categorias ORDER BY id ASC")
                 return cur.fetchall()
     except Exception as e:
-        print("❌ categorias:", str(e))
+        print("❌ categorias:", str(e), flush=True)
         return []
 
 def obtener_categoria_por_id(categoria_id):
@@ -207,7 +192,7 @@ def obtener_categoria_por_id(categoria_id):
                 )
                 return cur.fetchone()
     except Exception as e:
-        print("❌ categoria:", str(e))
+        print("❌ categoria:", str(e), flush=True)
         return None
 
 def listar_productos(cat_id):
@@ -228,7 +213,7 @@ def listar_productos(cat_id):
                     productos.append(item)
                 return productos
     except Exception as e:
-        print("❌ productos:", str(e))
+        print("❌ productos:", str(e), flush=True)
         return []
 
 def obtener_producto(id):
@@ -247,7 +232,7 @@ def obtener_producto(id):
                 producto["precio"] = float(producto.get("precio") or 0)
                 return producto
     except Exception as e:
-        print("❌ producto:", str(e))
+        print("❌ producto:", str(e), flush=True)
         return None
 
 # ------------------------
@@ -468,15 +453,14 @@ def datos_entrega():
 def finalizar_pedido():
     carrito = obtener_carrito()
     if not carrito:
-        return redirect(url_for("inicio"))
+        return "El carrito está vacío"
 
     datos = session.get("datos_entrega", {})
     if not datos:
-        print("❌ No hay datos_entrega en sesión")
-        return redirect(url_for("datos_entrega"))
+        return "Faltan los datos de entrega"
 
     texto = construir_mensaje()
-    enviado = enviar_whatsapp(texto)
+    enviado, detalle = enviar_whatsapp(texto)
 
     if enviado:
         session.pop("carrito", None)
@@ -485,8 +469,7 @@ def finalizar_pedido():
         session.modified = True
         return redirect(url_for("inicio"))
 
-    print("❌ No se vació carrito porque Green API falló")
-    return "No se pudo enviar el pedido al grupo. Revisa los logs de Render."
+    return f"No se pudo enviar el pedido. Detalle: {detalle}"
 
 # ------------------------
 if __name__ == "__main__":
