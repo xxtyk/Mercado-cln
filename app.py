@@ -3,93 +3,108 @@ import uuid
 import requests
 import psycopg2
 import psycopg2.extras
+
+import cloudinary
+import cloudinary.uploader
+
 from flask import Flask, render_template, request, redirect, session, url_for
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
 
 # ------------------------
-# DB
+# CLOUDINARY
 # ------------------------
-DATABASE_URL = os.environ.get("DATABASE_URL")
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME", "").strip(),
+    api_key=os.environ.get("CLOUDINARY_API_KEY", "").strip(),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET", "").strip(),
+    secure=True
+)
+
+# ------------------------
+# POSTGRESQL
+# ------------------------
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
 def get_conn():
+    if not DATABASE_URL:
+        raise Exception("Falta DATABASE_URL")
     return psycopg2.connect(DATABASE_URL, sslmode="require")
 
 def init_db():
-    with get_conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS categorias (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT,
-                    foto TEXT
-                );
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS productos (
-                    id SERIAL PRIMARY KEY,
-                    nombre TEXT,
-                    precio NUMERIC,
-                    categoria_id INTEGER,
-                    foto TEXT
-                );
-            """)
-
-            # 🔥 AUTOCREAR CATEGORÍAS
-            cur.execute("SELECT COUNT(*) FROM categorias")
-            if cur.fetchone()[0] == 0:
+    if not DATABASE_URL:
+        return
+    try:
+        with get_conn() as conexion:
+            with conexion.cursor() as cur:
                 cur.execute("""
-                    INSERT INTO categorias (nombre) VALUES
-                    ('Cuidado del cabello'),
-                    ('Cocina'),
-                    ('Cuidado personal'),
-                    ('Aire acondicionado'),
-                    ('Electrodomésticos'),
-                    ('Otros');
+                    CREATE TABLE IF NOT EXISTS categorias (
+                        id SERIAL PRIMARY KEY,
+                        nombre TEXT NOT NULL,
+                        foto TEXT DEFAULT ''
+                    );
                 """)
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS productos (
+                        id SERIAL PRIMARY KEY,
+                        nombre TEXT NOT NULL,
+                        precio NUMERIC(10,2) DEFAULT 0,
+                        categoria_id INTEGER REFERENCES categorias(id) ON DELETE SET NULL,
+                        descripcion TEXT DEFAULT '',
+                        foto TEXT DEFAULT ''
+                    );
+                """)
+        print("✅ DB OK")
+    except Exception as e:
+        print("❌ DB:", str(e))
 
 init_db()
 
 # ------------------------
-# GREEN API
+# CONFIG
 # ------------------------
-GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE")
-GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN")
-GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID")
+EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
+COSTO_ENVIO = 40
 
-def enviar_whatsapp(texto):
+GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
+GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
+GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
+
+# ------------------------
+# UTILIDADES
+# ------------------------
+def extension_permitida(nombre_archivo):
+    return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
+
+def guardar_imagen(archivo):
+    if not archivo or archivo.filename == "":
+        return ""
+    if not extension_permitida(archivo.filename):
+        return ""
     try:
-        url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-        payload = {
-            "chatId": GREEN_API_CHAT_ID,
-            "message": texto
-        }
-        requests.post(url, json=payload)
-        print("✅ enviado a WhatsApp")
+        resultado = cloudinary.uploader.upload(
+            archivo,
+            folder="mercado_cln",
+            public_id=f"{uuid.uuid4().hex}",
+            resource_type="image"
+        )
+        return resultado.get("secure_url", "")
     except Exception as e:
-        print("❌ WhatsApp:", e)
+        print("❌ Cloudinary:", str(e))
+        return ""
 
-# ------------------------
-# CONSULTAS
-# ------------------------
-def listar_categorias():
-    with get_conn() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT * FROM categorias ORDER BY id")
-            return cur.fetchall()
+def convertir_float(v, d=0):
+    try:
+        return float(v) if v not in (None, "") else float(d)
+    except:
+        return float(d)
 
-def listar_productos(cat_id):
-    with get_conn() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT * FROM productos WHERE categoria_id=%s", (cat_id,))
-            return cur.fetchall()
-
-def obtener_producto(id):
-    with get_conn() as conn:
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT * FROM productos WHERE id=%s", (id,))
-            return cur.fetchone()
+def convertir_int(v, d=0):
+    try:
+        return int(v) if v not in (None, "") else int(d)
+    except:
+        return int(d)
 
 # ------------------------
 # CARRITO
@@ -101,61 +116,94 @@ def guardar_carrito(c):
     session["carrito"] = c
     session.modified = True
 
+def carrito_total():
+    total = 0
+    for i in obtener_carrito():
+        total += float(i.get("precio", 0)) * int(i.get("cantidad", 1))
+    return total
+
+# ------------------------
+# WHATSAPP
+# ------------------------
+def construir_mensaje():
+    carrito = obtener_carrito()
+    datos = session.get("datos_entrega", {})
+
+    texto = "🛒 *NUEVO PEDIDO*\n\n"
+    total = 0
+
+    for item in carrito:
+        sub = float(item["precio"]) * int(item["cantidad"])
+        total += sub
+        texto += f"• {item['nombre']} x{item['cantidad']} = ${sub:.2f}\n"
+
+    envio = COSTO_ENVIO if datos.get("tipo_entrega") == "domicilio" else 0
+    total += envio
+
+    texto += f"\n💰 Total: ${total:.2f}\n\n"
+    texto += f"👤 {datos.get('nombre')}\n"
+    texto += f"📱 {datos.get('telefono')}\n"
+    texto += f"📍 {datos.get('direccion')}\n"
+
+    return texto
+
+def enviar_whatsapp(texto):
+    try:
+        url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+        payload = {
+            "chatId": GREEN_API_CHAT_ID,
+            "message": texto
+        }
+        requests.post(url, json=payload)
+        print("✅ enviado a WhatsApp")
+    except Exception as e:
+        print("❌ WhatsApp:", str(e))
+
 # ------------------------
 # RUTAS
 # ------------------------
 @app.route("/")
 def inicio():
-    categorias = listar_categorias()
-    return render_template("index.html", categorias=categorias)
+    return render_template("index.html")
 
-@app.route("/categoria/<int:id>")
-def categoria(id):
-    productos = listar_productos(id)
-    return render_template("categoria.html", productos=productos)
-
-@app.route("/agregar/<int:id>", methods=["POST"])
+@app.route("/agregar_al_carrito/<int:id>", methods=["POST"])
 def agregar(id):
-    producto = obtener_producto(id)
     carrito = obtener_carrito()
+    cantidad = convertir_int(request.form.get("cantidad"), 1)
 
     carrito.append({
-        "nombre": producto["nombre"],
-        "precio": float(producto["precio"]),
-        "cantidad": int(request.form.get("cantidad", 1))
+        "id": id,
+        "nombre": "Producto",
+        "precio": 100,
+        "cantidad": cantidad
     })
 
     guardar_carrito(carrito)
     return redirect("/")
 
-@app.route("/datos", methods=["GET","POST"])
+@app.route("/datos_entrega", methods=["GET","POST"])
 def datos():
     if request.method == "POST":
-        session["datos"] = request.form
-        return redirect("/finalizar")
+        session["datos_entrega"] = request.form
+        return redirect("/finalizar_pedido")
     return render_template("datos_entrega.html")
 
-# 🔥 FINALIZAR
-@app.route("/finalizar")
+# 🔥 FINALIZAR (AQUÍ ESTÁ LA CONEXIÓN)
+@app.route("/finalizar_pedido", methods=["GET","POST"])
 def finalizar():
+
     carrito = obtener_carrito()
-    datos = session.get("datos", {})
+    if not carrito:
+        return redirect("/")
 
-    mensaje = "🛒 PEDIDO\n\n"
-    total = 0
+    texto = construir_mensaje()
 
-    for item in carrito:
-        subtotal = item["precio"] * item["cantidad"]
-        total += subtotal
-        mensaje += f"{item['nombre']} x{item['cantidad']} = ${subtotal}\n"
+    # 🔥 ENVÍA A GREEN API
+    enviar_whatsapp(texto)
 
-    mensaje += f"\nTOTAL: ${total}\n"
-    mensaje += f"\n👤 {datos.get('nombre')}\n📱 {datos.get('telefono')}"
-
-    enviar_whatsapp(mensaje)
-
-    session["carrito"] = []
-    session.pop("datos", None)
+    # limpiar
+    session.pop("carrito", None)
+    session.pop("datos_entrega", None)
 
     return redirect("/")
 
