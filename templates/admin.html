@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pedidos - Mercado CLN</title>
+    <title>Panel de administración - Mercado CLN</title>
+
     <style>
         *{
             box-sizing:border-box;
@@ -29,7 +30,7 @@
         }
 
         .contenedor{
-            max-width:700px;
+            max-width:760px;
             margin:0 auto;
             padding:14px;
         }
@@ -48,12 +49,26 @@
             margin-bottom:14px;
         }
 
-        .card{
+        .seccion{
             background:#fff;
+            border-radius:16px;
+            padding:14px;
+            margin-bottom:16px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.10);
+        }
+
+        .titulo-seccion{
+            font-size:20px;
+            font-weight:bold;
+            margin-bottom:12px;
+        }
+
+        .card{
+            background:#fafafa;
+            border:1px solid #e5e5e5;
             border-radius:14px;
             padding:14px;
             margin-bottom:14px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.10);
         }
 
         .linea{
@@ -63,7 +78,7 @@
         }
 
         .pedido-texto{
-            background:#fafafa;
+            background:#fff;
             border:1px solid #e5e5e5;
             border-radius:10px;
             padding:12px;
@@ -86,49 +101,189 @@
         }
 
         .vacio{
-            background:#fff;
+            background:#fafafa;
             border-radius:14px;
-            padding:25px;
+            padding:20px;
             text-align:center;
             color:#666;
-            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+            border:1px solid #e5e5e5;
+        }
+
+        form{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        input, textarea, select{
+            width:100%;
+            padding:12px;
+            border:1px solid #ccc;
+            border-radius:10px;
+            font-size:15px;
+            background:#fff;
+        }
+
+        textarea{
+            min-height:90px;
+            resize:vertical;
+        }
+
+        .btn-guardar{
+            width:100%;
+            border:none;
+            background:#000;
+            color:#fff;
+            padding:14px;
+            border-radius:12px;
+            font-size:16px;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        .lista{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+        }
+
+        .item-lista{
+            background:#fafafa;
+            border:1px solid #e5e5e5;
+            border-radius:12px;
+            padding:12px;
+        }
+
+        .foto-mini{
+            width:70px;
+            height:70px;
+            object-fit:cover;
+            border-radius:10px;
+            display:block;
+            margin-bottom:8px;
+            border:1px solid #ddd;
         }
     </style>
 </head>
 <body>
 
-    <div class="barra">📦 Pedidos nuevos</div>
+    <div class="barra">📦 Panel de administración</div>
 
     <div class="contenedor">
+
         <a href="/" class="boton-app">🛒 Ver aplicación</a>
 
-        {% if pedidos and pedidos|length > 0 %}
-            {% for pedido in pedidos %}
-                <div class="card">
-                    <div class="linea"><strong>Cliente:</strong> {{ pedido.nombre if pedido.nombre else '' }}</div>
-                    <div class="linea"><strong>Teléfono:</strong> {{ pedido.telefono if pedido.telefono else '' }}</div>
-                    <div class="linea"><strong>Tipo de entrega:</strong> {{ pedido.tipo_entrega if pedido.tipo_entrega else '' }}</div>
-                    <div class="linea"><strong>Dirección:</strong> {{ pedido.direccion if pedido.direccion else '' }}</div>
-                    <div class="linea"><strong>Colonia:</strong> {{ pedido.colonia if pedido.colonia else '' }}</div>
-                    <div class="linea"><strong>Referencia:</strong> {{ pedido.referencia if pedido.referencia else '' }}</div>
-                    <div class="linea"><strong>Nota:</strong> {{ pedido.nota if pedido.nota else '' }}</div>
-                    <div class="linea"><strong>Vendedor:</strong> {{ pedido.vendedor if pedido.vendedor else '' }}</div>
-                    <div class="linea"><strong>Subtotal:</strong> ${{ pedido.subtotal if pedido.subtotal else 0 }}</div>
-                    <div class="linea"><strong>Envío:</strong> ${{ pedido.envio if pedido.envio else 0 }}</div>
-                    <div class="linea"><strong>Total:</strong> ${{ pedido.total if pedido.total else 0 }}</div>
+        <div class="seccion">
+            <div class="titulo-seccion">Pedidos nuevos</div>
 
-                    <div class="pedido-texto">{{ pedido.texto if pedido.texto else '' }}</div>
+            {% if pedidos and pedidos|length > 0 %}
+                {% for pedido in pedidos %}
+                    <div class="card">
+                        <div class="linea"><strong>Cliente:</strong> {{ pedido.nombre if pedido.nombre else '' }}</div>
+                        <div class="linea"><strong>Teléfono:</strong> {{ pedido.telefono if pedido.telefono else '' }}</div>
+                        <div class="linea"><strong>Tipo de entrega:</strong> {{ pedido.tipo_entrega if pedido.tipo_entrega else '' }}</div>
+                        <div class="linea"><strong>Dirección:</strong> {{ pedido.direccion if pedido.direccion else '' }}</div>
+                        <div class="linea"><strong>Colonia:</strong> {{ pedido.colonia if pedido.colonia else '' }}</div>
+                        <div class="linea"><strong>Referencia:</strong> {{ pedido.referencia if pedido.referencia else '' }}</div>
+                        <div class="linea"><strong>Nota:</strong> {{ pedido.nota if pedido.nota else '' }}</div>
+                        <div class="linea"><strong>Vendedor:</strong> {{ pedido.vendedor if pedido.vendedor else '' }}</div>
+                        <div class="linea"><strong>Subtotal:</strong> ${{ pedido.subtotal if pedido.subtotal else 0 }}</div>
+                        <div class="linea"><strong>Envío:</strong> ${{ pedido.envio if pedido.envio else 0 }}</div>
+                        <div class="linea"><strong>Total:</strong> ${{ pedido.total if pedido.total else 0 }}</div>
 
-                    <form method="POST" action="{{ url_for('reenviar_pedido_whatsapp', pedido_id=pedido.id_pedido) }}">
-                        <button type="submit" class="btn-whatsapp">Enviar al grupo por WhatsApp y borrar</button>
-                    </form>
+                        <div class="pedido-texto">{{ pedido.texto if pedido.texto else '' }}</div>
+
+                        <form method="POST" action="{{ url_for('reenviar_pedido_whatsapp', pedido_id=pedido.id_pedido) }}">
+                            <button type="submit" class="btn-whatsapp">Enviar al grupo por WhatsApp y borrar</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="vacio">No hay pedidos nuevos por el momento.</div>
+            {% endif %}
+        </div>
+
+        <div class="seccion">
+            <div class="titulo-seccion">Agregar categoría</div>
+
+            <form action="{{ url_for('agregar_categoria') }}" method="POST" enctype="multipart/form-data">
+                <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
+                <input type="file" name="foto" accept="image/*">
+                <button type="submit" class="btn-guardar">Guardar categoría</button>
+            </form>
+        </div>
+
+        <div class="seccion">
+            <div class="titulo-seccion">Categorías registradas</div>
+
+            {% if categorias and categorias|length > 0 %}
+                <div class="lista">
+                    {% for categoria in categorias %}
+                        <div class="item-lista">
+                            {% if categoria.foto %}
+                                <img src="{{ categoria.foto }}" class="foto-mini" alt="foto categoria">
+                            {% endif %}
+                            <strong>{{ categoria.nombre }}</strong>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        {% else %}
-            <div class="vacio">
-                No hay pedidos nuevos por el momento.
-            </div>
-        {% endif %}
+            {% else %}
+                <div class="vacio">No hay categorías registradas.</div>
+            {% endif %}
+        </div>
+
+        <div class="seccion">
+            <div class="titulo-seccion">Agregar producto</div>
+
+            <form action="{{ url_for('agregar_producto') }}" method="POST" enctype="multipart/form-data">
+                <input type="text" name="nombre" placeholder="Nombre del producto" required>
+                <input type="number" name="precio" placeholder="Precio" required>
+                <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
+
+                <select name="categoria_id" required>
+                    <option value="">Selecciona una categoría</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                    {% endfor %}
+                </select>
+
+                <select name="vendedor">
+                    {% for nombre_vendedor in vendedores %}
+                        <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                    {% endfor %}
+                </select>
+
+                <input type="file" name="foto" accept="image/*">
+                <button type="submit" class="btn-guardar">Guardar producto</button>
+            </form>
+        </div>
+
+        <div class="seccion">
+            <div class="titulo-seccion">Productos registrados</div>
+
+            {% if productos and productos|length > 0 %}
+                <div class="lista">
+                    {% for producto in productos %}
+                        <div class="item-lista">
+                            {% if producto.foto %}
+                                <img src="{{ producto.foto }}" class="foto-mini" alt="foto producto">
+                            {% endif %}
+                            <strong>{{ producto.nombre }}</strong><br>
+                            Precio: ${{ producto.precio }}<br>
+                            {% if producto.descripcion %}
+                                {{ producto.descripcion }}<br>
+                            {% endif %}
+                            {% if producto.vendedor %}
+                                Vendedor: {{ producto.vendedor }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="vacio">No hay productos registrados.</div>
+            {% endif %}
+        </div>
+
     </div>
 
 </body>
