@@ -1,95 +1,291 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel - Mercado CLN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de administración - Mercado CLN</title>
 
-<style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#f5f5f5;
-}
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-.header{
-    background:#000;
-    color:#fff;
-    padding:15px;
-    text-align:center;
-    font-size:20px;
-}
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f4f4f4;
+            font-family: Arial, sans-serif;
+        }
 
-.contenedor{
-    padding:12px;
-}
+        .panel {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+        }
 
-.card{
-    background:#fff;
-    border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
+        .titulo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 18px;
+            text-align: center;
+        }
 
-.btn{
-    display:block;
-    width:100%;
-    padding:14px;
-    margin-top:10px;
-    border:none;
-    border-radius:10px;
-    font-size:16px;
-    cursor:pointer;
-}
+        .botones-superiores {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
 
-.whatsapp{
-    background:#25D366;
-    color:#fff;
-}
+        .boton-principal {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: #1976d2;
+            color: white;
+            text-decoration: none;
+            padding: 16px;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+        }
 
-.vacio{
-    text-align:center;
-    padding:40px;
-    color:#777;
-}
-</style>
+        .seccion {
+            margin-top: 20px;
+        }
+
+        .subtitulo {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .pedido-card {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .pedido-linea {
+            margin-bottom: 8px;
+            font-size: 15px;
+            word-break: break-word;
+        }
+
+        .pedido-texto {
+            white-space: pre-wrap;
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .acciones {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-whatsapp {
+            width: 100%;
+            border: none;
+            background: #25d366;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .vacio {
+            background: #fafafa;
+            border: 1px dashed #ccc;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .grid-admin {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        .admin-box {
+            background: #fafafa;
+            border: 1px solid #e5e5e5;
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .admin-box h3 {
+            margin: 0 0 12px 0;
+            font-size: 18px;
+        }
+
+        .admin-box form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-box input,
+        .admin-box textarea,
+        .admin-box select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+        }
+
+        .admin-box button {
+            border: none;
+            background: black;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .lista-simple {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .lista-simple li {
+            margin-bottom: 6px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-    📦 Pedidos nuevos
-</div>
+    <div class="panel">
+        <div class="titulo">Panel de Administración</div>
 
-<div class="contenedor">
+        <div class="botones-superiores">
+            <a href="#pedidos" class="boton-principal">📦 Pedidos</a>
+            <a href="{{ url_for('catalogo') }}" class="boton-principal" style="background:#333;">🛒 Ver aplicación</a>
+        </div>
 
-{% if pedidos %}
-    {% for p in pedidos %}
-    <div class="card">
+        <div class="seccion" id="pedidos">
+            <div class="subtitulo">Pedidos nuevos</div>
 
-        <b>Cliente:</b> {{ p.nombre }}<br>
-        <b>Tel:</b> {{ p.telefono }}<br>
-        <b>Dirección:</b> {{ p.direccion }}<br><br>
+            {% if pedidos and pedidos|length > 0 %}
+                {% for pedido in pedidos %}
+                    <div class="pedido-card">
+                        <div class="pedido-linea"><strong>Cliente:</strong> {{ pedido.nombre }}</div>
+                        <div class="pedido-linea"><strong>Teléfono:</strong> {{ pedido.telefono }}</div>
+                        <div class="pedido-linea"><strong>Tipo de entrega:</strong> {{ pedido.tipo_entrega }}</div>
+                        <div class="pedido-linea"><strong>Dirección:</strong> {{ pedido.direccion }}</div>
+                        <div class="pedido-linea"><strong>Colonia:</strong> {{ pedido.colonia }}</div>
+                        <div class="pedido-linea"><strong>Referencia:</strong> {{ pedido.referencia }}</div>
+                        <div class="pedido-linea"><strong>Nota:</strong> {{ pedido.nota }}</div>
+                        <div class="pedido-linea"><strong>Vendedor:</strong> {{ pedido.vendedor }}</div>
+                        <div class="pedido-linea"><strong>Subtotal:</strong> ${{ pedido.subtotal }}</div>
+                        <div class="pedido-linea"><strong>Envío:</strong> ${{ pedido.envio }}</div>
+                        <div class="pedido-linea"><strong>Total:</strong> ${{ pedido.total }}</div>
 
-        <b>Pedido:</b><br>
-        <pre>{{ p.texto }}</pre>
+                        <div class="pedido-texto">{{ pedido.texto }}</div>
 
-        <form method="POST" action="/enviar_pedido/{{ p._id }}">
-            <button class="btn whatsapp">
-                Enviar a WhatsApp y borrar
-            </button>
-        </form>
+                        <div class="acciones">
+                            <form method="POST" action="{{ url_for('reenviar_pedido_whatsapp', pedido_id=pedido.id_pedido) }}">
+                                <button type="submit" class="btn-whatsapp">Enviar al grupo por WhatsApp y borrar</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="vacio">
+                    No hay pedidos nuevos por el momento.
+                </div>
+            {% endif %}
+        </div>
 
+        <div class="seccion">
+            <div class="subtitulo">Categorías</div>
+            <div class="grid-admin">
+                <div class="admin-box">
+                    <h3>Agregar categoría</h3>
+                    <form action="{{ url_for('agregar_categoria') }}" method="POST" enctype="multipart/form-data">
+                        <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
+                        <input type="file" name="foto" accept="image/*">
+                        <button type="submit">Guardar categoría</button>
+                    </form>
+                </div>
+
+                <div class="admin-box">
+                    <h3>Categorías registradas</h3>
+                    {% if categorias %}
+                        <ul class="lista-simple">
+                            {% for categoria in categorias %}
+                                <li>{{ categoria.nombre }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div>No hay categorías registradas.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="seccion">
+            <div class="subtitulo">Productos</div>
+            <div class="grid-admin">
+                <div class="admin-box">
+                    <h3>Agregar producto</h3>
+                    <form action="{{ url_for('agregar_producto') }}" method="POST" enctype="multipart/form-data">
+                        <input type="text" name="nombre" placeholder="Nombre del producto" required>
+                        <input type="number" step="0.01" name="precio" placeholder="Precio" required>
+                        <textarea name="descripcion" placeholder="Descripción"></textarea>
+
+                        <select name="categoria_id" required>
+                            <option value="">Selecciona categoría</option>
+                            {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select name="vendedor">
+                            {% for nombre_vendedor in vendedores %}
+                                <option value="{{ nombre_vendedor }}">{{ nombre_vendedor }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <input type="file" name="foto" accept="image/*">
+                        <button type="submit">Guardar producto</button>
+                    </form>
+                </div>
+
+                <div class="admin-box">
+                    <h3>Productos registrados</h3>
+                    {% if productos %}
+                        <ul class="lista-simple">
+                            {% for producto in productos %}
+                                <li>{{ producto.nombre }} - ${{ producto.precio }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div>No hay productos registrados.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    {% endfor %}
-{% else %}
-    <div class="vacio">
-        No hay pedidos nuevos
-    </div>
-{% endif %}
-
-</div>
 
 </body>
 </html>
