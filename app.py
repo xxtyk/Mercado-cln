@@ -333,6 +333,42 @@ def ver_carrito():
         carrito_importe_total=carrito_importe_total()
     )
 
+@app.route("/carrito/sumar/<int:id>", methods=["POST"])
+def carrito_sumar(id):
+    carrito = obtener_carrito()
+
+    for item in carrito:
+        if int(item.get("id")) == int(id):
+            item["cantidad"] = int(item.get("cantidad", 1)) + 1
+            break
+
+    guardar_carrito(carrito)
+    return redirect(url_for("ver_carrito"))
+
+@app.route("/carrito/restar/<int:id>", methods=["POST"])
+def carrito_restar(id):
+    carrito = obtener_carrito()
+    nuevo_carrito = []
+
+    for item in carrito:
+        if int(item.get("id")) == int(id):
+            cantidad_actual = int(item.get("cantidad", 1)) - 1
+            if cantidad_actual > 0:
+                item["cantidad"] = cantidad_actual
+                nuevo_carrito.append(item)
+        else:
+            nuevo_carrito.append(item)
+
+    guardar_carrito(nuevo_carrito)
+    return redirect(url_for("ver_carrito"))
+
+@app.route("/carrito/eliminar/<int:id>", methods=["POST"])
+def carrito_eliminar(id):
+    carrito = obtener_carrito()
+    carrito = [item for item in carrito if int(item.get("id")) != int(id)]
+    guardar_carrito(carrito)
+    return redirect(url_for("ver_carrito"))
+
 @app.route("/datos_entrega", methods=["GET", "POST"])
 def datos_entrega():
     if request.method == "POST":
