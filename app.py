@@ -6,7 +6,7 @@ import psycopg2.extras
 import cloudinary
 import cloudinary.uploader
 
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -40,10 +40,10 @@ def get_conn():
 def init_db():
     if not DATABASE_URL:
         return
+
     try:
         with get_conn() as conexion:
             with conexion.cursor() as cur:
-
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS categorias (
                         id SERIAL PRIMARY KEY,
@@ -139,6 +139,7 @@ def guardar_imagen(archivo):
         return ""
     if not extension_permitida(archivo.filename):
         return ""
+
     try:
         resultado = cloudinary.uploader.upload(
             archivo,
@@ -162,7 +163,7 @@ def generar_codigo_pedido():
 app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 
 # ------------------------
-# CONSULTAS
+# CONSULTAS CATEGORÍAS/PRODUCTOS
 # ------------------------
 def listar_categorias():
     try:
@@ -172,6 +173,26 @@ def listar_categorias():
                 return cur.fetchall()
     except Exception as e:
         print("❌ categorias:", str(e), flush=True)
+        return []
+
+def listar_todos_productos():
+    try:
+        with get_conn() as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT id, nombre, precio, categoria_id, descripcion, foto
+                    FROM productos
+                    ORDER BY id DESC
+                """)
+                filas = cur.fetchall()
+                productos = []
+                for item in filas:
+                    item = dict(item)
+                    item["precio"] = float(item.get("precio") or 0)
+                    productos.append(item)
+                return productos
+    except Exception as e:
+        print("❌ listar_todos_productos:", str(e), flush=True)
         return []
 
 def obtener_categoria_por_id(categoria_id):
@@ -253,7 +274,7 @@ def carrito_importe_total():
     return total
 
 # ------------------------
-# MENSAJE
+# MENSAJE PEDIDO
 # ------------------------
 def construir_mensaje():
     carrito = obtener_carrito()
@@ -285,7 +306,7 @@ def construir_mensaje():
     return texto
 
 # ------------------------
-# PEDIDOS
+# PEDIDOS PANEL
 # ------------------------
 def guardar_pedido():
     carrito = obtener_carrito()
@@ -327,6 +348,7 @@ def guardar_pedido():
                     total,
                     mensaje
                 ))
+
                 fila = cur.fetchone()
                 if not fila:
                     return None
@@ -349,6 +371,7 @@ def guardar_pedido():
                     ))
 
                 return pedido_id
+
     except Exception as e:
         print("❌ guardar_pedido:", str(e), flush=True)
         return None
@@ -363,7 +386,7 @@ def contar_pedidos_nuevos():
         print("❌ contar_pedidos_nuevos:", str(e), flush=True)
         return 0
 
-def listar_pedidos():
+def listar_pedidos_pendientes():
     try:
         with get_conn() as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
@@ -372,6 +395,7 @@ def listar_pedidos():
                            tipo_entrega, vendedor, forma_pago, subtotal, envio, total, mensaje,
                            estado, creado_en
                     FROM pedidos
+                    WHERE estado <> 'reenviado'
                     ORDER BY id DESC
                 """)
                 filas = cur.fetchall()
@@ -384,7 +408,7 @@ def listar_pedidos():
                     pedidos.append(item)
                 return pedidos
     except Exception as e:
-        print("❌ listar_pedidos:", str(e), flush=True)
+        print("❌ listar_pedidos_pendientes:", str(e), flush=True)
         return []
 
 def obtener_pedido_por_id(pedido_id):
@@ -443,7 +467,7 @@ def cambiar_estado_pedido(pedido_id, estado):
         return False
 
 # ------------------------
-# RUTAS
+# RUTAS TIENDA
 # ------------------------
 @app.route("/")
 def inicio():
@@ -621,10 +645,27 @@ def finalizar_pedido():
 
     return render_template("pedido_recibido.html")
 
+# ------------------------
+# RUTAS PANEL
+# ------------------------
+@app.route("/admin")
+def admin():
+    categorias = listar_categorias()
+    productos = listar_todos_productos()
+    pedidos_nuevos = contar_pedidos_nuevos()
+
+    return render_template(
+        "admin.html",
+        categorias=categorias,
+        productos=productos,
+        pedidos_nuevos=pedidos_nuevos
+    )
+
 @app.route("/pedidos")
 def ver_pedidos():
-    pedidos = listar_pedidos()
+    pedidos = listar_pedidos_pendientes()
     pedidos_nuevos = contar_pedidos_nuevos()
+
     return render_template(
         "pedidos.html",
         pedidos=pedidos,
@@ -638,8 +679,8 @@ def ver_pedido(id):
         return redirect(url_for("ver_pedidos"))
 
     if pedido.get("estado") == "nuevo":
-        cambiar_estado_pedido(id, "en_proceso")
-        pedido["estado"] = "en_proceso"
+        cambiar_estado_pedido(id, "pendiente_reenvio")
+        pedido["estado"] = "pendiente_reenvio"
 
     productos = listar_productos_de_pedido(id)
 
@@ -650,14 +691,14 @@ def ver_pedido(id):
         enlace_grupo=ENLACE_GRUPO_WHATSAPP
     )
 
-@app.route("/pedido/<int:id>/estado/<estado>", methods=["POST"])
-def actualizar_estado_pedido(id, estado):
-    estados_validos = ["nuevo", "en_proceso", "despachado", "entregado"]
-    if estado not in estados_validos:
-        return redirect(url_for("ver_pedido", id=id))
+@app.route("/pedido/<int:id>/reenviar", methods=["POST"])
+def reenviar_pedido(id):
+    pedido = obtener_pedido_por_id(id)
+    if not pedido:
+        return jsonify({"ok": False})
 
-    cambiar_estado_pedido(id, estado)
-    return redirect(url_for("ver_pedido", id=id))
+    cambiar_estado_pedido(id, "reenviado")
+    return jsonify({"ok": True, "grupo": ENLACE_GRUPO_WHATSAPP})
 
 # ------------------------
 if __name__ == "__main__":
