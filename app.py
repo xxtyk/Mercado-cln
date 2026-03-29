@@ -23,7 +23,7 @@ cloudinary.config(
 )
 
 # ------------------------
-# MONGODB
+# MONGODB (CORREGIDO PARA RENDER)
 # ------------------------
 MONGO_URI = os.environ.get("MONGO_URI", "").strip()
 
@@ -34,21 +34,23 @@ categorias_col = None
 
 if MONGO_URI:
     try:
+        # Usamos certifi para el handshake SSL y bajamos los timeouts a 5s
         mongo_client = MongoClient(
             MONGO_URI,
-            tls=True,
             tlsCAFile=certifi.where(),
-            serverSelectionTimeoutMS=30000,
-            connectTimeoutMS=30000,
-            socketTimeoutMS=30000
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000
         )
 
+        # Prueba de conexión rápida
         mongo_client.admin.command("ping")
 
+        # Conectamos a la base de datos de "Mercado CLN"
         mongo_db = mongo_client["mercado_cln"]
         productos_col = mongo_db["productos"]
         categorias_col = mongo_db["categorias"]
 
+        # Creamos índices si no existen
         productos_col.create_index("id", unique=True)
         categorias_col.create_index("id", unique=True)
         productos_col.create_index("categoria_id")
@@ -56,16 +58,16 @@ if MONGO_URI:
         print("✅ MONGO CONECTADO OK")
 
     except Exception as e:
-        print("❌ Error conectando MongoDB:", str(e))
+        print(f"❌ Error conectando MongoDB: {e}")
         mongo_client = None
         mongo_db = None
         productos_col = None
         categorias_col = None
 else:
-    print("❌ Falta MONGO_URI")
+    print("❌ Falta la variable MONGO_URI en el panel de Render")
 
 # ------------------------
-# CONFIG
+# CONFIGURACIÓN GENERAL
 # ------------------------
 EXTENSIONES_PERMITIDAS = {"png", "jpg", "jpeg", "webp", "gif"}
 COSTO_ENVIO = 40
@@ -74,24 +76,17 @@ GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
 GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
 GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
 
-VENDEDORES = {
-    "Mercado en Línea Culiacán": "526679771409",
-}
-
 # ------------------------
 # UTILIDADES
 # ------------------------
 def extension_permitida(nombre_archivo):
     return "." in nombre_archivo and nombre_archivo.rsplit(".", 1)[1].lower() in EXTENSIONES_PERMITIDAS
 
-
 def guardar_imagen(archivo):
     if not archivo or archivo.filename == "":
         return ""
-
     if not extension_permitida(archivo.filename):
         return ""
-
     try:
         resultado = cloudinary.uploader.upload(
             archivo,
@@ -104,296 +99,126 @@ def guardar_imagen(archivo):
         print("❌ Error Cloudinary:", str(e))
         return ""
 
-
 def obtener_siguiente_id(coleccion):
-    if coleccion is None:
-        return 1
-
+    if coleccion is None: return 1
     ultimo = coleccion.find_one({}, {"id": 1}, sort=[("id", DESCENDING)])
     return int(ultimo.get("id", 0)) + 1 if ultimo else 1
 
-
 def convertir_float(valor, default=0):
     try:
-        if valor is None or valor == "":
-            return float(default)
-        return float(valor)
-    except Exception:
+        return float(valor) if valor else float(default)
+    except:
         return float(default)
-
 
 def obtener_carrito_desde_session():
     carrito = session.get("carrito", [])
-
     if isinstance(carrito, dict):
         carrito = list(carrito.values())
-
-    if not isinstance(carrito, list):
-        carrito = []
-
-    return carrito
-
+    return carrito if isinstance(carrito, list) else []
 
 def obtener_datos_entrega():
-    datos_session = session.get("datos_entrega", {})
-    if not isinstance(datos_session, dict):
-        datos_session = {}
-
-    datos = {
-        "nombre": (
-            request.form.get("nombre")
-            or datos_session.get("nombre")
-            or session.get("nombre_cliente")
-            or session.get("nombre")
-            or ""
-        ),
-        "telefono": (
-            request.form.get("telefono")
-            or datos_session.get("telefono")
-            or session.get("telefono_cliente")
-            or session.get("telefono")
-            or ""
-        ),
-        "direccion": (
-            request.form.get("direccion")
-            or datos_session.get("direccion")
-            or session.get("direccion")
-            or ""
-        ),
-        "colonia": (
-            request.form.get("colonia")
-            or datos_session.get("colonia")
-            or session.get("colonia")
-            or ""
-        ),
-        "referencia": (
-            request.form.get("referencia")
-            or datos_session.get("referencia")
-            or session.get("referencia")
-            or ""
-        ),
-        "metodo_pago": (
-            request.form.get("metodo_pago")
-            or datos_session.get("metodo_pago")
-            or session.get("metodo_pago")
-            or ""
-        ),
-        "tipo_entrega": (
-            request.form.get("tipo_entrega")
-            or datos_session.get("tipo_entrega")
-            or session.get("tipo_entrega")
-            or ""
-        ),
-        "comentarios": (
-            request.form.get("comentarios")
-            or datos_session.get("comentarios")
-            or session.get("comentarios")
-            or ""
-        ),
+    ds = session.get("datos_entrega", {})
+    return {
+        "nombre": request.form.get("nombre") or ds.get("nombre") or "",
+        "telefono": request.form.get("telefono") or ds.get("telefono") or "",
+        "direccion": request.form.get("direccion") or ds.get("direccion") or "",
+        "colonia": request.form.get("colonia") or ds.get("colonia") or "",
+        "referencia": request.form.get("referencia") or ds.get("referencia") or "",
+        "metodo_pago": request.form.get("metodo_pago") or ds.get("metodo_pago") or "",
+        "tipo_entrega": request.form.get("tipo_entrega") or ds.get("tipo_entrega") or "",
+        "comentarios": request.form.get("comentarios") or ds.get("comentarios") or ""
     }
-
-    return datos
-
 
 def construir_mensaje_pedido():
     carrito = obtener_carrito_desde_session()
     datos = obtener_datos_entrega()
-
-    lineas = []
-    lineas.append("🛒 *NUEVO PEDIDO DESDE LA APP*")
-    lineas.append("")
-
+    lineas = ["🛒 *NUEVO PEDIDO DESDE LA APP*", ""]
+    
     if carrito:
         lineas.append("*Productos:*")
         subtotal = 0
-
         for i, item in enumerate(carrito, start=1):
-            nombre = str(item.get("nombre", "Producto")).strip()
-            cantidad = int(item.get("cantidad", 1) or 1)
-            precio = convertir_float(item.get("precio", 0))
-            descripcion = str(item.get("descripcion", "") or "").strip()
-
-            total_item = precio * cantidad
-            subtotal += total_item
-
-            lineas.append(f"{i}. {nombre}")
-            lineas.append(f"   Cantidad: {cantidad}")
-            lineas.append(f"   Precio: ${precio:.2f}")
-            lineas.append(f"   Total: ${total_item:.2f}")
-
-            if descripcion:
-                lineas.append(f"   Nota: {descripcion}")
-
-        envio = 0
-        tipo_entrega = datos.get("tipo_entrega", "").lower()
-
-        if "domicilio" in tipo_entrega or "envio" in tipo_entrega:
-            envio = COSTO_ENVIO
-
-        total_general = subtotal + envio
-
-        lineas.append("")
-        lineas.append(f"*Subtotal:* ${subtotal:.2f}")
+            cant = int(item.get("cantidad", 1))
+            pre = convertir_float(item.get("precio", 0))
+            total_i = cant * pre
+            subtotal += total_i
+            lineas.append(f"{i}. {item.get('nombre')} x{cant} - ${total_i:.2f}")
+        
+        envio = COSTO_ENVIO if "domicilio" in datos.get("tipo_entrega", "").lower() else 0
+        lineas.append(f"\n*Subtotal:* ${subtotal:.2f}")
         lineas.append(f"*Envío:* ${envio:.2f}")
-        lineas.append(f"*Total:* ${total_general:.2f}")
-    else:
-        lineas.append("No se encontraron productos en el carrito.")
-        lineas.append("")
-
-    lineas.append("")
-    lineas.append("*Datos de entrega:*")
-    lineas.append(f"Nombre: {datos.get('nombre', '') or 'No capturado'}")
-    lineas.append(f"Teléfono: {datos.get('telefono', '') or 'No capturado'}")
-    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega', '') or 'No capturado'}")
-    lineas.append(f"Dirección: {datos.get('direccion', '') or 'No capturada'}")
-    lineas.append(f"Colonia: {datos.get('colonia', '') or 'No capturada'}")
-    lineas.append(f"Referencia: {datos.get('referencia', '') or 'No capturada'}")
-    lineas.append(f"Método de pago: {datos.get('metodo_pago', '') or 'No capturado'}")
-
-    comentarios = datos.get("comentarios", "")
-    if comentarios:
-        lineas.append(f"Comentarios: {comentarios}")
-
+        lineas.append(f"*Total:* ${subtotal + envio:.2f}")
+    
+    lineas.append("\n*Datos de entrega:*")
+    for k, v in datos.items():
+        if v: lineas.append(f"{k.capitalize()}: {v}")
     return "\n".join(lineas)
 
-
 def enviar_whatsapp_green_api(texto):
-    if not GREEN_API_INSTANCE or not GREEN_API_TOKEN or not GREEN_API_CHAT_ID:
-        print("❌ Faltan variables de Green API")
+    if not all([GREEN_API_INSTANCE, GREEN_API_TOKEN, GREEN_API_CHAT_ID]):
         return False
-
-    chat_id = GREEN_API_CHAT_ID.strip()
-    if not chat_id.endswith("@g.us") and not chat_id.endswith("@c.us"):
-        chat_id = f"{chat_id}@g.us"
-
     url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
-
-    payload = {
-        "chatId": chat_id,
-        "message": texto
-    }
-
+    chat_id = GREEN_API_CHAT_ID if "@" in GREEN_API_CHAT_ID else f"{GREEN_API_CHAT_ID}@g.us"
     try:
-        respuesta = requests.post(url, json=payload, timeout=30)
-        print("✅ Respuesta Green API:", respuesta.status_code, respuesta.text)
-        return respuesta.ok
-    except Exception as e:
-        print("❌ Error WhatsApp:", str(e))
+        requests.post(url, json={"chatId": chat_id, "message": texto}, timeout=10)
+        return True
+    except:
         return False
-
-
-def resolver_imagen(url):
-    if not url:
-        return ""
-    return url
-
-
-app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 
 # ------------------------
 # RUTAS
 # ------------------------
 @app.route("/")
 def inicio():
-    categorias = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
-    return render_template("index.html", categorias=categorias)
-
+    cats = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
+    return render_template("index.html", categorias=cats)
 
 @app.route("/categoria/<int:id>")
 def categoria(id):
-    categoria_actual = categorias_col.find_one({"id": id}, {"_id": 0}) if categorias_col else None
-    productos = list(productos_col.find({"categoria_id": id}, {"_id": 0}).sort("id", 1)) if productos_col else []
-    return render_template("categoria.html", categoria=categoria_actual, productos=productos)
-
+    cat = categorias_col.find_one({"id": id}, {"_id": 0}) if categorias_col else None
+    prods = list(productos_col.find({"categoria_id": id}, {"_id": 0}).sort("id", 1)) if productos_col else []
+    return render_template("categoria.html", categoria=cat, productos=prods)
 
 @app.route("/admin")
 def admin():
-    categorias = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
-    productos = list(productos_col.find({}, {"_id": 0}).sort("id", 1)) if productos_col else []
-    return render_template("admin.html", categorias=categorias, productos=productos)
-
+    cats = list(categorias_col.find({}, {"_id": 0}).sort("id", 1)) if categorias_col else []
+    prods = list(productos_col.find({}, {"_id": 0}).sort("id", 1)) if productos_col else []
+    return render_template("admin.html", categorias=cats, productos=prods)
 
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
-    try:
-        if categorias_col is None:
-            print("❌ No hay conexión con categorias_col")
-            return redirect("/admin")
-
-        nombre = (request.form.get("nombre") or "").strip()
-        foto = request.files.get("foto")
-
-        print("📌 Nombre recibido:", nombre)
-        print("📌 Trae foto:", bool(foto and foto.filename))
-
-        if not nombre:
-            print("❌ Nombre vacío")
-            return redirect("/admin")
-
-        foto_url = guardar_imagen(foto) if foto and foto.filename else ""
-
-        nuevo_id = obtener_siguiente_id(categorias_col)
-        print("📌 Siguiente id:", nuevo_id)
-        print("📌 Foto URL:", foto_url)
-
-        categorias_col.insert_one({
-            "id": nuevo_id,
-            "nombre": nombre,
-            "foto": foto_url
-        })
-
-        print("✅ Categoría guardada correctamente")
-        return redirect("/admin")
-
-    except Exception as e:
-        print("❌ Error en agregar_categoria:", str(e))
-        return redirect("/admin")
-
+    nombre = (request.form.get("nombre") or "").strip()
+    foto = request.files.get("foto")
+    if nombre and categorias_col:
+        url = guardar_imagen(foto)
+        categorias_col.insert_one({"id": obtener_siguiente_id(categorias_col), "nombre": nombre, "foto": url})
+    return redirect("/admin")
 
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
-    try:
-        if productos_col is None:
-            print("❌ No hay conexión con productos_col")
-            return redirect("/admin")
-
-        nombre = (request.form.get("nombre") or "").strip()
-        precio = request.form.get("precio")
-        categoria_id = request.form.get("categoria_id")
-        descripcion = (request.form.get("descripcion") or "").strip()
-        foto = request.files.get("foto_producto")
-
-        if not nombre or not categoria_id:
-            print("❌ Faltan datos en producto")
-            return redirect("/admin")
-
+    nombre = (request.form.get("nombre") or "").strip()
+    cat_id = request.form.get("categoria_id")
+    if nombre and cat_id and productos_col:
         productos_col.insert_one({
             "id": obtener_siguiente_id(productos_col),
             "nombre": nombre,
-            "precio": convertir_float(precio, 0),
-            "categoria_id": int(categoria_id),
-            "descripcion": descripcion,
-            "foto": guardar_imagen(foto)
+            "precio": convertir_float(request.form.get("precio")),
+            "categoria_id": int(cat_id),
+            "descripcion": request.form.get("descripcion", ""),
+            "foto": guardar_imagen(request.files.get("foto_producto"))
         })
-
-        print("✅ Producto guardado correctamente")
-        return redirect("/admin")
-
-    except Exception as e:
-        print("❌ Error en agregar_producto:", str(e))
-        return redirect("/admin")
-
+    return redirect("/admin")
 
 @app.route("/finalizar_pedido", methods=["POST"])
 def finalizar_pedido():
-    texto = construir_mensaje_pedido()
-    enviado = enviar_whatsapp_green_api(texto)
-
-    if enviado:
+    if enviar_whatsapp_green_api(construir_mensaje_pedido()):
         session.pop("carrito", None)
-
     return redirect("/")
 
-
+# ------------------------
+# LANZAMIENTO (PUERTO DINÁMICO)
+# ------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # Render usa la variable PORT, si no existe usa 5000 por defecto
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
