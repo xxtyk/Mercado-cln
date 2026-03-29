@@ -271,6 +271,25 @@ def categoria(id):
         carrito_importe_total=carrito_importe_total()
     )
 
+@app.route("/producto/<int:id>")
+def producto(id):
+    producto_actual = obtener_producto(id)
+    if not producto_actual:
+        return redirect(url_for("inicio"))
+
+    categoria_actual = None
+    categoria_id = producto_actual.get("categoria_id")
+    if categoria_id:
+        categoria_actual = obtener_categoria_por_id(categoria_id)
+
+    return render_template(
+        "producto.html",
+        producto=producto_actual,
+        categoria=categoria_actual,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
+
 @app.route("/agregar_al_carrito/<int:id>", methods=["POST"])
 def agregar_al_carrito(id):
     producto = obtener_producto(id)
@@ -279,6 +298,9 @@ def agregar_al_carrito(id):
 
     carrito = obtener_carrito()
     cantidad = int(request.form.get("cantidad", 1) or 1)
+
+    if cantidad < 1:
+        cantidad = 1
 
     encontrado = False
     for item in carrito:
