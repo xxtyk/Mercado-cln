@@ -58,12 +58,13 @@
         max-width:420px;
         background:#1f49b6;
         color:white;
-        text-decoration:none;
+        border:none;
         padding:18px 22px;
         border-radius:22px;
         font-size:18px;
         font-weight:bold;
         margin-bottom:22px;
+        cursor:pointer;
     }
 
     .contador{
@@ -84,7 +85,9 @@
         para hacer tu pedido más rápido?
     </div>
 
-    <a href="javascript:void(0)" class="btn">Descargar aplicación</a>
+    <button id="btnInstalar" class="btn">
+        Descargar aplicación
+    </button>
 
     <div class="contador">
         Entrando a categorías en <span id="contador">5</span> segundos...
@@ -92,26 +95,46 @@
 </div>
 
 <script>
-    let segundos = 5;
+let deferredPrompt;
 
-    function actualizarContador() {
-        const contador = document.getElementById("contador");
-        if (contador) {
-            contador.textContent = segundos;
-        }
+// detectar instalación
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
 
-        if (segundos <= 0) {
-            window.location.href = "{{ url_for('catalogo') }}";
-            return;
-        }
+// botón instalar
+document.getElementById("btnInstalar").addEventListener("click", async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    } else {
+        alert("Abre el menú del navegador y selecciona 'Instalar aplicación'");
+    }
+});
 
-        segundos--;
-        setTimeout(actualizarContador, 1000);
+// contador automático
+let segundos = 5;
+
+function actualizarContador() {
+    const contador = document.getElementById("contador");
+    if (contador) {
+        contador.textContent = segundos;
     }
 
-    window.onload = function () {
-        actualizarContador();
-    };
+    if (segundos <= 0) {
+        window.location.href = "{{ url_for('inicio') }}";
+        return;
+    }
+
+    segundos--;
+    setTimeout(actualizarContador, 1000);
+}
+
+window.onload = function () {
+    actualizarContador();
+};
 </script>
 
 </body>
