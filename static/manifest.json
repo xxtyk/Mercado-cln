@@ -1,9 +1,10 @@
-
 {
   "name": "Mercado en Línea Culiacán",
-  "short_name": "Mercado Culiacán",
-  "start_url": "/",
+  "short_name": "Mercado CLN",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000",
   "description": "Haz tu pedido más rápido desde Mercado en Línea Culiacán.",
@@ -11,12 +12,14 @@
     {
       "src": "/static/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/static/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
