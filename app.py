@@ -13,6 +13,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
 
 # ------------------------
+# CONFIG
+# ------------------------
+COSTO_ENVIO = 40
+
+# ------------------------
 # CLOUDINARY
 # ------------------------
 cloudinary.config(
@@ -82,6 +87,7 @@ init_db()
 GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
 GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
 GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
+GREEN_API_HOST = os.environ.get("GREEN_API_HOST", "").strip().rstrip("/")
 
 VENDEDORES = [
     "Mercado en Línea Culiacán",
@@ -108,25 +114,37 @@ def enviar_whatsapp(texto):
         print("❌ Green API: falta GREEN_API_CHAT_ID")
         return False
 
-    url = f"https://api.green-api.com/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+    if not GREEN_API_HOST:
+        print("❌ Green API: falta GREEN_API_HOST")
+        return False
+
+    url = f"{GREEN_API_HOST}/waInstance{GREEN_API_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+
     payload = {
         "chatId": GREEN_API_CHAT_ID,
         "message": texto
     }
 
     try:
-        respuesta = requests.post(url, json=payload, timeout=20)
+        respuesta = requests.post(url, json=payload, timeout=30)
+
+        print("📨 Green URL:", url)
         print("📨 Green status:", respuesta.status_code)
         print("📨 Green respuesta:", respuesta.text)
 
-        if respuesta.status_code == 200:
-            try:
-                data = respuesta.json()
-                if data.get("idMessage"):
-                    print("✅ enviado a WhatsApp")
-                    return True
-            except Exception:
-                pass
+        if respuesta.status_code not in (200, 201):
+            print("❌ Green API devolvió error")
+            return False
+
+        try:
+            data = respuesta.json()
+            if data.get("idMessage") or data.get("id_message") or respuesta.status_code in (200, 201):
+                print("✅ enviado a WhatsApp")
+                return True
+        except Exception:
+            if respuesta.status_code in (200, 201):
+                print("✅ enviado a WhatsApp")
+                return True
 
         print("❌ Green API no confirmó envío")
         return False
@@ -264,7 +282,7 @@ def construir_mensaje():
     carrito = obtener_carrito()
     datos = session.get("datos_entrega", {})
 
-    texto = "🛒 *NUEVO PEDIDO DE MERCADO EN LÍNEA*\n\n"
+    texto = "🛒 *NUEVO PEDIDO DE MERCADO EN LÍNEA CULIACÁN*\n\n"
     subtotal = 0
 
     for item in carrito:
@@ -273,7 +291,7 @@ def construir_mensaje():
         texto += f"• {item['nombre']} x{item['cantidad']} = ${sub:.2f}\n"
 
     tipo_entrega = (datos.get("tipo_entrega", "domicilio") or "domicilio").strip().lower()
-    envio = 40 if tipo_entrega == "domicilio" else 0
+    envio = COSTO_ENVIO if tipo_entrega == "domicilio" else 0
     total = subtotal + envio
 
     texto += f"\n💰 Subtotal: ${subtotal:.2f}\n"
@@ -282,9 +300,9 @@ def construir_mensaje():
     texto += f"👤 Cliente: {datos.get('nombre', '')}\n"
     texto += f"📱 Tel: {datos.get('telefono', '')}\n"
     texto += f"📍 Dir: {datos.get('direccion', '')}\n"
+    texto += f"🏘️ Colonia: {datos.get('colonia', '')}\n"
     texto += f"🏪 Entrega: {datos.get('tipo_entrega', '')}\n"
     texto += f"👨‍💼 Vendedor: {datos.get('vendedor', '')}\n"
-    texto += f"🏠 Colonia: {datos.get('colonia', '')}\n"
     texto += f"📝 Nota: {datos.get('nota', '')}\n"
 
     return texto
@@ -452,6 +470,11 @@ def finalizar_pedido():
     if not carrito:
         return redirect(url_for("inicio"))
 
+    datos = session.get("datos_entrega", {})
+    if not datos:
+        print("❌ No hay datos_entrega en sesión")
+        return redirect(url_for("datos_entrega"))
+
     texto = construir_mensaje()
     enviado = enviar_whatsapp(texto)
 
@@ -463,7 +486,7 @@ def finalizar_pedido():
         return redirect(url_for("inicio"))
 
     print("❌ No se vació carrito porque Green API falló")
-    return redirect(url_for("datos_entrega"))
+    return "No se pudo enviar el pedido al grupo. Revisa los logs de Render."
 
 # ------------------------
 if __name__ == "__main__":
