@@ -82,6 +82,18 @@ GREEN_API_INSTANCE = os.environ.get("GREEN_API_INSTANCE", "").strip()
 GREEN_API_TOKEN = os.environ.get("GREEN_API_TOKEN", "").strip()
 GREEN_API_CHAT_ID = os.environ.get("GREEN_API_CHAT_ID", "").strip()
 
+VENDEDORES = [
+    "Mercado en Línea Culiacán",
+    "Silvia",
+    "Hector",
+    "Juan",
+    "Cristian",
+    "Amayrani",
+    "Brisa",
+    "Claudia",
+    "Natalia"
+]
+
 # ------------------------
 # UTILIDADES
 # ------------------------
@@ -118,16 +130,42 @@ def convertir_float(valor, default=0):
         return float(default)
 
 
-def obtener_carrito_desde_session():
-    carrito = session.get("carrito", [])
+def resolver_imagen(url):
+    if not url:
+        return ""
+    return url
 
+
+app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
+
+# ------------------------
+# CARRITO
+# ------------------------
+def obtener_carrito():
+    carrito = session.get("carrito", [])
     if isinstance(carrito, dict):
         carrito = list(carrito.values())
-
     if not isinstance(carrito, list):
         carrito = []
-
     return carrito
+
+
+def guardar_carrito(carrito):
+    session["carrito"] = carrito
+    session.modified = True
+
+
+def carrito_cantidad_total():
+    carrito = obtener_carrito()
+    return sum(int(item.get("cantidad", 1)) for item in carrito)
+
+
+def carrito_importe_total():
+    carrito = obtener_carrito()
+    total = 0
+    for item in carrito:
+        total += float(item.get("precio", 0)) * int(item.get("cantidad", 1))
+    return total
 
 
 def obtener_datos_entrega():
@@ -135,79 +173,36 @@ def obtener_datos_entrega():
     if not isinstance(datos_session, dict):
         datos_session = {}
 
-    datos = {
-        "nombre": (
-            request.form.get("nombre")
-            or datos_session.get("nombre")
-            or session.get("nombre_cliente")
-            or session.get("nombre")
-            or ""
-        ),
-        "telefono": (
-            request.form.get("telefono")
-            or datos_session.get("telefono")
-            or session.get("telefono_cliente")
-            or session.get("telefono")
-            or ""
-        ),
-        "direccion": (
-            request.form.get("direccion")
-            or datos_session.get("direccion")
-            or session.get("direccion")
-            or ""
-        ),
-        "colonia": (
-            request.form.get("colonia")
-            or datos_session.get("colonia")
-            or session.get("colonia")
-            or ""
-        ),
-        "referencia": (
-            request.form.get("referencia")
-            or datos_session.get("referencia")
-            or session.get("referencia")
-            or ""
-        ),
-        "metodo_pago": (
-            request.form.get("metodo_pago")
-            or datos_session.get("metodo_pago")
-            or session.get("metodo_pago")
-            or ""
-        ),
-        "tipo_entrega": (
-            request.form.get("tipo_entrega")
-            or datos_session.get("tipo_entrega")
-            or session.get("tipo_entrega")
-            or ""
-        ),
-        "comentarios": (
-            request.form.get("comentarios")
-            or datos_session.get("comentarios")
-            or session.get("comentarios")
-            or ""
-        ),
+    return {
+        "nombre": datos_session.get("nombre", ""),
+        "telefono": datos_session.get("telefono", ""),
+        "vendedor": datos_session.get("vendedor", ""),
+        "tipo_entrega": datos_session.get("tipo_entrega", ""),
+        "direccion": datos_session.get("direccion", ""),
+        "colonia": datos_session.get("colonia", ""),
+        "referencia": datos_session.get("referencia", ""),
     }
 
-    return datos
-
-
+# ------------------------
+# WHATSAPP
+# ------------------------
 def construir_mensaje_pedido():
-    carrito = obtener_carrito_desde_session()
+    carrito = obtener_carrito()
     datos = obtener_datos_entrega()
 
     lineas = []
     lineas.append("🛒 *NUEVO PEDIDO DESDE LA APP*")
     lineas.append("")
 
+    subtotal = 0
+
     if carrito:
         lineas.append("*Productos:*")
-        subtotal = 0
 
         for i, item in enumerate(carrito, start=1):
             nombre = str(item.get("nombre", "Producto")).strip()
             cantidad = int(item.get("cantidad", 1) or 1)
             precio = convertir_float(item.get("precio", 0))
-            descripcion = str(item.get("descripcion", "") or "").strip()
 
             total_item = precio * cantidad
             subtotal += total_item
@@ -216,39 +211,28 @@ def construir_mensaje_pedido():
             lineas.append(f"   Cantidad: {cantidad}")
             lineas.append(f"   Precio: ${precio:.2f}")
             lineas.append(f"   Total: ${total_item:.2f}")
-
-            if descripcion:
-                lineas.append(f"   Nota: {descripcion}")
-
-        envio = 0
-        tipo_entrega = datos.get("tipo_entrega", "").lower()
-
-        if "domicilio" in tipo_entrega or "envio" in tipo_entrega:
-            envio = COSTO_ENVIO
-
-        total_general = subtotal + envio
-
-        lineas.append("")
-        lineas.append(f"*Subtotal:* ${subtotal:.2f}")
-        lineas.append(f"*Envío:* ${envio:.2f}")
-        lineas.append(f"*Total:* ${total_general:.2f}")
     else:
         lineas.append("No se encontraron productos en el carrito.")
-        lineas.append("")
+
+    envio = COSTO_ENVIO if datos.get("tipo_entrega") == "domicilio" else 0
+    total_general = subtotal + envio
+
+    lineas.append("")
+    lineas.append(f"*Subtotal:* ${subtotal:.2f}")
+    lineas.append(f"*Envío:* ${envio:.2f}")
+    lineas.append(f"*Total:* ${total_general:.2f}")
 
     lineas.append("")
     lineas.append("*Datos de entrega:*")
-    lineas.append(f"Nombre: {datos.get('nombre', '') or 'No capturado'}")
-    lineas.append(f"Teléfono: {datos.get('telefono', '') or 'No capturado'}")
-    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega', '') or 'No capturado'}")
-    lineas.append(f"Dirección: {datos.get('direccion', '') or 'No capturada'}")
-    lineas.append(f"Colonia: {datos.get('colonia', '') or 'No capturada'}")
-    lineas.append(f"Referencia: {datos.get('referencia', '') or 'No capturada'}")
-    lineas.append(f"Método de pago: {datos.get('metodo_pago', '') or 'No capturado'}")
-
-    comentarios = datos.get("comentarios", "")
-    if comentarios:
-        lineas.append(f"Comentarios: {comentarios}")
+    lineas.append(f"Nombre: {datos.get('nombre') or 'No capturado'}")
+    lineas.append(f"Teléfono: {datos.get('telefono') or 'No capturado'}")
+    lineas.append(f"Vendedor: {datos.get('vendedor') or 'No capturado'}")
+    lineas.append(f"Tipo de entrega: {datos.get('tipo_entrega') or 'No capturado'}")
+    lineas.append(f"Dirección: {datos.get('direccion') or 'No capturada'}")
+    lineas.append(f"Colonia: {datos.get('colonia') or 'No capturada'}")
+    lineas.append(f"Referencia: {datos.get('referencia') or 'No capturada'}")
+    lineas.append("")
+    lineas.append("💵 Pago contra entrega. El cliente paga al momento que recibe su pedido.")
 
     return "\n".join(lineas)
 
@@ -276,15 +260,6 @@ def enviar_whatsapp_green_api(texto):
     except Exception as e:
         print("❌ Error WhatsApp:", str(e))
         return False
-
-
-def resolver_imagen(url):
-    if not url:
-        return ""
-    return url
-
-
-app.jinja_env.globals.update(resolver_imagen=resolver_imagen)
 
 # ------------------------
 # CONSULTAS
@@ -394,7 +369,7 @@ def listar_productos_por_categoria(categoria_id):
         return []
 
 # ------------------------
-# RUTAS
+# RUTAS TIENDA
 # ------------------------
 @app.route("/")
 def inicio():
@@ -406,9 +381,155 @@ def inicio():
 def categoria(id):
     categoria_actual = obtener_categoria_por_id(id)
     productos = listar_productos_por_categoria(id)
-    return render_template("categoria.html", categoria=categoria_actual, productos=productos)
+    return render_template(
+        "categoria.html",
+        categoria=categoria_actual,
+        productos=productos,
+        carrito_cantidad_total=carrito_cantidad_total(),
+        carrito_importe_total=carrito_importe_total()
+    )
 
 
+@app.route("/agregar_al_carrito/<int:producto_id>", methods=["POST"])
+def agregar_al_carrito(producto_id):
+    try:
+        cantidad = int(request.form.get("cantidad", 1))
+        if cantidad < 1:
+            cantidad = 1
+
+        producto = obtener_producto_por_id(producto_id)
+        if not producto:
+            return redirect(request.referrer or url_for("inicio"))
+
+        carrito = obtener_carrito()
+        encontrado = False
+
+        for item in carrito:
+            if int(item.get("id")) == int(producto_id):
+                item["cantidad"] = int(item.get("cantidad", 1)) + cantidad
+                encontrado = True
+                break
+
+        if not encontrado:
+            carrito.append({
+                "id": producto["id"],
+                "nombre": producto["nombre"],
+                "precio": float(producto["precio"]),
+                "foto": producto.get("foto", ""),
+                "cantidad": cantidad
+            })
+
+        guardar_carrito(carrito)
+        return redirect(request.referrer or url_for("inicio"))
+
+    except Exception as e:
+        print("❌ Error agregando al carrito:", str(e))
+        return redirect(request.referrer or url_for("inicio"))
+
+
+@app.route("/carrito")
+def ver_carrito():
+    carrito = obtener_carrito()
+    subtotal = carrito_importe_total()
+    return render_template("carrito.html", carrito=carrito, subtotal=subtotal)
+
+
+@app.route("/carrito/actualizar/<int:producto_id>", methods=["POST"])
+def actualizar_carrito(producto_id):
+    accion = request.form.get("accion", "").strip()
+    carrito = obtener_carrito()
+
+    for item in carrito[:]:
+        if int(item.get("id")) == int(producto_id):
+            cantidad_actual = int(item.get("cantidad", 1))
+
+            if accion == "sumar":
+                item["cantidad"] = cantidad_actual + 1
+            elif accion == "restar":
+                item["cantidad"] = max(1, cantidad_actual - 1)
+            elif accion == "eliminar":
+                carrito.remove(item)
+
+            break
+
+    guardar_carrito(carrito)
+    return redirect(url_for("ver_carrito"))
+
+
+@app.route("/vaciar_carrito", methods=["POST"])
+def vaciar_carrito():
+    session["carrito"] = []
+    session.modified = True
+    return redirect(url_for("ver_carrito"))
+
+
+@app.route("/datos_entrega", methods=["GET", "POST"])
+def datos_entrega():
+    carrito = obtener_carrito()
+    subtotal = carrito_importe_total()
+
+    if not carrito:
+        return redirect(url_for("inicio"))
+
+    if request.method == "POST":
+        session["datos_entrega"] = {
+            "nombre": (request.form.get("nombre") or "").strip(),
+            "telefono": (request.form.get("telefono") or "").strip(),
+            "vendedor": (request.form.get("vendedor") or "").strip(),
+            "tipo_entrega": (request.form.get("tipo_entrega") or "").strip(),
+            "direccion": (request.form.get("direccion") or "").strip(),
+            "colonia": (request.form.get("colonia") or "").strip(),
+            "referencia": (request.form.get("referencia") or "").strip(),
+        }
+        session.modified = True
+        return redirect(url_for("confirmar_pedido"))
+
+    datos = session.get("datos_entrega", {})
+    return render_template(
+        "datos_entrega.html",
+        subtotal=subtotal,
+        datos=datos,
+        vendedores=VENDEDORES
+    )
+
+
+@app.route("/confirmar_pedido")
+def confirmar_pedido():
+    carrito = obtener_carrito()
+    datos = session.get("datos_entrega", {})
+
+    if not carrito:
+        return redirect(url_for("inicio"))
+
+    subtotal = carrito_importe_total()
+    envio = COSTO_ENVIO if datos.get("tipo_entrega") == "domicilio" else 0
+    total = subtotal + envio
+
+    return render_template(
+        "confirmar_pedido.html",
+        carrito=carrito,
+        datos=datos,
+        subtotal=subtotal,
+        envio=envio,
+        total=total
+    )
+
+
+@app.route("/finalizar_pedido", methods=["POST"])
+def finalizar_pedido():
+    texto = construir_mensaje_pedido()
+    enviado = enviar_whatsapp_green_api(texto)
+
+    if enviado:
+        session.pop("carrito", None)
+        session.pop("datos_entrega", None)
+        session.modified = True
+
+    return redirect(url_for("inicio"))
+
+# ------------------------
+# RUTAS ADMIN
+# ------------------------
 @app.route("/admin")
 def admin():
     categorias = listar_categorias()
@@ -422,15 +543,10 @@ def agregar_categoria():
         nombre = (request.form.get("nombre") or "").strip()
         foto = request.files.get("foto")
 
-        print("👉 Entró a /agregar_categoria")
-        print("📌 nombre:", nombre)
-
         if not nombre:
-            print("❌ Nombre vacío")
             return redirect("/admin")
 
         foto_url = guardar_imagen(foto) if foto and foto.filename else ""
-        print("📌 foto_url:", foto_url)
 
         with get_conn() as conexion:
             with conexion.cursor() as cur:
@@ -507,7 +623,6 @@ def agregar_producto():
         foto = request.files.get("foto_producto")
 
         if not nombre or not categoria_id:
-            print("❌ Faltan datos del producto")
             return redirect("/admin")
 
         foto_url = guardar_imagen(foto) if foto and foto.filename else ""
@@ -578,17 +693,6 @@ def eliminar_producto(producto_id):
     except Exception as e:
         print("❌ Error eliminando producto:", str(e))
         return redirect("/admin")
-
-
-@app.route("/finalizar_pedido", methods=["POST"])
-def finalizar_pedido():
-    texto = construir_mensaje_pedido()
-    enviado = enviar_whatsapp_green_api(texto)
-
-    if enviado:
-        session.pop("carrito", None)
-
-    return redirect("/")
 
 
 if __name__ == "__main__":
