@@ -24,10 +24,23 @@ VENDEDORES = [
 ]
 
 # ========================
+# CATEGORIAS FIJAS
+# ========================
+categorias = [
+    {"id": 1, "nombre": "Minisplit", "foto": None},
+    {"id": 2, "nombre": "Cuidado personal", "foto": None},
+    {"id": 3, "nombre": "Mascotas", "foto": None},
+    {"id": 4, "nombre": "Cuidado del cabello", "foto": None},
+    {"id": 5, "nombre": "Cocina", "foto": None},
+    {"id": 6, "nombre": "Limpieza", "foto": None},
+    {"id": 7, "nombre": "Electrodoméstico", "foto": None},
+    {"id": 8, "nombre": "Otro", "foto": None},
+]
+
+# ========================
 # DATOS EN MEMORIA
 # ========================
 productos = []
-categorias = []
 pedidos = []
 
 
@@ -310,22 +323,11 @@ def eliminar_pedido(id):
 
 
 # ========================
-# AGREGAR CATEGORIA
+# CATEGORIAS BLOQUEADAS
 # ========================
 @app.route("/agregar_categoria", methods=["POST"])
 @admin_requerido
 def agregar_categoria():
-    nombre = request.form.get("nombre", "").strip()
-    foto = request.form.get("foto", "").strip()
-
-    if nombre:
-        nuevo_id = max([c["id"] for c in categorias], default=0) + 1
-        categorias.append({
-            "id": nuevo_id,
-            "nombre": nombre,
-            "foto": foto if foto else None
-        })
-
     return redirect("/admin")
 
 
@@ -341,12 +343,10 @@ def agregar_producto():
     foto = request.form.get("foto", "").strip()
 
     if nombre and precio:
-        categoria_id_valor = None
+        categoria_id_valor = 8
 
         if categoria_id.isdigit():
             categoria_id_valor = int(categoria_id)
-        elif categorias:
-            categoria_id_valor = categorias[0]["id"]
 
         nuevo_id = max([p["id"] for p in productos], default=0) + 1
 
