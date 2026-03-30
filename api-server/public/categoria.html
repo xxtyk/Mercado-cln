@@ -1,1 +1,304 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Categoría</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f4f4f4;
+      color:#111;
+      padding-bottom:90px;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:#000;
+      color:#fff;
+      padding:14px 12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow:0 2px 10px rgba(0,0,0,.25);
+    }
+
+    .volver{
+      color:#fff;
+      text-decoration:none;
+      font-size:24px;
+      width:34px;
+      text-align:center;
+    }
+
+    .brand{
+      font-size:20px;
+      font-weight:700;
+      flex:1;
+      text-align:center;
+      margin-right:34px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .section{
+      padding:12px;
+    }
+
+    .titulo{
+      font-size:24px;
+      font-weight:800;
+      margin:8px 0 14px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:18px;
+      padding:12px;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+
+    .card-img{
+      width:100%;
+      height:130px;
+      object-fit:cover;
+      border-radius:12px;
+      background:#eee;
+      margin-bottom:10px;
+    }
+
+    .emoji{
+      width:100%;
+      height:130px;
+      border-radius:12px;
+      background:#eee;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:42px;
+      margin-bottom:10px;
+    }
+
+    .nombre{
+      font-size:15px;
+      font-weight:700;
+      line-height:1.25;
+      min-height:38px;
+      margin-bottom:8px;
+    }
+
+    .precio{
+      font-size:18px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:12px;
+      padding:12px;
+      font-size:15px;
+      font-weight:700;
+      background:#000;
+      color:#fff;
+    }
+
+    .empty{
+      background:#fff;
+      border-radius:16px;
+      padding:18px;
+      text-align:center;
+      color:#666;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+
+    .carrito-fijo{
+      position:fixed;
+      right:14px;
+      bottom:95px;
+      z-index:70;
+      background:#000;
+      color:#fff;
+      border-radius:999px;
+      padding:12px 16px;
+      text-decoration:none;
+      font-weight:700;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+    }
+
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:#fff;
+      border-top:1px solid #ddd;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      z-index:60;
+    }
+
+    .nav-btn{
+      padding:10px 4px 12px;
+      text-align:center;
+      text-decoration:none;
+      color:#222;
+      font-size:12px;
+    }
+
+    .nav-ico{
+      display:block;
+      font-size:22px;
+      margin-bottom:4px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a class="volver" href="/">←</a>
+    <div class="brand" id="nombreCategoria">Categoría</div>
+  </div>
+
+  <div class="section">
+    <div class="titulo" id="tituloCategoria">Productos</div>
+    <div class="grid" id="productos">
+      <div class="empty">Cargando productos...</div>
+    </div>
+  </div>
+
+  <a class="carrito-fijo" href="/carrito.html" id="botonCarrito">🛒 Carrito (0)</a>
+
+  <div class="bottom-nav">
+    <a class="nav-btn" href="/">
+      <span class="nav-ico">🏠</span>
+      Inicio
+    </a>
+    <a class="nav-btn" href="/pedidos.html">
+      <span class="nav-ico">📦</span>
+      Mis pedidos
+    </a>
+    <a class="nav-btn" href="/publicidad.html">
+      <span class="nav-ico">📣</span>
+      Publicidad
+    </a>
+    <a class="nav-btn" href="/admin.html">
+      <span class="nav-ico">👤</span>
+      Ingresar
+    </a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const categoriaId = params.get("id") || "";
+
+    function obtenerCarrito() {
+      try {
+        return JSON.parse(localStorage.getItem("carrito") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function guardarCarrito(carrito) {
+      localStorage.setItem("carrito", JSON.stringify(carrito));
+      actualizarBotonCarrito();
+    }
+
+    function actualizarBotonCarrito() {
+      const carrito = obtenerCarrito();
+      const total = carrito.reduce((s, item) => s + Number(item.cantidad || 0), 0);
+      document.getElementById("botonCarrito").textContent = `🛒 Carrito (${total})`;
+    }
+
+    function agregarAlCarrito(producto) {
+      const carrito = obtenerCarrito();
+      const existente = carrito.find(p => String(p.id) === String(producto.id));
+
+      if (existente) {
+        existente.cantidad = Number(existente.cantidad || 1) + 1;
+      } else {
+        carrito.push({
+          id: producto.id,
+          nombre: producto.nombre,
+          precio: Number(producto.precio || 0),
+          imagen: producto.imagen || "",
+          cantidad: 1
+        });
+      }
+
+      guardarCarrito(carrito);
+      alert("Producto agregado al carrito");
+    }
+
+    async function cargarTodo() {
+      const cont = document.getElementById("productos");
+
+      try {
+        const [resCategorias, resProductos] = await Promise.all([
+          fetch("/api/categorias"),
+          fetch("/api/productos")
+        ]);
+
+        const categorias = await resCategorias.json();
+        const productos = await resProductos.json();
+
+        const categoria = Array.isArray(categorias)
+          ? categorias.find(c => String(c.id) === String(categoriaId))
+          : null;
+
+        document.getElementById("nombreCategoria").textContent = categoria?.nombre || "Categoría";
+        document.getElementById("tituloCategoria").textContent = categoria?.nombre || "Productos";
+
+        const filtrados = Array.isArray(productos)
+          ? productos.filter(p => String(p.categoria) === String(categoriaId))
+          : [];
+
+        if (!filtrados.length) {
+          cont.innerHTML = `<div class="empty">No hay productos en esta categoría.</div>`;
+          return;
+        }
+
+        cont.innerHTML = "";
+
+        filtrados.forEach(p => {
+          const div = document.createElement("div");
+          div.className = "card";
+
+          const imagen = p.imagen
+            ? `<img class="card-img" src="${p.imagen}" alt="${p.nombre}">`
+            : `<div class="emoji">🛍️</div>`;
+
+          div.innerHTML = `
+            ${imagen}
+            <div class="nombre">${p.nombre || ""}</div>
+            <div class="precio">$${Number(p.precio || 0)}</div>
+            <button class="btn">Agregar al carrito</button>
+          `;
+
+          div.querySelector("button").addEventListener("click", () => agregarAlCarrito(p));
+          cont.appendChild(div);
+        });
+      } catch (e) {
+        cont.innerHTML = `<div class="empty">No se pudieron cargar los productos.</div>`;
+      }
+    }
+
+    actualizarBotonCarrito();
+    cargarTodo();
+  </script>
+</body>
+</html>
