@@ -13,6 +13,18 @@ categorias = []
 pedidos = []
 
 # ========================
+# AYUDAS
+# ========================
+def resolver_imagen(valor):
+    if valor:
+        return valor
+    return ""
+
+@app.context_processor
+def utilidades_templates():
+    return dict(resolver_imagen=resolver_imagen)
+
+# ========================
 # INICIO
 # ========================
 @app.route("/")
@@ -21,7 +33,32 @@ def inicio():
 
 @app.route("/catalogo")
 def catalogo():
-    return render_template("index.html", categorias=categorias)
+    return render_template(
+        "index.html",
+        categorias=categorias,
+        productos=productos
+    )
+
+# ========================
+# VER CATEGORIA
+# ========================
+@app.route("/categoria/<int:id>")
+def categoria(id):
+    categoria_encontrada = next((c for c in categorias if c["id"] == id), None)
+
+    if not categoria_encontrada:
+        return redirect("/catalogo")
+
+    productos_categoria = [
+        p for p in productos
+        if p.get("categoria_id") == id or p.get("categoria_id") is None
+    ]
+
+    return render_template(
+        "categoria.html",
+        categoria=categoria_encontrada,
+        productos=productos_categoria
+    )
 
 # ========================
 # CARRITO
@@ -41,7 +78,13 @@ def agregar_al_carrito(id):
 @app.route("/carrito")
 def carrito():
     carrito = session.get("carrito", [])
-    return render_template("carrito.html", carrito=carrito)
+    subtotal = sum(float(p.get("precio", 0)) for p in carrito)
+
+    return render_template(
+        "carrito.html",
+        carrito=carrito,
+        subtotal=subtotal
+    )
 
 # ========================
 # FINALIZAR PEDIDO
@@ -53,9 +96,9 @@ def finalizar_pedido():
     if not carrito:
         return redirect("/carrito")
 
-    nombre = request.form.get("nombre")
-    telefono = request.form.get("telefono")
-    direccion = request.form.get("direccion")
+    nombre = request.form.get("nombre", "").strip()
+    telefono = request.form.get("telefono", "").strip()
+    direccion = request.form.get("direccion", "").strip()
 
     pedido = {
         "id": str(uuid.uuid4()),
@@ -66,7 +109,6 @@ def finalizar_pedido():
     }
 
     pedidos.append(pedido)
-
     session["carrito"] = []
 
     return render_template("pedido_recibido.html")
@@ -97,12 +139,13 @@ def eliminar_pedido(id):
 # ========================
 @app.route("/agregar_categoria", methods=["POST"])
 def agregar_categoria():
-    nombre = request.form.get("nombre")
+    nombre = request.form.get("nombre", "").strip()
 
     if nombre:
         categorias.append({
             "id": len(categorias) + 1,
-            "nombre": nombre
+            "nombre": nombre,
+            "foto": None
         })
 
     return redirect("/admin")
@@ -112,14 +155,24 @@ def agregar_categoria():
 # ========================
 @app.route("/agregar_producto", methods=["POST"])
 def agregar_producto():
-    nombre = request.form.get("nombre")
-    precio = request.form.get("precio")
+    nombre = request.form.get("nombre", "").strip()
+    precio = request.form.get("precio", "").strip()
+    categoria_id = request.form.get("categoria_id", "").strip()
 
     if nombre and precio:
+        categoria_id_valor = None
+
+        if categoria_id.isdigit():
+            categoria_id_valor = int(categoria_id)
+        elif categorias:
+            categoria_id_valor = categorias[0]["id"]
+
         productos.append({
             "id": len(productos) + 1,
             "nombre": nombre,
-            "precio": float(precio)
+            "precio": float(precio),
+            "categoria_id": categoria_id_valor,
+            "foto": None
         })
 
     return redirect("/admin")
