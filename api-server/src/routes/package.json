@@ -2,9 +2,9 @@
   "name": "api-server",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/server.ts",
+  "main": "server.ts",
   "scripts": {
-    "start": "tsx src/server.ts"
+    "start": "tsx server.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
