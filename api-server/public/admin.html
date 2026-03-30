@@ -55,6 +55,11 @@ input, select, button, textarea{
   font-size:16px;
 }
 
+input[type="file"]{
+  background:#fff;
+  padding:10px;
+}
+
 textarea{
   min-height:90px;
   resize:vertical;
@@ -65,10 +70,6 @@ button{
   color:#fff;
   border:none;
   font-weight:bold;
-}
-
-button.sec{
-  background:#666;
 }
 
 button.rojo{
@@ -133,6 +134,7 @@ small{
     <h2>Agregar categoría</h2>
     <input id="catNombre" placeholder="Nombre de la categoría">
     <input id="catEmoji" placeholder="Emoji (opcional)" value="🛍️">
+    <input id="catImagen" type="file" accept="image/*">
     <button onclick="crearCategoria()">Guardar categoría</button>
     <div id="msgCategoria" class="mensaje"></div>
   </div>
@@ -143,7 +145,7 @@ small{
     <input id="prodPrecio" type="number" placeholder="Precio">
     <textarea id="prodDescripcion" placeholder="Descripción"></textarea>
     <select id="prodCategoria"></select>
-    <input id="prodImagen" placeholder="URL de imagen (opcional)">
+    <input id="prodImagen" type="file" accept="image/*">
     <button onclick="crearProducto()">Guardar producto</button>
     <div id="msgProducto" class="mensaje"></div>
   </div>
@@ -160,7 +162,7 @@ small{
 
   <div class="bloque">
     <h2>Pedidos recibidos</h2>
-    <div id="listaPedidos">Sin pedidos</div>
+    <div id="listaPedidos">Cargando...</div>
   </div>
 
   <a class="volver" href="/">⬅ Volver al catálogo</a>
@@ -178,6 +180,29 @@ function ponerMsg(id, texto, tipo="ok"){
   const el = document.getElementById(id);
   el.className = "mensaje " + tipo;
   el.textContent = texto;
+}
+
+async function subirArchivo(file){
+  if(!file) return "";
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(API + "/upload", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + TOKEN
+    },
+    body: formData
+  });
+
+  const data = await res.json();
+
+  if(!res.ok || !data.ok){
+    throw new Error(data.error || "No se pudo subir la imagen");
+  }
+
+  return data.url || "";
 }
 
 async function cargarCategorias(){
@@ -208,6 +233,7 @@ async function cargarCategorias(){
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `
+        ${c.imagen ? `<img src="${c.imagen}" alt="${c.nombre}">` : ""}
         <b>${c.emoji || "🛍️"} ${c.nombre || ""}</b>
         <br><small>ID: ${c.id || ""}</small>
         <div class="fila-botones">
@@ -258,6 +284,7 @@ async function cargarProductos(){
 async function crearCategoria(){
   const nombre = document.getElementById("catNombre").value.trim();
   const emoji = document.getElementById("catEmoji").value.trim() || "🛍️";
+  const archivo = document.getElementById("catImagen").files[0];
 
   if(!nombre){
     ponerMsg("msgCategoria", "Escribe el nombre", "error");
@@ -265,6 +292,12 @@ async function crearCategoria(){
   }
 
   try{
+    let imagen = "";
+
+    if(archivo){
+      imagen = await subirArchivo(archivo);
+    }
+
     const res = await fetch(API + "/categorias", {
       method:"POST",
       headers:{
@@ -273,7 +306,8 @@ async function crearCategoria(){
       },
       body: JSON.stringify({
         nombre,
-        emoji
+        emoji,
+        imagen
       })
     });
 
@@ -286,10 +320,11 @@ async function crearCategoria(){
 
     document.getElementById("catNombre").value = "";
     document.getElementById("catEmoji").value = "🛍️";
+    document.getElementById("catImagen").value = "";
     ponerMsg("msgCategoria", "Categoría guardada");
     await cargarCategorias();
   }catch(e){
-    ponerMsg("msgCategoria", "Error al guardar categoría", "error");
+    ponerMsg("msgCategoria", e.message || "Error al guardar categoría", "error");
   }
 }
 
@@ -298,7 +333,7 @@ async function crearProducto(){
   const precio = Number(document.getElementById("prodPrecio").value || 0);
   const descripcion = document.getElementById("prodDescripcion").value.trim();
   const categoriaId = document.getElementById("prodCategoria").value;
-  const imagen = document.getElementById("prodImagen").value.trim();
+  const archivo = document.getElementById("prodImagen").files[0];
 
   if(!nombre || !precio){
     ponerMsg("msgProducto", "Nombre y precio son obligatorios", "error");
@@ -309,6 +344,12 @@ async function crearProducto(){
   const categoriaSlug = categoriaObj ? (categoriaObj.id || categoriaObj.slug || "otro") : "otro";
 
   try{
+    let imagen = "";
+
+    if(archivo){
+      imagen = await subirArchivo(archivo);
+    }
+
     const res = await fetch(API + "/admin/producto", {
       method:"POST",
       headers:{
@@ -339,7 +380,7 @@ async function crearProducto(){
     ponerMsg("msgProducto", "Producto guardado");
     await cargarProductos();
   }catch(e){
-    ponerMsg("msgProducto", "Error al guardar producto", "error");
+    ponerMsg("msgProducto", e.message || "Error al guardar producto", "error");
   }
 }
 
@@ -373,7 +414,55 @@ async function eliminarCategoria(id){
 
 async function cargarPedidos(){
   const cont = document.getElementById("listaPedidos");
-  cont.innerHTML = "Sin pedidos";
+
+  try{
+    const res = await fetch(API + "/webhook-pedido");
+    const pedidos = await res.json();
+
+    if(!Array.isArray(pedidos) || pedidos.length === 0){
+      cont.innerHTML = "Sin pedidos";
+      return;
+    }
+
+    cont.innerHTML = "";
+
+    pedidos.forEach(p=>{
+      const productosHtml = Array.isArray(p.productos)
+        ? p.productos.map(x => `<div>• ${x.nombre} x${x.cantidad || 1}</div>`).join("")
+        : "";
+
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <b>${p.cliente || "Cliente"}</b>
+        <br>📱 ${p.telefono || ""}
+        <br>📍 ${p.direccion || ""}
+        <br>💰 Total: $${Number(p.total || 0)}
+        <br><small>${p.fecha || ""}</small>
+        <div style="margin-top:8px">${productosHtml}</div>
+        <div class="fila-botones">
+          <button class="rojo" onclick="eliminarPedido(${p.id})">Eliminar pedido</button>
+        </div>
+      `;
+      cont.appendChild(div);
+    });
+  }catch(e){
+    cont.innerHTML = "Error al cargar pedidos";
+  }
+}
+
+async function eliminarPedido(id){
+  if(!confirm("¿Eliminar pedido?")) return;
+
+  try{
+    await fetch(API + "/webhook-pedido/" + id, {
+      method:"DELETE",
+      headers:{
+        "Authorization":"Bearer " + TOKEN
+      }
+    });
+    await cargarPedidos();
+  }catch(e){}
 }
 
 cargarCategorias();
