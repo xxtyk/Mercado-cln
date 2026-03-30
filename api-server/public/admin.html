@@ -4,204 +4,717 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Admin</title>
-
 <style>
-*{box-sizing:border-box;}
-
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#f5f5f5;
+  font-family:Arial,sans-serif;
+  background:#f3f3f3;
   color:#111;
 }
-
-/* HEADER IGUAL CATÁLOGO */
 .header{
   background:#000;
   color:#fff;
-  padding:14px;
+  padding:14px 12px;
   display:flex;
   align-items:center;
   justify-content:space-between;
   position:sticky;
   top:0;
-  z-index:20;
+  z-index:50;
 }
-
-.header h1{
-  margin:0;
-  font-size:18px;
-}
-
 .header a{
   color:#fff;
   text-decoration:none;
+  font-size:24px;
+  font-weight:bold;
+}
+.header h1{
+  margin:0;
   font-size:22px;
 }
-
-/* CONTENEDOR */
 .contenedor{
+  max-width:900px;
+  margin:0 auto;
   padding:12px;
   padding-bottom:120px;
 }
-
-/* TARJETA */
+.tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+.tab-btn{
+  border:none;
+  border-radius:12px;
+  padding:12px 10px;
+  font-size:15px;
+  font-weight:bold;
+  background:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.tab-btn.active{
+  background:#000;
+  color:#fff;
+}
+.panel{
+  display:none;
+}
+.panel.active{
+  display:block;
+}
 .card{
   background:#fff;
   border-radius:16px;
   padding:14px;
   margin-bottom:12px;
-  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
 }
-
 .titulo{
   font-size:18px;
   font-weight:bold;
+  margin-bottom:12px;
+}
+label{
+  display:block;
+  font-weight:bold;
   margin-bottom:6px;
-}
-
-.texto{
-  font-size:14px;
-  margin-bottom:4px;
-}
-
-/* PRODUCTOS */
-.productos{
   margin-top:8px;
-  background:#f7f7f7;
-  padding:10px;
-  border-radius:10px;
 }
-
-.producto{
-  font-size:14px;
-  border-bottom:1px solid #ddd;
-  padding:6px 0;
+input, select, textarea{
+  width:100%;
+  padding:14px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  font-size:16px;
+  background:#fff;
 }
-
-.producto:last-child{
-  border:none;
+textarea{
+  min-height:90px;
+  resize:vertical;
 }
-
-/* BOTONES */
-.botones{
-  margin-top:10px;
-  display:flex;
-  gap:8px;
-}
-
 .btn{
-  flex:1;
-  padding:12px;
+  width:100%;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
+  padding:14px;
+  font-size:16px;
   font-weight:bold;
   cursor:pointer;
+  margin-top:12px;
 }
-
-.btn-wa{
-  background:#25D366;
-}
-
-.btn-del{
+.btn-negro{
   background:#000;
   color:#fff;
 }
-
-/* VACIO */
-.vacio{
-  text-align:center;
-  margin-top:40px;
-  color:#777;
+.btn-verde{
+  background:#25D366;
+  color:#000;
+}
+.btn-rojo{
+  background:#d32f2f;
+  color:#fff;
+}
+.btn-gris{
+  background:#eee;
+  color:#111;
+}
+.fila-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.item{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+.item h3{
+  margin:0 0 10px 0;
+  font-size:18px;
+}
+.muted{
+  color:#666;
+  font-size:14px;
+}
+.productos-lista{
+  background:#f7f7f7;
+  border-radius:10px;
+  padding:10px;
+  margin-top:10px;
+}
+.producto-linea{
+  padding:6px 0;
+  border-bottom:1px solid #ddd;
+  font-size:14px;
+}
+.producto-linea:last-child{
+  border-bottom:none;
+}
+.acciones{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:12px;
+}
+.estado{
+  font-size:14px;
+  margin-top:8px;
+  color:#333;
+}
+.foto{
+  width:100%;
+  max-height:180px;
+  object-fit:cover;
+  border-radius:12px;
+  margin-top:10px;
+  background:#eee;
+}
+.oculto{
+  display:none;
+}
+.small{
+  font-size:13px;
 }
 </style>
 </head>
-
 <body>
 
 <div class="header">
   <a href="/">←</a>
-  <h1>Pedidos</h1>
-  <div></div>
+  <h1>Panel Admin</h1>
+  <div style="width:24px"></div>
 </div>
 
-<div class="contenedor" id="lista"></div>
+<div class="contenedor">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="mostrarTab('pedidos', this)">Pedidos</button>
+    <button class="tab-btn" onclick="mostrarTab('categorias', this)">Categorías</button>
+    <button class="tab-btn" onclick="mostrarTab('productos', this)">Productos</button>
+  </div>
+
+  <!-- PEDIDOS -->
+  <div id="tab-pedidos" class="panel active">
+    <div class="card">
+      <div class="titulo">Pedidos pendientes</div>
+      <button class="btn btn-negro" onclick="cargarPedidos()">Recargar pedidos</button>
+      <button class="btn btn-gris" onclick="guardarClaveAdmin()">Guardar clave admin</button>
+      <div id="estadoPedidos" class="estado">Cargando...</div>
+    </div>
+    <div id="listaPedidos"></div>
+  </div>
+
+  <!-- CATEGORIAS -->
+  <div id="tab-categorias" class="panel">
+    <div class="card">
+      <div class="titulo">Ingresar categoría</div>
+      <label>Nombre de la categoría</label>
+      <input id="categoriaNombre" type="text" placeholder="Ejemplo: Cocina">
+
+      <label>Foto de la categoría</label>
+      <input id="categoriaFoto" type="file" accept="image/*">
+
+      <img id="previewCategoria" class="foto oculto" alt="preview categoría">
+
+      <button class="btn btn-negro" onclick="guardarCategoria()">Guardar categoría</button>
+      <div id="estadoCategoria" class="estado"></div>
+    </div>
+
+    <div class="card">
+      <div class="titulo">Lista de categorías</div>
+      <button class="btn btn-gris" onclick="cargarCategorias()">Recargar categorías</button>
+    </div>
+
+    <div id="listaCategorias"></div>
+  </div>
+
+  <!-- PRODUCTOS -->
+  <div id="tab-productos" class="panel">
+    <div class="card">
+      <div class="titulo">Ingresar producto</div>
+
+      <label>Nombre del producto</label>
+      <input id="productoNombre" type="text" placeholder="Ejemplo: Sartén">
+
+      <label>Precio</label>
+      <input id="productoPrecio" type="number" step="0.01" placeholder="Ejemplo: 199">
+
+      <label>Descripción</label>
+      <textarea id="productoDescripcion" placeholder="Descripción del producto"></textarea>
+
+      <label>Categoría</label>
+      <select id="productoCategoria"></select>
+
+      <label>Foto del producto</label>
+      <input id="productoFoto" type="file" accept="image/*">
+
+      <img id="previewProducto" class="foto oculto" alt="preview producto">
+
+      <button class="btn btn-negro" onclick="guardarProducto()">Guardar producto</button>
+      <div id="estadoProducto" class="estado"></div>
+    </div>
+
+    <div class="card">
+      <div class="titulo">Lista de productos</div>
+      <button class="btn btn-gris" onclick="cargarProductos()">Recargar productos</button>
+    </div>
+
+    <div id="listaProductos"></div>
+  </div>
+</div>
 
 <script>
-const lista = document.getElementById("lista");
+function mostrarTab(nombre, btn){
+  document.querySelectorAll(".panel").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tab-" + nombre).classList.add("active");
+  btn.classList.add("active");
 
-async function cargar(){
-  lista.innerHTML = "Cargando...";
+  if(nombre === "pedidos") cargarPedidos();
+  if(nombre === "categorias") cargarCategorias();
+  if(nombre === "productos"){
+    cargarCategoriasEnSelect();
+    cargarProductos();
+  }
+}
+
+function obtenerClaveAdmin(){
+  return localStorage.getItem("admin_password") || "";
+}
+
+function guardarClaveAdmin(){
+  const actual = obtenerClaveAdmin();
+  const nueva = prompt("Escribe la clave admin", actual || "mercado2024");
+  if(nueva === null) return;
+  localStorage.setItem("admin_password", nueva.trim());
+  alert("Clave guardada");
+}
+
+function formatoFecha(fecha){
+  try{
+    return new Date(fecha).toLocaleString("es-MX");
+  }catch{
+    return fecha || "";
+  }
+}
+
+function normalizarArreglo(data){
+  if(Array.isArray(data)) return data;
+  if(data && Array.isArray(data.data)) return data.data;
+  if(data && Array.isArray(data.items)) return data.items;
+  if(data && Array.isArray(data.categorias)) return data.categorias;
+  if(data && Array.isArray(data.productos)) return data.productos;
+  return [];
+}
+
+async function subirArchivo(file){
+  const fd = new FormData();
+  fd.append("file", file);
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: fd
+  });
+
+  const data = await res.json();
+
+  return data.url || data.secure_url || data.imageUrl || data.imagen || "";
+}
+
+async function cargarPedidos(){
+  const estado = document.getElementById("estadoPedidos");
+  const lista = document.getElementById("listaPedidos");
+  estado.textContent = "Cargando pedidos...";
+  lista.innerHTML = "";
 
   try{
     const res = await fetch("/api/webhook-pedido");
-    const pedidos = await res.json();
+    const data = await res.json();
+    const pedidos = normalizarArreglo(data);
 
-    lista.innerHTML = "";
+    estado.textContent = "Pedidos pendientes: " + pedidos.length;
 
     if(!pedidos.length){
-      lista.innerHTML = '<div class="vacio">No hay pedidos</div>';
+      lista.innerHTML = '<div class="item"><h3>No hay pedidos</h3></div>';
       return;
     }
 
     pedidos.forEach(p => {
-      const card = document.createElement("div");
-      card.className = "card";
+      const productos = Array.isArray(p.productos) ? p.productos : [];
+      const productosHtml = productos.map(prod => `
+        <div class="producto-linea">
+          <strong>${prod.nombre || "Producto"}</strong>
+          <br>Cantidad: ${Number(prod.cantidad || 1)}
+          <br>Precio: $${Number(prod.precio || 0)}
+        </div>
+      `).join("");
 
-      let productosHTML = "";
-      (p.productos || []).forEach(prod=>{
-        productosHTML += `
-          <div class="producto">
-            ${prod.nombre} x${prod.cantidad} - $${prod.precio}
-          </div>
-        `;
-      });
-
-      const textoWA = encodeURIComponent(
-        "Pedido\n\nCliente: " + p.cliente +
-        "\nTel: " + p.telefono +
-        "\nDirección: " + p.direccion +
-        "\nTotal: $" + p.total
+      const waTexto = encodeURIComponent(
+        "PEDIDO\n\n" +
+        "Cliente: " + (p.cliente || "") + "\n" +
+        "Teléfono: " + (p.telefono || "") + "\n" +
+        "Dirección: " + (p.direccion || "") + "\n" +
+        "Vendedor: " + (p.vendedor || "") + "\n" +
+        "Entrega: " + (p.tipo_entrega || "") + "\n" +
+        "Nota: " + (p.nota || "") + "\n" +
+        "Total: $" + Number(p.total || 0)
       );
 
-      card.innerHTML = `
-        <div class="titulo">Pedido #${p.id}</div>
+      lista.innerHTML += `
+        <div class="item">
+          <h3>Pedido #${p.id}</h3>
+          <div><strong>Cliente:</strong> ${p.cliente || ""}</div>
+          <div><strong>Teléfono:</strong> ${p.telefono || ""}</div>
+          <div><strong>Dirección:</strong> ${p.direccion || ""}</div>
+          <div><strong>Vendedor:</strong> ${p.vendedor || ""}</div>
+          <div><strong>Entrega:</strong> ${p.tipo_entrega || ""}</div>
+          <div><strong>Nota:</strong> ${p.nota || ""}</div>
+          <div><strong>Total:</strong> $${Number(p.total || 0)}</div>
+          <div class="muted">${formatoFecha(p.fecha)}</div>
 
-        <div class="texto">👤 ${p.cliente}</div>
-        <div class="texto">📞 ${p.telefono}</div>
-        <div class="texto">📍 ${p.direccion}</div>
-        <div class="texto">💰 $${p.total}</div>
+          <div class="productos-lista">
+            ${productosHtml || '<div class="producto-linea">Sin productos</div>'}
+          </div>
 
-        <div class="productos">${productosHTML}</div>
-
-        <div class="botones">
-          <a class="btn btn-wa" href="https://wa.me/?text=${textoWA}" target="_blank">WhatsApp</a>
-          <button class="btn btn-del" onclick="borrar('${p.id}')">Enviado</button>
+          <div class="acciones">
+            <a class="btn btn-verde" href="https://wa.me/?text=${waTexto}" target="_blank" style="text-align:center;text-decoration:none;">WhatsApp</a>
+            <button class="btn btn-rojo" onclick="borrarPedido('${p.id}')">Enviado</button>
+          </div>
         </div>
       `;
-
-      lista.appendChild(card);
     });
 
-  }catch(e){
-    lista.innerHTML = "Error cargando pedidos";
+  }catch(err){
+    estado.textContent = "Error cargando pedidos";
   }
 }
 
-async function borrar(id){
-  const pass = prompt("Clave admin");
-  if(!pass) return;
+async function borrarPedido(id){
+  const clave = obtenerClaveAdmin();
+  if(!clave){
+    alert("Primero guarda la clave admin");
+    return;
+  }
 
-  await fetch("/api/webhook-pedido/"+id,{
-    method:"DELETE",
-    headers:{ "Authorization":"Bearer "+pass }
+  const ok = confirm("¿Borrar este pedido del panel?");
+  if(!ok) return;
+
+  const res = await fetch("/api/webhook-pedido/" + id, {
+    method: "DELETE",
+    headers: {
+      "Authorization": "Bearer " + clave
+    }
   });
 
-  cargar();
+  const data = await res.json().catch(()=>({}));
+
+  if(!res.ok){
+    alert(data.error || "No se pudo borrar");
+    return;
+  }
+
+  cargarPedidos();
 }
 
-cargar();
-</script>
+async function cargarCategorias(){
+  const lista = document.getElementById("listaCategorias");
+  lista.innerHTML = '<div class="item">Cargando categorías...</div>';
 
+  try{
+    const res = await fetch("/api/categorias");
+    const data = await res.json();
+    const categorias = normalizarArreglo(data);
+
+    if(!categorias.length){
+      lista.innerHTML = '<div class="item"><h3>No hay categorías</h3></div>';
+      return;
+    }
+
+    lista.innerHTML = "";
+    categorias.forEach(cat => {
+      lista.innerHTML += `
+        <div class="item">
+          <h3>${cat.nombre || "Sin nombre"}</h3>
+          ${cat.imagen || cat.foto || cat.image ? `<img class="foto" src="${cat.imagen || cat.foto || cat.image}" alt="">` : ""}
+          <div class="acciones">
+            <button class="btn btn-gris" onclick="editarCategoria('${cat.id}', '${(cat.nombre || "").replace(/'/g,"\\'")}')">Editar nombre</button>
+            <button class="btn btn-rojo" onclick="eliminarCategoria('${cat.id}')">Eliminar</button>
+          </div>
+        </div>
+      `;
+    });
+
+  }catch(err){
+    lista.innerHTML = '<div class="item"><h3>Error cargando categorías</h3></div>';
+  }
+}
+
+async function cargarCategoriasEnSelect(){
+  const select = document.getElementById("productoCategoria");
+  select.innerHTML = '<option value="">Cargando categorías...</option>';
+
+  try{
+    const res = await fetch("/api/categorias");
+    const data = await res.json();
+    const categorias = normalizarArreglo(data);
+
+    if(!categorias.length){
+      select.innerHTML = '<option value="">No hay categorías</option>';
+      return;
+    }
+
+    select.innerHTML = '<option value="">Selecciona categoría</option>';
+    categorias.forEach(cat => {
+      select.innerHTML += `<option value="${cat.id}">${cat.nombre}</option>`;
+    });
+
+  }catch(err){
+    select.innerHTML = '<option value="">Error cargando categorías</option>';
+  }
+}
+
+async function guardarCategoria(){
+  const estado = document.getElementById("estadoCategoria");
+  const nombre = document.getElementById("categoriaNombre").value.trim();
+  const file = document.getElementById("categoriaFoto").files[0];
+
+  if(!nombre){
+    alert("Escribe el nombre de la categoría");
+    return;
+  }
+
+  estado.textContent = "Guardando categoría...";
+
+  try{
+    let imagen = "";
+    if(file) imagen = await subirArchivo(file);
+
+    const res = await fetch("/api/categorias", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        nombre,
+        imagen
+      })
+    });
+
+    if(!res.ok){
+      estado.textContent = "No se pudo guardar la categoría";
+      return;
+    }
+
+    document.getElementById("categoriaNombre").value = "";
+    document.getElementById("categoriaFoto").value = "";
+    document.getElementById("previewCategoria").classList.add("oculto");
+    estado.textContent = "Categoría guardada";
+    cargarCategorias();
+    cargarCategoriasEnSelect();
+
+  }catch(err){
+    estado.textContent = "Error guardando categoría";
+  }
+}
+
+async function editarCategoria(id, nombreActual){
+  const nuevo = prompt("Nuevo nombre de la categoría", nombreActual || "");
+  if(nuevo === null) return;
+
+  const res = await fetch("/api/categorias/" + id, {
+    method: "PUT",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ nombre: nuevo.trim() })
+  });
+
+  if(!res.ok){
+    alert("No se pudo editar");
+    return;
+  }
+
+  cargarCategorias();
+  cargarCategoriasEnSelect();
+}
+
+async function eliminarCategoria(id){
+  const ok = confirm("¿Eliminar categoría?");
+  if(!ok) return;
+
+  const res = await fetch("/api/categorias/" + id, {
+    method: "DELETE"
+  });
+
+  if(!res.ok){
+    alert("No se pudo eliminar");
+    return;
+  }
+
+  cargarCategorias();
+  cargarCategoriasEnSelect();
+}
+
+async function cargarProductos(){
+  const lista = document.getElementById("listaProductos");
+  lista.innerHTML = '<div class="item">Cargando productos...</div>';
+
+  try{
+    const res = await fetch("/api/productos");
+    const data = await res.json();
+    const productos = normalizarArreglo(data);
+
+    if(!productos.length){
+      lista.innerHTML = '<div class="item"><h3>No hay productos</h3></div>';
+      return;
+    }
+
+    lista.innerHTML = "";
+    productos.forEach(prod => {
+      lista.innerHTML += `
+        <div class="item">
+          <h3>${prod.nombre || "Sin nombre"}</h3>
+          <div><strong>Precio:</strong> $${Number(prod.precio || 0)}</div>
+          <div class="muted">${prod.descripcion || ""}</div>
+          ${prod.imagen || prod.foto || prod.image ? `<img class="foto" src="${prod.imagen || prod.foto || prod.image}" alt="">` : ""}
+          <div class="acciones">
+            <button class="btn btn-gris" onclick="editarPrecioProducto('${prod.id}', '${Number(prod.precio || 0)}')">Modificar precio</button>
+            <button class="btn btn-rojo" onclick="eliminarProducto('${prod.id}')">Eliminar</button>
+          </div>
+        </div>
+      `;
+    });
+
+  }catch(err){
+    lista.innerHTML = '<div class="item"><h3>Error cargando productos</h3></div>';
+  }
+}
+
+async function guardarProducto(){
+  const estado = document.getElementById("estadoProducto");
+  const nombre = document.getElementById("productoNombre").value.trim();
+  const precio = Number(document.getElementById("productoPrecio").value || 0);
+  const descripcion = document.getElementById("productoDescripcion").value.trim();
+  const categoria_id = document.getElementById("productoCategoria").value;
+  const file = document.getElementById("productoFoto").files[0];
+
+  if(!nombre){
+    alert("Escribe el nombre del producto");
+    return;
+  }
+
+  if(!precio){
+    alert("Escribe el precio");
+    return;
+  }
+
+  if(!categoria_id){
+    alert("Selecciona una categoría");
+    return;
+  }
+
+  estado.textContent = "Guardando producto...";
+
+  try{
+    let imagen = "";
+    if(file) imagen = await subirArchivo(file);
+
+    const res = await fetch("/api/productos", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        nombre,
+        precio,
+        descripcion,
+        categoria_id,
+        imagen
+      })
+    });
+
+    if(!res.ok){
+      estado.textContent = "No se pudo guardar el producto";
+      return;
+    }
+
+    document.getElementById("productoNombre").value = "";
+    document.getElementById("productoPrecio").value = "";
+    document.getElementById("productoDescripcion").value = "";
+    document.getElementById("productoCategoria").value = "";
+    document.getElementById("productoFoto").value = "";
+    document.getElementById("previewProducto").classList.add("oculto");
+
+    estado.textContent = "Producto guardado";
+    cargarProductos();
+
+  }catch(err){
+    estado.textContent = "Error guardando producto";
+  }
+}
+
+async function editarPrecioProducto(id, precioActual){
+  const nuevo = prompt("Nuevo precio", precioActual || "0");
+  if(nuevo === null) return;
+
+  const precio = Number(nuevo);
+  if(isNaN(precio)){
+    alert("Precio inválido");
+    return;
+  }
+
+  const res = await fetch("/api/productos/" + id, {
+    method: "PUT",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ precio })
+  });
+
+  if(!res.ok){
+    alert("No se pudo modificar precio");
+    return;
+  }
+
+  cargarProductos();
+}
+
+async function eliminarProducto(id){
+  const ok = confirm("¿Eliminar producto?");
+  if(!ok) return;
+
+  const res = await fetch("/api/productos/" + id, {
+    method: "DELETE"
+  });
+
+  if(!res.ok){
+    alert("No se pudo eliminar");
+    return;
+  }
+
+  cargarProductos();
+}
+
+document.getElementById("categoriaFoto").addEventListener("change", function(){
+  const file = this.files[0];
+  const img = document.getElementById("previewCategoria");
+  if(!file){
+    img.classList.add("oculto");
+    return;
+  }
+  img.src = URL.createObjectURL(file);
+  img.classList.remove("oculto");
+});
+
+document.getElementById("productoFoto").addEventListener("change", function(){
+  const file = this.files[0];
+  const img = document.getElementById("previewProducto");
+  if(!file){
+    img.classList.add("oculto");
+    return;
+  }
+  img.src = URL.createObjectURL(file);
+  img.classList.remove("oculto");
+});
+
+cargarPedidos();
+cargarCategoriasEnSelect();
+</script>
 </body>
 </html>
