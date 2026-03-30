@@ -197,7 +197,6 @@ textarea{
     <button class="tab-btn" onclick="mostrarTab('productos', this)">Productos</button>
   </div>
 
-  <!-- PEDIDOS -->
   <div id="tab-pedidos" class="panel active">
     <div class="card">
       <div class="titulo">Pedidos pendientes</div>
@@ -208,7 +207,6 @@ textarea{
     <div id="listaPedidos"></div>
   </div>
 
-  <!-- CATEGORIAS -->
   <div id="tab-categorias" class="panel">
     <div class="card">
       <div class="titulo">Ingresar categoría</div>
@@ -232,7 +230,6 @@ textarea{
     <div id="listaCategorias"></div>
   </div>
 
-  <!-- PRODUCTOS -->
   <div id="tab-productos" class="panel">
     <div class="card">
       <div class="titulo">Ingresar producto</div>
@@ -491,7 +488,10 @@ async function guardarCategoria(){
 
   try{
     let imagen = "";
-    if(file) imagen = await subirArchivo(file);
+    if(file){
+      const url = await subirArchivo(file);
+      imagen = url ? (url + "?t=" + Date.now()) : "";
+    }
 
     const res = await fetch("/api/categorias", {
       method: "POST",
@@ -510,6 +510,7 @@ async function guardarCategoria(){
     document.getElementById("categoriaNombre").value = "";
     document.getElementById("categoriaFoto").value = "";
     document.getElementById("previewCategoria").classList.add("oculto");
+    document.getElementById("previewCategoria").src = "";
     estado.textContent = "Categoría guardada";
     cargarCategorias();
     cargarCategoriasEnSelect();
@@ -617,7 +618,10 @@ async function guardarProducto(){
 
   try{
     let imagen = "";
-    if(file) imagen = await subirArchivo(file);
+    if(file){
+      const url = await subirArchivo(file);
+      imagen = url ? (url + "?t=" + Date.now()) : "";
+    }
 
     const res = await fetch("/api/productos", {
       method: "POST",
@@ -642,6 +646,7 @@ async function guardarProducto(){
     document.getElementById("productoCategoria").value = "";
     document.getElementById("productoFoto").value = "";
     document.getElementById("previewProducto").classList.add("oculto");
+    document.getElementById("previewProducto").src = "";
 
     estado.textContent = "Producto guardado";
     cargarProductos();
@@ -696,6 +701,7 @@ document.getElementById("categoriaFoto").addEventListener("change", function(){
   const img = document.getElementById("previewCategoria");
   if(!file){
     img.classList.add("oculto");
+    img.src = "";
     return;
   }
   img.src = URL.createObjectURL(file);
@@ -707,6 +713,7 @@ document.getElementById("productoFoto").addEventListener("change", function(){
   const img = document.getElementById("previewProducto");
   if(!file){
     img.classList.add("oculto");
+    img.src = "";
     return;
   }
   img.src = URL.createObjectURL(file);
