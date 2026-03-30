@@ -1,1 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mercado CLN</title>
+</head>
+<body>
 
+<h1>🛒 Mercado en Línea Culiacán</h1>
+
+<div id="productos"></div>
+
+<script>
+fetch("/api/productos")
+  .then(res => res.json())
+  .then(data => {
+    const cont = document.getElementById("productos");
+
+    data.forEach(p => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <h3>${p.nombre}</h3>
+        <p>$${p.precio}</p>
+        <hr>
+      `;
+      cont.appendChild(div);
+    });
+  });
+</script>
+
+</body>
+</html>
