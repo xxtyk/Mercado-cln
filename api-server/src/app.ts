@@ -1,4 +1,3 @@
-
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -11,7 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
-
 app.use("/api", router);
 
 app.get("/", (req, res) => {
