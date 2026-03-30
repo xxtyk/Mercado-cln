@@ -6,18 +6,380 @@
 <title>Panel Admin</title>
 
 <style>
+*{ box-sizing:border-box; }
+
 body{
-  font-family: Arial;
-  padding:20px;
+  margin:0;
+  font-family:Arial, sans-serif;
   background:#f5f5f5;
+  color:#111;
+  padding-bottom:40px;
 }
-h1{ margin-bottom:10px; }
-input, button{
-  padding:10px;
-  margin:5px 0;
+
+.barra{
+  background:#000;
+  color:#fff;
+  padding:16px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
+.contenedor{
+  max-width:700px;
+  margin:0 auto;
+  padding:12px;
+}
+
+.bloque{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+h2, h3{
+  margin:0 0 10px;
+}
+
+input, select, button, textarea{
   width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  margin-top:8px;
+  font-size:16px;
 }
-.producto{
-  background:white;
-  padding:10px;
-  margin:10px
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+button{
+  background:#000;
+  color:#fff;
+  border:none;
+  font-weight:bold;
+}
+
+button.sec{
+  background:#666;
+}
+
+button.rojo{
+  background:#b71c1c;
+}
+
+.item{
+  background:#fafafa;
+  border:1px solid #e0e0e0;
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+}
+
+.item img{
+  width:100%;
+  max-width:130px;
+  border-radius:10px;
+  display:block;
+  margin-bottom:10px;
+}
+
+.fila-botones{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+
+.volver{
+  display:block;
+  text-align:center;
+  text-decoration:none;
+  background:#fff;
+  color:#111;
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  font-weight:bold;
+}
+
+.mensaje{
+  margin-top:8px;
+  font-size:14px;
+}
+
+.ok{ color:#1b5e20; }
+.error{ color:#b71c1c; }
+
+small{
+  color:#666;
+}
+</style>
+</head>
+<body>
+
+<div class="barra">PANEL ADMIN</div>
+
+<div class="contenedor">
+
+  <div class="bloque">
+    <h2>Agregar categoría</h2>
+    <input id="catNombre" placeholder="Nombre de la categoría">
+    <input id="catEmoji" placeholder="Emoji (opcional)" value="🛍️">
+    <button onclick="crearCategoria()">Guardar categoría</button>
+    <div id="msgCategoria" class="mensaje"></div>
+  </div>
+
+  <div class="bloque">
+    <h2>Agregar producto</h2>
+    <input id="prodNombre" placeholder="Nombre del producto">
+    <input id="prodPrecio" type="number" placeholder="Precio">
+    <textarea id="prodDescripcion" placeholder="Descripción"></textarea>
+    <select id="prodCategoria"></select>
+    <input id="prodImagen" placeholder="URL de imagen (opcional)">
+    <button onclick="crearProducto()">Guardar producto</button>
+    <div id="msgProducto" class="mensaje"></div>
+  </div>
+
+  <div class="bloque">
+    <h2>Categorías</h2>
+    <div id="listaCategorias">Cargando...</div>
+  </div>
+
+  <div class="bloque">
+    <h2>Productos</h2>
+    <div id="listaProductos">Cargando...</div>
+  </div>
+
+  <div class="bloque">
+    <h2>Pedidos recibidos</h2>
+    <div id="listaPedidos">Sin pedidos</div>
+  </div>
+
+  <a class="volver" href="/">⬅ Volver al catálogo</a>
+
+</div>
+
+<script>
+const TOKEN = "mercado2024";
+const API = "/api";
+
+let categorias = [];
+let productos = [];
+
+function ponerMsg(id, texto, tipo="ok"){
+  const el = document.getElementById(id);
+  el.className = "mensaje " + tipo;
+  el.textContent = texto;
+}
+
+async function cargarCategorias(){
+  try{
+    const res = await fetch(API + "/categorias");
+    categorias = await res.json();
+
+    const select = document.getElementById("prodCategoria");
+    select.innerHTML = "";
+
+    if(!Array.isArray(categorias) || categorias.length === 0){
+      select.innerHTML = `<option value="">Sin categorías</option>`;
+      document.getElementById("listaCategorias").innerHTML = "No hay categorías todavía.";
+      return;
+    }
+
+    categorias.forEach(c=>{
+      const option = document.createElement("option");
+      option.value = c.id || "";
+      option.textContent = `${c.emoji || "🛍️"} ${c.nombre || "Categoría"}`;
+      select.appendChild(option);
+    });
+
+    const cont = document.getElementById("listaCategorias");
+    cont.innerHTML = "";
+
+    categorias.forEach(c=>{
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <b>${c.emoji || "🛍️"} ${c.nombre || ""}</b>
+        <br><small>ID: ${c.id || ""}</small>
+        <div class="fila-botones">
+          <button class="rojo" onclick="eliminarCategoria('${c.id}')">Eliminar</button>
+        </div>
+      `;
+      cont.appendChild(div);
+    });
+  }catch(e){
+    document.getElementById("listaCategorias").innerHTML = "Error al cargar categorías";
+  }
+}
+
+async function cargarProductos(){
+  try{
+    const res = await fetch(API + "/productos");
+    productos = await res.json();
+
+    const cont = document.getElementById("listaProductos");
+
+    if(!Array.isArray(productos) || productos.length === 0){
+      cont.innerHTML = "No hay productos todavía.";
+      return;
+    }
+
+    cont.innerHTML = "";
+
+    productos.forEach(p=>{
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        ${p.imagen ? `<img src="${p.imagen}" alt="${p.nombre}">` : ""}
+        <b>${p.nombre || ""}</b>
+        <br>$${Number(p.precio || 0)}
+        <br><small>${p.categoria || ""}</small>
+        <div class="fila-botones">
+          <button class="rojo" onclick="eliminarProducto(${p.id})">Eliminar</button>
+        </div>
+      `;
+      cont.appendChild(div);
+    });
+  }catch(e){
+    document.getElementById("listaProductos").innerHTML = "Error al cargar productos";
+  }
+}
+
+async function crearCategoria(){
+  const nombre = document.getElementById("catNombre").value.trim();
+  const emoji = document.getElementById("catEmoji").value.trim() || "🛍️";
+
+  if(!nombre){
+    ponerMsg("msgCategoria", "Escribe el nombre", "error");
+    return;
+  }
+
+  try{
+    const res = await fetch(API + "/categorias", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + TOKEN
+      },
+      body: JSON.stringify({
+        nombre,
+        emoji
+      })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok || !data.ok){
+      ponerMsg("msgCategoria", data.error || "No se pudo guardar", "error");
+      return;
+    }
+
+    document.getElementById("catNombre").value = "";
+    document.getElementById("catEmoji").value = "🛍️";
+    ponerMsg("msgCategoria", "Categoría guardada");
+    await cargarCategorias();
+  }catch(e){
+    ponerMsg("msgCategoria", "Error al guardar categoría", "error");
+  }
+}
+
+async function crearProducto(){
+  const nombre = document.getElementById("prodNombre").value.trim();
+  const precio = Number(document.getElementById("prodPrecio").value || 0);
+  const descripcion = document.getElementById("prodDescripcion").value.trim();
+  const categoriaId = document.getElementById("prodCategoria").value;
+  const imagen = document.getElementById("prodImagen").value.trim();
+
+  if(!nombre || !precio){
+    ponerMsg("msgProducto", "Nombre y precio son obligatorios", "error");
+    return;
+  }
+
+  const categoriaObj = categorias.find(c => String(c.id) === String(categoriaId));
+  const categoriaSlug = categoriaObj ? (categoriaObj.id || categoriaObj.slug || "otro") : "otro";
+
+  try{
+    const res = await fetch(API + "/admin/producto", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + TOKEN
+      },
+      body: JSON.stringify({
+        nombre,
+        precio,
+        descripcion,
+        imagen,
+        categoria: categoriaSlug,
+        etiqueta: "Nuevo"
+      })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok || !data.ok){
+      ponerMsg("msgProducto", data.error || "No se pudo guardar", "error");
+      return;
+    }
+
+    document.getElementById("prodNombre").value = "";
+    document.getElementById("prodPrecio").value = "";
+    document.getElementById("prodDescripcion").value = "";
+    document.getElementById("prodImagen").value = "";
+    ponerMsg("msgProducto", "Producto guardado");
+    await cargarProductos();
+  }catch(e){
+    ponerMsg("msgProducto", "Error al guardar producto", "error");
+  }
+}
+
+async function eliminarProducto(id){
+  if(!confirm("¿Eliminar producto?")) return;
+
+  try{
+    await fetch(API + "/admin/producto/" + id, {
+      method:"DELETE",
+      headers:{
+        "Authorization":"Bearer " + TOKEN
+      }
+    });
+    await cargarProductos();
+  }catch(e){}
+}
+
+async function eliminarCategoria(id){
+  if(!confirm("¿Eliminar categoría?")) return;
+
+  try{
+    await fetch(API + "/categorias/" + id, {
+      method:"DELETE",
+      headers:{
+        "Authorization":"Bearer " + TOKEN
+      }
+    });
+    await cargarCategorias();
+  }catch(e){}
+}
+
+async function cargarPedidos(){
+  const cont = document.getElementById("listaPedidos");
+  cont.innerHTML = "Sin pedidos";
+}
+
+cargarCategorias();
+cargarProductos();
+cargarPedidos();
+</script>
+
+</body>
+</html>
