@@ -31,25 +31,37 @@ function auth(req: any, res: any): boolean {
   return true;
 }
 
+// 👉 OBTENER CATEGORIAS
 router.get("/categorias", (_req, res) => {
   res.json(leer());
 });
 
+// 👉 CREAR CATEGORIA (ARREGLADO IMAGEN)
 router.post("/categorias", (req: any, res) => {
   if (!auth(req, res)) return;
 
   const categorias = leer();
-  const { nombre, emoji, imagen } = req.body ?? {};
 
-  if (!nombre || !String(nombre).trim()) {
+  const nombre = String(req.body?.nombre || "").trim();
+  const emoji = String(req.body?.emoji || "🛍️").trim();
+
+  // 🔥 ACEPTA CUALQUIER NOMBRE DE FOTO
+  const imagen =
+    req.body?.imagen ||
+    req.body?.foto ||
+    req.body?.image ||
+    req.body?.imageUrl ||
+    "";
+
+  if (!nombre) {
     return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
   }
 
   const nueva = {
     id: Date.now().toString(),
-    nombre: String(nombre).trim(),
-    emoji: emoji ? String(emoji).trim() : "🛍️",
-    imagen: imagen ? String(imagen).trim() : ""
+    nombre,
+    emoji,
+    imagen: String(imagen).trim()
   };
 
   categorias.push(nueva);
@@ -58,6 +70,7 @@ router.post("/categorias", (req: any, res) => {
   return res.json({ ok: true, categoria: nueva });
 });
 
+// 👉 ELIMINAR
 router.delete("/categorias/:id", (req: any, res) => {
   if (!auth(req, res)) return;
 
