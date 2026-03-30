@@ -18,12 +18,26 @@ body{
   background:#000;
   color:#fff;
   padding:16px;
-  text-align:center;
-  font-weight:bold;
-  font-size:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   position:sticky;
   top:0;
   z-index:20;
+}
+
+.barra .volver{
+  position:absolute;
+  left:14px;
+  color:#fff;
+  text-decoration:none;
+  font-size:28px;
+  line-height:1;
+}
+
+.barra .titulo-barra{
+  font-size:22px;
+  font-weight:bold;
 }
 
 .contenedor{
@@ -37,6 +51,21 @@ body{
   margin-bottom:10px;
   border-radius:14px;
   box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.item-info{
+  flex:1;
+}
+
+.item-img{
+  width:90px;
+  height:90px;
+  border-radius:12px;
+  object-fit:cover;
+  background:#eee;
 }
 
 .item button{
@@ -147,7 +176,7 @@ button{
   box-shadow:0 6px 18px rgba(24,193,15,0.30);
 }
 
-.volver{
+.volver-abajo{
   display:block;
   text-align:center;
   margin-top:12px;
@@ -176,7 +205,10 @@ button{
 
 <body>
 
-<div class="barra">🛒 Carrito</div>
+<div class="barra">
+  <a class="volver" href="javascript:history.back()">←</a>
+  <div class="titulo-barra">🛒 Carrito</div>
+</div>
 
 <div class="contenedor">
 
@@ -238,7 +270,7 @@ button{
 
   <button class="btn-finalizar" onclick="finalizar()">Finalizar</button>
 
-  <a href="/" class="volver">⬅ Volver</a>
+  <a href="/" class="volver-abajo">⬅ Volver a tienda</a>
 
 </div>
 
@@ -291,17 +323,21 @@ function cargar(){
     const precio = Number(p.precio || 0);
     const cantidad = Number(p.cantidad || 1);
     const subtotalItem = precio * cantidad;
+    const imagen = p.imagen || p.foto || p.image || "";
     subtotal += subtotalItem;
 
     const div = document.createElement("div");
     div.className = "item";
 
     div.innerHTML = `
-      <b>${p.nombre}</b><br>
-      $${precio} x ${cantidad}<br>
-      Subtotal: $${subtotalItem}
-      <br>
-      <button onclick="eliminar(${index})">Eliminar</button>
+      ${imagen ? `<img class="item-img" src="${imagen}" alt="${p.nombre}">` : ""}
+      <div class="item-info">
+        <b>${p.nombre}</b><br>
+        $${precio} x ${cantidad}<br>
+        Subtotal: $${subtotalItem}
+        <br>
+        <button onclick="eliminar(${index})">Eliminar</button>
+      </div>
     `;
 
     cont.appendChild(div);
@@ -374,7 +410,8 @@ async function finalizar(){
   const productos = carrito.map(p => ({
     nombre: p.nombre || "",
     cantidad: Number(p.cantidad || 1),
-    precio: Number(p.precio || 0)
+    precio: Number(p.precio || 0),
+    imagen: p.imagen || p.foto || p.image || ""
   }));
 
   const subtotal = productos.reduce((t, p) => t + (p.precio * p.cantidad), 0);
@@ -405,26 +442,26 @@ async function finalizar(){
       return;
     }
 
-    let texto = "🛒 PEDIDO\n\n";
-    texto += "Cliente: " + cliente + "\n";
-    texto += "Teléfono: " + telefono + "\n";
-    texto += "Dirección: " + direccion + "\n";
-    texto += "Vendedor: " + vendedor + "\n";
-    texto += "Entrega: " + pedido.tipo_entrega + "\n";
-    texto += "Nota: " + nota + "\n\n";
-    texto += "Productos:\n";
+    let texto = "🛒 PEDIDO\\n\\n";
+    texto += "Cliente: " + cliente + "\\n";
+    texto += "Teléfono: " + telefono + "\\n";
+    texto += "Dirección: " + direccion + "\\n";
+    texto += "Vendedor: " + vendedor + "\\n";
+    texto += "Entrega: " + pedido.tipo_entrega + "\\n";
+    texto += "Nota: " + nota + "\\n\\n";
+    texto += "Productos:\\n";
 
     productos.forEach(p => {
-      texto += "- " + p.nombre + " x" + p.cantidad + " ($" + p.precio + ")\n";
+      texto += "- " + p.nombre + " x" + p.cantidad + " ($" + p.precio + ")\\n";
     });
 
-    texto += "\nTotal: $" + total;
+    texto += "\\nTotal: $" + total;
 
     localStorage.removeItem("carrito");
 
     window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank");
     alert("Pedido enviado");
-    window.location = "/";
+    window.location = "/admin";
 
   }catch(error){
     alert("Error al enviar el pedido");
