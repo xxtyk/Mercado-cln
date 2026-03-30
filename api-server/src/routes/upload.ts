@@ -31,21 +31,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post("/upload", upload.single("file"), (req: any, res) => {
-  if (!auth(req, res)) return;
+router.post(
+  "/upload",
+  (req: any, res, next) => {
+    if (!auth(req, res)) return;
+    next();
+  },
+  upload.single("file"),
+  (req: any, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        ok: false,
+        error: "No se subió archivo"
+      });
+    }
 
-  if (!req.file) {
-    return res.status(400).json({
-      ok: false,
-      error: "No se subió archivo"
+    return res.json({
+      ok: true,
+      filename: req.file.filename,
+      url: `/api/uploads/${req.file.filename}`
     });
   }
-
-  return res.json({
-    ok: true,
-    filename: req.file.filename,
-    url: `/api/uploads/${req.file.filename}`
-  });
-});
+);
 
 export default router;
