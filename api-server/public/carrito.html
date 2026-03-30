@@ -1,1 +1,141 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f5f5f5;
+}
+
+.barra{
+  background:#000;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-weight:bold;
+}
+
+.contenedor{
+  padding:12px;
+}
+
+.item{
+  background:#fff;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:10px;
+}
+
+.total{
+  font-size:20px;
+  font-weight:bold;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  background:#000;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="barra">🛒 Carrito</div>
+
+<div class="contenedor">
+
+<div id="lista"></div>
+
+<div class="total" id="total"></div>
+
+<button onclick="finalizar()">Finalizar pedido</button>
+
+<a href="/" style="display:block;text-align:center;margin-top:10px;">⬅ Volver</a>
+
+</div>
+
+<script>
+function obtener(){
+  return JSON.parse(localStorage.getItem("carrito") || "[]");
+}
+
+function guardar(data){
+  localStorage.setItem("carrito", JSON.stringify(data));
+}
+
+function cargar(){
+  const carrito = obtener();
+  const cont = document.getElementById("lista");
+  const totalDiv = document.getElementById("total");
+
+  if(!carrito.length){
+    cont.innerHTML = "Carrito vacío";
+    totalDiv.innerHTML = "";
+    return;
+  }
+
+  let total = 0;
+  cont.innerHTML = "";
+
+  carrito.forEach(p=>{
+    total += p.precio * p.cantidad;
+
+    const div = document.createElement("div");
+    div.className="item";
+
+    div.innerHTML = `
+      <b>${p.nombre}</b><br>
+      $${p.precio} x ${p.cantidad}
+      <br>
+      <button onclick="eliminar(${p.id})">Eliminar</button>
+    `;
+
+    cont.appendChild(div);
+  });
+
+  totalDiv.innerHTML = "Total: $" + total;
+}
+
+function eliminar(id){
+  let carrito = obtener();
+  carrito = carrito.filter(p => p.id !== id);
+  guardar(carrito);
+  cargar();
+}
+
+function finalizar(){
+  const carrito = obtener();
+
+  fetch("/api/webhook-pedido",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      cliente:"Cliente",
+      telefono:"000",
+      direccion:"",
+      productos:carrito,
+      total: carrito.reduce((t,p)=>t+p.precio*p.cantidad,0)
+    })
+  });
+
+  localStorage.removeItem("carrito");
+
+  alert("Pedido enviado");
+  window.location = "/";
+}
+
+cargar();
+</script>
+
+</body>
+</html>
