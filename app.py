@@ -24,24 +24,42 @@ VENDEDORES = [
 ]
 
 # ========================
-# CATEGORIAS FIJAS
-# ========================
-categorias = [
-    {"id": 1, "nombre": "Minisplit", "foto": None},
-    {"id": 2, "nombre": "Cuidado personal", "foto": None},
-    {"id": 3, "nombre": "Mascotas", "foto": None},
-    {"id": 4, "nombre": "Cuidado del cabello", "foto": None},
-    {"id": 5, "nombre": "Cocina", "foto": None},
-    {"id": 6, "nombre": "Limpieza", "foto": None},
-    {"id": 7, "nombre": "Electrodoméstico", "foto": None},
-    {"id": 8, "nombre": "Otro", "foto": None},
-]
-
-# ========================
 # DATOS EN MEMORIA
 # ========================
 productos = []
+categorias = []
 pedidos = []
+
+
+# ========================
+# CATEGORIAS BASE
+# ========================
+CATEGORIAS_BASE = [
+    {"nombre": "Minisplit", "foto": None},
+    {"nombre": "Cuidado personal", "foto": None},
+    {"nombre": "Mascotas", "foto": None},
+    {"nombre": "Cuidado del cabello", "foto": None},
+    {"nombre": "Cocina", "foto": None},
+    {"nombre": "Limpieza", "foto": None},
+    {"nombre": "Electrodoméstico", "foto": None},
+    {"nombre": "Otro", "foto": None},
+]
+
+
+def inicializar_categorias_base():
+    global categorias
+
+    if not categorias:
+        categorias = []
+        for i, cat in enumerate(CATEGORIAS_BASE, start=1):
+            categorias.append({
+                "id": i,
+                "nombre": cat["nombre"],
+                "foto": cat.get("foto")
+            })
+
+
+inicializar_categorias_base()
 
 
 # ========================
@@ -323,11 +341,66 @@ def eliminar_pedido(id):
 
 
 # ========================
-# CATEGORIAS BLOQUEADAS
+# AGREGAR CATEGORIA
 # ========================
 @app.route("/agregar_categoria", methods=["POST"])
 @admin_requerido
 def agregar_categoria():
+    nombre = request.form.get("nombre", "").strip()
+    foto = request.form.get("foto", "").strip()
+
+    if nombre:
+        nuevo_id = max([c["id"] for c in categorias], default=0) + 1
+        categorias.append({
+            "id": nuevo_id,
+            "nombre": nombre,
+            "foto": foto if foto else None
+        })
+
+    return redirect("/admin")
+
+
+# ========================
+# EDITAR CATEGORIA
+# ========================
+@app.route("/editar_categoria/<int:id>", methods=["GET", "POST"])
+@admin_requerido
+def editar_categoria(id):
+    categoria = next((c for c in categorias if c["id"] == id), None)
+
+    if not categoria:
+        return redirect("/admin")
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        foto = request.form.get("foto", "").strip()
+
+        if nombre:
+            categoria["nombre"] = nombre
+
+        categoria["foto"] = foto if foto else None
+
+        return redirect("/admin")
+
+    return render_template("editar_categoria.html", categoria=categoria)
+
+
+# ========================
+# ELIMINAR CATEGORIA
+# ========================
+@app.route("/eliminar_categoria/<int:id>")
+@admin_requerido
+def eliminar_categoria(id):
+    global categorias, productos
+
+    categorias_base_ids = list(range(1, len(CATEGORIAS_BASE) + 1))
+
+    if id in categorias_base_ids:
+        return redirect("/admin")
+
+    categorias = [c for c in categorias if c["id"] != id]
+    productos = [p for p in productos if p.get("categoria_id") != id]
+
     return redirect("/admin")
 
 
@@ -343,10 +416,12 @@ def agregar_producto():
     foto = request.form.get("foto", "").strip()
 
     if nombre and precio:
-        categoria_id_valor = 8
+        categoria_id_valor = None
 
         if categoria_id.isdigit():
             categoria_id_valor = int(categoria_id)
+        elif categorias:
+            categoria_id_valor = categorias[0]["id"]
 
         nuevo_id = max([p["id"] for p in productos], default=0) + 1
 
