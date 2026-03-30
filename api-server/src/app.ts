@@ -9,14 +9,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 👇 ESTO ES CLAVE
+// PUBLIC
 app.use(express.static(path.join(process.cwd(), "public")));
+
+// 🔥 ADMIN (esto te falta)
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(process.cwd(), "public", "admin.html"));
+});
 
 // API
 app.use("/api", router);
 
-// 👇 ESTO FORZA QUE / ABRA index.html
-app.get("/", (req, res) => {
+// 🔥 FALLBACK
+app.get("*", (req, res) => {
   res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
