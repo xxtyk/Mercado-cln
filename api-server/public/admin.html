@@ -1,102 +1,207 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel Admin</title>
-  <style>
-    *{
-      box-sizing:border-box;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin</title>
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+/* HEADER IGUAL CATÁLOGO */
+.header{
+  background:#000;
+  color:#fff;
+  padding:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
+.header h1{
+  margin:0;
+  font-size:18px;
+}
+
+.header a{
+  color:#fff;
+  text-decoration:none;
+  font-size:22px;
+}
+
+/* CONTENEDOR */
+.contenedor{
+  padding:12px;
+  padding-bottom:120px;
+}
+
+/* TARJETA */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.titulo{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.texto{
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+/* PRODUCTOS */
+.productos{
+  margin-top:8px;
+  background:#f7f7f7;
+  padding:10px;
+  border-radius:10px;
+}
+
+.producto{
+  font-size:14px;
+  border-bottom:1px solid #ddd;
+  padding:6px 0;
+}
+
+.producto:last-child{
+  border:none;
+}
+
+/* BOTONES */
+.botones{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+}
+
+.btn{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btn-wa{
+  background:#25D366;
+}
+
+.btn-del{
+  background:#000;
+  color:#fff;
+}
+
+/* VACIO */
+.vacio{
+  text-align:center;
+  margin-top:40px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <a href="/">←</a>
+  <h1>Pedidos</h1>
+  <div></div>
+</div>
+
+<div class="contenedor" id="lista"></div>
+
+<script>
+const lista = document.getElementById("lista");
+
+async function cargar(){
+  lista.innerHTML = "Cargando...";
+
+  try{
+    const res = await fetch("/api/webhook-pedido");
+    const pedidos = await res.json();
+
+    lista.innerHTML = "";
+
+    if(!pedidos.length){
+      lista.innerHTML = '<div class="vacio">No hay pedidos</div>';
+      return;
     }
 
-    body{
-      margin:0;
-      font-family:Arial, sans-serif;
-      background:#f3f3f3;
-      color:#111;
-    }
+    pedidos.forEach(p => {
+      const card = document.createElement("div");
+      card.className = "card";
 
-    .barra{
-      background:#000;
-      color:#fff;
-      padding:16px;
-      font-size:28px;
-      font-weight:bold;
-      text-align:center;
-      position:sticky;
-      top:0;
-      z-index:20;
-    }
+      let productosHTML = "";
+      (p.productos || []).forEach(prod=>{
+        productosHTML += `
+          <div class="producto">
+            ${prod.nombre} x${prod.cantidad} - $${prod.precio}
+          </div>
+        `;
+      });
 
-    .contenedor{
-      max-width:900px;
-      margin:0 auto;
-      padding:14px;
-      padding-bottom:40px;
-    }
+      const textoWA = encodeURIComponent(
+        "Pedido\n\nCliente: " + p.cliente +
+        "\nTel: " + p.telefono +
+        "\nDirección: " + p.direccion +
+        "\nTotal: $" + p.total
+      );
 
-    .top{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      margin-bottom:16px;
-    }
+      card.innerHTML = `
+        <div class="titulo">Pedido #${p.id}</div>
 
-    .boton-volver{
-      display:inline-block;
-      background:#fff;
-      color:#111;
-      text-decoration:none;
-      padding:12px 14px;
-      border-radius:12px;
-      font-weight:bold;
-      box-shadow:0 2px 8px rgba(0,0,0,0.08);
-      width:fit-content;
-    }
+        <div class="texto">👤 ${p.cliente}</div>
+        <div class="texto">📞 ${p.telefono}</div>
+        <div class="texto">📍 ${p.direccion}</div>
+        <div class="texto">💰 $${p.total}</div>
 
-    .acciones{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-    }
+        <div class="productos">${productosHTML}</div>
 
-    .btn{
-      border:none;
-      border-radius:12px;
-      padding:12px 16px;
-      font-size:16px;
-      font-weight:bold;
-      cursor:pointer;
-    }
+        <div class="botones">
+          <a class="btn btn-wa" href="https://wa.me/?text=${textoWA}" target="_blank">WhatsApp</a>
+          <button class="btn btn-del" onclick="borrar('${p.id}')">Enviado</button>
+        </div>
+      `;
 
-    .btn-recargar{
-      background:#000;
-      color:#fff;
-    }
+      lista.appendChild(card);
+    });
 
-    .btn-clave{
-      background:#fff;
-      color:#111;
-      border:1px solid #ddd;
-    }
+  }catch(e){
+    lista.innerHTML = "Error cargando pedidos";
+  }
+}
 
-    .estado{
-      background:#fff;
-      border-radius:14px;
-      padding:14px;
-      margin-bottom:16px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.08);
-      font-size:16px;
-    }
+async function borrar(id){
+  const pass = prompt("Clave admin");
+  if(!pass) return;
 
-    .lista{
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
+  await fetch("/api/webhook-pedido/"+id,{
+    method:"DELETE",
+    headers:{ "Authorization":"Bearer "+pass }
+  });
 
-    .pedido{
-      background:#fff;
-      border-radius:18px;
-      padding:16px;
-      box-shadow:0
+  cargar();
+}
+
+cargar();
+</script>
+
+</body>
+</html>
