@@ -24,11 +24,36 @@ function guardar(data: any[]) {
 }
 
 function autenticado(req: any, res: any): boolean {
-  if (req.headers.authorization !== `Bearer ${ADMIN_PASS}`) {
+  const auth = req.headers.authorization ?? "";
+  if (auth !== `Bearer ${ADMIN_PASS}`) {
     res.status(401).json({ ok: false, error: "No autorizado" });
     return false;
   }
   return true;
+}
+
+function normalizarProducto(body: any, id: number, actual?: any) {
+  return {
+    id,
+    codigo: body.codigo ?? actual?.codigo ?? "",
+    nombre: body.nombre ?? actual?.nombre ?? "",
+    descripcion: body.descripcion ?? actual?.descripcion ?? "",
+    imagen: body.imagen ?? body.foto ?? body.image ?? actual?.imagen ?? "",
+    etiqueta: body.etiqueta ?? actual?.etiqueta ?? "Nuevo",
+    precio: body.precio !== undefined ? Number(body.precio) : Number(actual?.precio ?? 0),
+    categoria:
+      body.categoria ??
+      body.categoria_id ??
+      actual?.categoria ??
+      actual?.categoria_id ??
+      "",
+    categoria_id:
+      body.categoria_id ??
+      body.categoria ??
+      actual?.categoria_id ??
+      actual?.categoria ??
+      ""
+  };
 }
 
 router.get("/productos", (_req, res) => {
@@ -47,22 +72,64 @@ router.get("/productos/:id", (req, res) => {
   return res.json(producto);
 });
 
+/* CREAR PRODUCTO DESDE PANEL */
+router.post("/productos", (req: any, res) => {
+  const lista = leer();
+  const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
+
+  const nuevo = normalizarProducto(req.body ?? {}, maxId + 1);
+
+  if (!nuevo.nombre) {
+    return res.status(400).json({ ok: false, error: "Falta nombre" });
+  }
+
+  if (!nuevo.precio && nuevo.precio !== 0) {
+    return res.status(400).json({ ok: false, error: "Falta precio" });
+  }
+
+  lista.push(nuevo);
+  guardar(lista);
+
+  return res.json({ ok: true, producto: nuevo });
+});
+
+/* EDITAR PRODUCTO DESDE PANEL */
+router.put("/productos/:id", (req: any, res) => {
+  const lista = leer();
+  const id = Number(req.params.id);
+  const i = lista.findIndex((p: any) => Number(p.id) === id);
+
+  if (i === -1) {
+    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+  }
+
+  lista[i] = normalizarProducto(req.body ?? {}, id, lista[i]);
+  guardar(lista);
+
+  return res.json({ ok: true, producto: lista[i] });
+});
+
+/* ELIMINAR PRODUCTO DESDE PANEL */
+router.delete("/productos/:id", (req: any, res) => {
+  const lista = leer();
+  const nuevaLista = lista.filter((p: any) => Number(p.id) !== Number(req.params.id));
+
+  if (nuevaLista.length === lista.length) {
+    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+  }
+
+  guardar(nuevaLista);
+
+  return res.json({ ok: true });
+});
+
+/* RUTAS VIEJAS PARA NO ROMPER NADA */
 router.post("/admin/producto", (req: any, res) => {
   if (!autenticado(req, res)) return;
 
   const lista = leer();
   const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
-
-  const nuevo = {
-    id: maxId + 1,
-    codigo: req.body.codigo ?? "",
-    nombre: req.body.nombre ?? "",
-    descripcion: req.body.descripcion ?? "",
-    imagen: req.body.imagen ?? "",
-    etiqueta: req.body.etiqueta ?? "Nuevo",
-    precio: Number(req.body.precio ?? 0),
-    categoria: req.body.categoria ?? ""
-  };
+  const nuevo = normalizarProducto(req.body ?? {}, maxId + 1);
 
   lista.push(nuevo);
   guardar(lista);
@@ -81,19 +148,7 @@ router.put("/admin/producto/:id", (req: any, res) => {
     return res.status(404).json({ ok: false, error: "Producto no encontrado" });
   }
 
-  const actual = lista[i];
-
-  lista[i] = {
-    ...actual,
-    codigo: req.body.codigo !== undefined ? req.body.codigo : actual.codigo,
-    nombre: req.body.nombre !== undefined ? req.body.nombre : actual.nombre,
-    descripcion: req.body.descripcion !== undefined ? req.body.descripcion : actual.descripcion,
-    imagen: req.body.imagen !== undefined ? req.body.imagen : actual.imagen,
-    etiqueta: req.body.etiqueta !== undefined ? req.body.etiqueta : actual.etiqueta,
-    precio: req.body.precio !== undefined ? Number(req.body.precio) : actual.precio,
-    categoria: req.body.categoria !== undefined ? req.body.categoria : actual.categoria
-  };
-
+  lista[i] = normalizarProducto(req.body ?? {}, id, lista[i]);
   guardar(lista);
 
   return res.json({ ok: true, producto: lista[i] });
