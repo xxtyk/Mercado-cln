@@ -1,127 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Admin</title>
-
-<style>
-*{ box-sizing:border-box; }
-
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f5f5f5;
-  color:#111;
-  padding-bottom:40px;
-}
-
-.barra{
-  background:#000;
-  color:#fff;
-  padding:16px;
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-  position:sticky;
-  top:0;
-  z-index:20;
-}
-
-.contenedor{
-  max-width:700px;
-  margin:0 auto;
-  padding:12px;
-}
-
-.bloque{
-  background:#fff;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-
-h2, h3{
-  margin:0 0 10px;
-}
-
-input, select, button, textarea{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  margin-top:8px;
-  font-size:16px;
-}
-
-input[type="file"]{
-  background:#fff;
-  padding:10px;
-}
-
-textarea{
-  min-height:90px;
-  resize:vertical;
-}
-
-button{
-  background:#000;
-  color:#fff;
-  border:none;
-  font-weight:bold;
-}
-
-button.rojo{
-  background:#b71c1c;
-}
-
-.item{
-  background:#fafafa;
-  border:1px solid #e0e0e0;
-  border-radius:12px;
-  padding:12px;
-  margin-top:10px;
-}
-
-.item img{
-  width:100%;
-  max-width:130px;
-  border-radius:10px;
-  display:block;
-  margin-bottom:10px;
-}
-
-.fila-botones{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin-top:10px;
-}
-
-.volver{
-  display:block;
-  text-align:center;
-  text-decoration:none;
-  background:#fff;
-  color:#111;
-  border-radius:12px;
-  padding:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-  font-weight:bold;
-}
-
-.mensaje{
-  margin-top:8px;
-  font-size:14px;
-}
-
-.ok{ color:#1b5e20; }
-.error{ color:#b71c1c; }
-
-small{
-  color:#666;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin</title>
+  <style>
+    body{
+      font-family:Arial,sans-serif;
+      padding:20px;
+      background:#f5f5f5;
+      margin:0;
+    }
+    .caja{
+      background:#fff;
+      padding:20px;
+      border-radius:12px;
+    }
+  </style>
 </head>
 <body>
+  <div class="caja">
+    <h1>PANEL ADMIN</h1>
+    <p>Si ves esto, el archivo ya está bien.</p>
+    <a href="/">Volver</a>
+  </div>
+</body>
+</html>
