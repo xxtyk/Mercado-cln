@@ -1,1 +1,22 @@
-
+[
+  {
+    "id": "minisplit",
+    "nombre": "Minisplit",
+    "emoji": "❄️"
+  },
+  {
+    "id": "personal",
+    "nombre": "Cuidado personal",
+    "emoji": "💄"
+  },
+  {
+    "id": "mascotas",
+    "nombre": "Mascotas",
+    "emoji": "🐾"
+  },
+  {
+    "id": "cocina",
+    "nombre": "Cocina",
+    "emoji": "🍳"
+  }
+]
