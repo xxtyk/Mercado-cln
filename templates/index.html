@@ -1,11 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Categorías | Mercado en Línea Culiacán</title>
-
+    <title>Catálogo | Mercado en Línea Culiacán</title>
     <style>
         *{
             box-sizing:border-box;
@@ -25,6 +23,7 @@
             padding:16px 14px;
             display:flex;
             align-items:center;
+            justify-content:space-between;
             gap:14px;
             position:sticky;
             top:0;
@@ -32,137 +31,94 @@
             box-shadow:0 2px 8px rgba(0,0,0,0.20);
         }
 
-        .flecha{
-            font-size:34px;
-            text-decoration:none;
-            color:white;
-            line-height:1;
-        }
-
         .titulo{
             font-size:22px;
-            color:#bdbdbd;
+            color:#ffffff;
             text-transform:uppercase;
             font-weight:bold;
             letter-spacing:1px;
         }
 
-        .contenedor{
-            padding:14px;
-        }
-
-        .instalar-box{
+        .btn-admin{
             background:#ffffff;
-            border-radius:14px;
-            padding:12px 14px;
-            box-shadow:0 2px 10px rgba(0,0,0,0.10);
-            margin-bottom:16px;
-            display:none;
-            align-items:center;
-            justify-content:space-between;
-            gap:10px;
-        }
-
-        .instalar-izquierda{
-            flex:1;
-        }
-
-        .instalar-texto{
-            font-size:14px;
-            font-weight:bold;
             color:#111;
-            line-height:1.3;
-        }
-
-        .instalar-subtexto{
-            font-size:12px;
-            color:#666;
-            margin-top:3px;
-        }
-
-        .instalar-derecha{
-            display:flex;
-            align-items:center;
-            gap:8px;
-            flex-shrink:0;
-        }
-
-        .btn-instalar{
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            background:#1976d2;
-            color:white;
             text-decoration:none;
-            padding:10px 14px;
+            padding:8px 12px;
             border-radius:10px;
             font-size:14px;
             font-weight:bold;
-            border:none;
-            cursor:pointer;
         }
 
-        .btn-cerrar-instalar{
-            width:30px;
-            height:30px;
-            border:none;
-            background:#eeeeee;
-            color:#444;
-            border-radius:50%;
-            font-size:18px;
-            cursor:pointer;
-            line-height:1;
+        .contenedor{
+            padding:14px;
+            padding-bottom:100px;
+        }
+
+        .seccion{
+            margin-bottom:20px;
+        }
+
+        .seccion h2{
+            font-size:20px;
+            margin-bottom:12px;
         }
 
         .grid-categorias{
             display:grid;
             grid-template-columns:repeat(2, 1fr);
-            gap:14px;
+            gap:12px;
         }
 
         .card-categoria{
             background:white;
-            border-radius:20px;
-            overflow:hidden;
-            text-decoration:none;
-            color:inherit;
-            box-shadow:0 4px 16px rgba(0,0,0,0.12);
-        }
-
-        .imagen-categoria{
-            width:100%;
-            height:210px;
-            background:#d9d9d9;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            overflow:hidden;
-        }
-
-        .imagen-categoria img{
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-        }
-
-        .sin-imagen{
-            font-size:22px;
-            color:#666;
+            border-radius:18px;
+            padding:20px 12px;
             text-align:center;
-            padding:10px;
-        }
-
-        .nombre-categoria{
-            background:white;
-            padding:18px 12px 20px;
-            text-align:center;
+            box-shadow:0 4px 16px rgba(0,0,0,0.10);
             font-size:18px;
-            font-weight:700;
-            min-height:78px;
+            font-weight:bold;
+        }
+
+        .grid-productos{
+            display:grid;
+            grid-template-columns:repeat(2, 1fr);
+            gap:12px;
+        }
+
+        .card-producto{
+            background:white;
+            border-radius:18px;
+            padding:14px;
+            box-shadow:0 4px 16px rgba(0,0,0,0.10);
             display:flex;
-            align-items:center;
-            justify-content:center;
+            flex-direction:column;
+            justify-content:space-between;
+            min-height:180px;
+        }
+
+        .nombre-producto{
+            font-size:18px;
+            font-weight:bold;
+            margin-bottom:10px;
+        }
+
+        .precio-producto{
+            font-size:20px;
+            font-weight:bold;
+            color:#1976d2;
+            margin-bottom:14px;
+        }
+
+        .btn-agregar{
+            width:100%;
+            border:none;
+            background:#000;
+            color:white;
+            padding:12px;
+            border-radius:12px;
+            font-size:15px;
+            font-weight:bold;
+            cursor:pointer;
         }
 
         .vacio{
@@ -172,121 +128,90 @@
             text-align:center;
             color:#555;
             box-shadow:0 2px 10px rgba(0,0,0,0.10);
-            margin-top:14px;
         }
 
-        @media (max-width:420px){
-            .imagen-categoria{
-                height:190px;
-            }
+        .barra-inferior{
+            position:fixed;
+            left:0;
+            right:0;
+            bottom:0;
+            background:#ffffff;
+            border-top:1px solid #ddd;
+            padding:12px;
+            box-shadow:0 -2px 10px rgba(0,0,0,0.10);
+        }
 
-            .nombre-categoria{
-                font-size:16px;
-            }
-
-            .instalar-box{
-                padding:10px 12px;
-            }
-
-            .instalar-texto{
-                font-size:13px;
-            }
-
-            .btn-instalar{
-                padding:9px 12px;
-                font-size:13px;
-            }
-
-            .btn-cerrar-instalar{
-                width:28px;
-                height:28px;
-                font-size:16px;
-            }
+        .btn-carrito{
+            display:block;
+            width:100%;
+            max-width:420px;
+            margin:0 auto;
+            text-align:center;
+            background:#1976d2;
+            color:white;
+            text-decoration:none;
+            padding:14px;
+            border-radius:14px;
+            font-size:16px;
+            font-weight:bold;
         }
     </style>
 </head>
 <body>
 
     <div class="barra-superior">
-        <a href="javascript:history.back()" class="flecha">←</a>
-        <div class="titulo">Categorías</div>
+        <div class="titulo">Catálogo</div>
+        <a href="/admin" class="btn-admin">Panel</a>
     </div>
 
     <div class="contenedor">
 
-        <div class="instalar-box" id="installBanner">
-            <div class="instalar-izquierda">
-                <div class="instalar-texto">Instala la aplicación para pedir más rápido</div>
-                <div class="instalar-subtexto">Agrégala a tu teléfono en un toque</div>
-            </div>
-
-            <div class="instalar-derecha">
-                <button id="btnInstalar" class="btn-instalar" type="button">Instalar</button>
-                <button id="btnCerrarInstalar" class="btn-cerrar-instalar" type="button">×</button>
-            </div>
-        </div>
-
-        {% if categorias and categorias|length > 0 %}
-            <div class="grid-categorias">
-                {% for categoria in categorias %}
-                    <a class="card-categoria" href="{{ url_for('categoria', id=categoria.id) }}">
-                        <div class="imagen-categoria">
-                            {% if categoria.foto %}
-                                <img src="{{ resolver_imagen(categoria.foto) }}" alt="{{ categoria.nombre }}">
-                            {% else %}
-                                <div class="sin-imagen">Sin imagen</div>
-                            {% endif %}
-                        </div>
-                        <div class="nombre-categoria">
+        <div class="seccion">
+            <h2>Categorías</h2>
+            {% if categorias and categorias|length > 0 %}
+                <div class="grid-categorias">
+                    {% for categoria in categorias %}
+                        <div class="card-categoria">
                             {{ categoria.nombre }}
                         </div>
-                    </a>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="vacio">
-                Aún no hay categorías disponibles.
-            </div>
-        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="vacio">
+                    Aún no hay categorías disponibles.
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="seccion">
+            <h2>Productos</h2>
+            {% if productos and productos|length > 0 %}
+                <div class="grid-productos">
+                    {% for producto in productos %}
+                        <div class="card-producto">
+                            <div>
+                                <div class="nombre-producto">{{ producto.nombre }}</div>
+                                <div class="precio-producto">${{ producto.precio }}</div>
+                            </div>
+
+                            <form action="/agregar_al_carrito/{{ producto.id }}" method="POST">
+                                <button type="submit" class="btn-agregar">Agregar al carrito</button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="vacio">
+                    Aún no hay productos disponibles.
+                </div>
+            {% endif %}
+        </div>
+
     </div>
 
-    <script>
-        let deferredPrompt = null;
-
-        const installBanner = document.getElementById("installBanner");
-        const btnInstalar = document.getElementById("btnInstalar");
-        const btnCerrarInstalar = document.getElementById("btnCerrarInstalar");
-
-        window.addEventListener("beforeinstallprompt", function(e){
-            e.preventDefault();
-            deferredPrompt = e;
-
-            if (localStorage.getItem("cerrar_instalacion") !== "si") {
-                installBanner.style.display = "flex";
-            }
-        });
-
-        btnInstalar.addEventListener("click", async function(){
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBanner.style.display = "none";
-            } else {
-                alert("Si tu teléfono lo permite, abre el menú del navegador y selecciona 'Instalar aplicación' o 'Agregar a pantalla de inicio'.");
-            }
-        });
-
-        btnCerrarInstalar.addEventListener("click", function(){
-            installBanner.style.display = "none";
-            localStorage.setItem("cerrar_instalacion", "si");
-        });
-
-        window.addEventListener("appinstalled", function(){
-            installBanner.style.display = "none";
-            localStorage.setItem("cerrar_instalacion", "si");
-        });
-    </script>
+    <div class="barra-inferior">
+        <a href="/carrito" class="btn-carrito">Ver carrito</a>
+    </div>
 
 </body>
 </html>
