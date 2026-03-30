@@ -9,11 +9,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
+// 👇 ESTO ES CLAVE
+app.use(express.static(path.join(process.cwd(), "public")));
+
+// API
 app.use("/api", router);
 
+// 👇 ESTO FORZA QUE / ABRA index.html
 app.get("/", (req, res) => {
-  res.send("API funcionando 🚀");
+  res.sendFile(path.join(process.cwd(), "public", "index.html"));
 });
 
 export default app;
