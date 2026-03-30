@@ -442,26 +442,9 @@ async function finalizar(){
       return;
     }
 
-    let texto = "🛒 PEDIDO\\n\\n";
-    texto += "Cliente: " + cliente + "\\n";
-    texto += "Teléfono: " + telefono + "\\n";
-    texto += "Dirección: " + direccion + "\\n";
-    texto += "Vendedor: " + vendedor + "\\n";
-    texto += "Entrega: " + pedido.tipo_entrega + "\\n";
-    texto += "Nota: " + nota + "\\n\\n";
-    texto += "Productos:\\n";
-
-    productos.forEach(p => {
-      texto += "- " + p.nombre + " x" + p.cantidad + " ($" + p.precio + ")\\n";
-    });
-
-    texto += "\\nTotal: $" + total;
-
     localStorage.removeItem("carrito");
-
-    window.open("https://wa.me/?text=" + encodeURIComponent(texto), "_blank");
-    alert("Pedido enviado");
-    window.location = "/admin";
+    alert("Pedido recibido correctamente");
+    window.location = "/";
 
   }catch(error){
     alert("Error al enviar el pedido");
