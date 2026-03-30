@@ -1,7 +1,7 @@
 import os
 import uuid
 from functools import wraps
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
@@ -29,20 +29,21 @@ VENDEDORES = [
 productos = []
 categorias = []
 pedidos = []
+uploads_memoria = {}
 
 
 # ========================
 # CATEGORIAS BASE
 # ========================
 CATEGORIAS_BASE = [
-    {"nombre": "Minisplit", "foto": None},
-    {"nombre": "Cuidado personal", "foto": None},
-    {"nombre": "Mascotas", "foto": None},
-    {"nombre": "Cuidado del cabello", "foto": None},
-    {"nombre": "Cocina", "foto": None},
-    {"nombre": "Limpieza", "foto": None},
-    {"nombre": "Electrodoméstico", "foto": None},
-    {"nombre": "Otro", "foto": None},
+    {"id": "minisplit", "nombre": "Minisplit", "foto": None, "emoji": "❄️", "color": "#1976d2"},
+    {"id": "personal", "nombre": "Cuidado personal", "foto": None, "emoji": "💄", "color": "#c62828"},
+    {"id": "mascotas", "nombre": "Mascotas", "foto": None, "emoji": "🐾", "color": "#2e7d32"},
+    {"id": "cabello", "nombre": "Cuidado del cabello", "foto": None, "emoji": "💆", "color": "#7b1fa2"},
+    {"id": "cocina", "nombre": "Cocina", "foto": None, "emoji": "🍳", "color": "#e65100"},
+    {"id": "limpieza", "nombre": "Limpieza", "foto": None, "emoji": "🧹", "color": "#00897b"},
+    {"id": "electrodomesticos", "nombre": "Electrodoméstico", "foto": None, "emoji": "⚡", "color": "#37474f"},
+    {"id": "otro", "nombre": "Otro", "foto": None, "emoji": "🛍️", "color": "#546e7a"},
 ]
 
 
@@ -54,8 +55,11 @@ def inicializar_categorias_base():
         for i, cat in enumerate(CATEGORIAS_BASE, start=1):
             categorias.append({
                 "id": i,
+                "slug": cat["id"],
                 "nombre": cat["nombre"],
-                "foto": cat.get("foto")
+                "foto": cat.get("foto"),
+                "emoji": cat.get("emoji", "🛍️"),
+                "color": cat.get("color", "#1976d2"),
             })
 
 
@@ -95,6 +99,25 @@ def admin_requerido(func):
             return redirect(url_for("login_admin"))
         return func(*args, **kwargs)
     return wrapper
+
+
+def auth_api_valida():
+    token = request.headers.get("Authorization", "").replace("Bearer ", "").strip()
+    return token == ADMIN_PASSWORD
+
+
+def categoria_slug_por_id(categoria_id):
+    cat = next((c for c in categorias if c["id"] == categoria_id), None)
+    if not cat:
+        return "otro"
+    return cat.get("slug", "otro")
+
+
+def categoria_id_por_slug(slug):
+    cat = next((c for c in categorias if c.get("slug") == slug), None)
+    if cat:
+        return cat["id"]
+    return categorias[-1]["id"] if categorias else 1
 
 
 @app.context_processor
@@ -319,7 +342,7 @@ def finalizar_pedido():
 
 
 # ========================
-# PANEL ADMIN
+# PANEL ADMIN HTML
 # ========================
 @app.route("/admin")
 @admin_requerido
@@ -340,9 +363,6 @@ def eliminar_pedido(id):
     return redirect("/admin")
 
 
-# ========================
-# AGREGAR CATEGORIA
-# ========================
 @app.route("/agregar_categoria", methods=["POST"])
 @admin_requerido
 def agregar_categoria():
@@ -351,18 +371,20 @@ def agregar_categoria():
 
     if nombre:
         nuevo_id = max([c["id"] for c in categorias], default=0) + 1
+        slug = nombre.lower().replace(" ", "_")
+
         categorias.append({
             "id": nuevo_id,
+            "slug": slug,
             "nombre": nombre,
-            "foto": foto if foto else None
+            "foto": foto if foto else None,
+            "emoji": "🛍️",
+            "color": "#1976d2"
         })
 
     return redirect("/admin")
 
 
-# ========================
-# EDITAR CATEGORIA
-# ========================
 @app.route("/editar_categoria/<int:id>", methods=["GET", "POST"])
 @admin_requerido
 def editar_categoria(id):
@@ -385,9 +407,6 @@ def editar_categoria(id):
     return render_template("editar_categoria.html", categoria=categoria)
 
 
-# ========================
-# ELIMINAR CATEGORIA
-# ========================
 @app.route("/eliminar_categoria/<int:id>")
 @admin_requerido
 def eliminar_categoria(id):
@@ -404,9 +423,6 @@ def eliminar_categoria(id):
     return redirect("/admin")
 
 
-# ========================
-# AGREGAR PRODUCTO
-# ========================
 @app.route("/agregar_producto", methods=["POST"])
 @admin_requerido
 def agregar_producto():
@@ -428,12 +444,207 @@ def agregar_producto():
         productos.append({
             "id": nuevo_id,
             "nombre": nombre,
+            "descripcion": "",
             "precio": float(precio),
             "categoria_id": categoria_id_valor,
-            "foto": foto if foto else None
+            "categoria": categoria_slug_por_id(categoria_id_valor),
+            "foto": foto if foto else None,
+            "imagen": foto if foto else "",
+            "etiqueta": "Nuevo"
         })
 
     return redirect("/admin")
+
+
+# ========================
+# API PARA REACT / REPLIT
+# ========================
+@app.route("/api/productos")
+def api_productos():
+    salida = []
+    for p in productos:
+        salida.append({
+            "id": p["id"],
+            "codigo": str(p.get("id", "")),
+            "nombre": p.get("nombre", ""),
+            "descripcion": p.get("descripcion", ""),
+            "imagen": p.get("imagen") or p.get("foto") or "",
+            "etiqueta": p.get("etiqueta", "Nuevo"),
+            "precio": float(p.get("precio", 0)),
+            "categoria": p.get("categoria") or categoria_slug_por_id(p.get("categoria_id"))
+        })
+    return jsonify(salida)
+
+
+@app.route("/api/categorias")
+def api_categorias():
+    salida = []
+    for c in categorias:
+        salida.append({
+            "id": c.get("slug") or str(c["id"]),
+            "nombre": c.get("nombre", ""),
+            "imagen": c.get("foto"),
+            "emoji": c.get("emoji", "🛍️"),
+            "color": c.get("color", "#1976d2")
+        })
+    return jsonify(salida)
+
+
+@app.route("/api/admin/auth")
+def api_admin_auth():
+    if auth_api_valida():
+        return jsonify({"ok": True})
+    return jsonify({"ok": False}), 401
+
+
+@app.route("/api/admin/upload", methods=["POST"])
+def api_admin_upload():
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    archivo = request.files.get("imagen")
+    if not archivo:
+        return jsonify({"ok": False, "error": "No se recibió imagen"}), 400
+
+    nombre_archivo = f"{uuid.uuid4().hex}_{archivo.filename or 'imagen.jpg'}"
+    uploads_memoria[nombre_archivo] = archivo.read()
+
+    return jsonify({"ok": True, "filename": nombre_archivo})
+
+
+@app.route("/api/uploads/<filename>")
+def api_uploads(filename):
+    if filename not in uploads_memoria:
+        return "", 404
+
+    contenido = uploads_memoria[filename]
+    ext = filename.lower()
+
+    mimetype = "application/octet-stream"
+    if ext.endswith(".png"):
+        mimetype = "image/png"
+    elif ext.endswith(".jpg") or ext.endswith(".jpeg"):
+        mimetype = "image/jpeg"
+    elif ext.endswith(".webp"):
+        mimetype = "image/webp"
+
+    return app.response_class(contenido, mimetype=mimetype)
+
+
+@app.route("/api/admin/producto", methods=["POST"])
+def api_admin_producto():
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    data = request.get_json(silent=True) or {}
+
+    nuevo_id = max([p["id"] for p in productos], default=0) + 1
+    categoria_slug = data.get("categoria", "otro")
+    categoria_id = categoria_id_por_slug(categoria_slug)
+
+    productos.append({
+        "id": nuevo_id,
+        "codigo": data.get("codigo", ""),
+        "nombre": data.get("nombre", ""),
+        "descripcion": data.get("descripcion", ""),
+        "imagen": data.get("imagen", ""),
+        "foto": data.get("imagen", ""),
+        "etiqueta": data.get("etiqueta", "Nuevo"),
+        "precio": float(data.get("precio", 0)),
+        "categoria": categoria_slug,
+        "categoria_id": categoria_id
+    })
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/producto/<int:id>", methods=["DELETE"])
+def api_admin_eliminar_producto(id):
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    global productos
+    productos = [p for p in productos if p["id"] != id]
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/categoria", methods=["POST"])
+def api_admin_categoria():
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    data = request.get_json(silent=True) or {}
+
+    nuevo_id = max([c["id"] for c in categorias], default=0) + 1
+    slug = data.get("id") or data.get("nombre", f"cat_{nuevo_id}").lower().replace(" ", "_")
+
+    categorias.append({
+        "id": nuevo_id,
+        "slug": slug,
+        "nombre": data.get("nombre", ""),
+        "foto": data.get("imagen"),
+        "emoji": data.get("emoji", "🛍️"),
+        "color": data.get("color", "#1976d2")
+    })
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/categoria/<id>", methods=["PUT"])
+def api_admin_editar_categoria(id):
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    data = request.get_json(silent=True) or {}
+
+    for c in categorias:
+        if str(c.get("slug")) == str(id) or str(c["id"]) == str(id):
+            c["nombre"] = data.get("nombre", c["nombre"])
+            c["foto"] = data.get("imagen", c.get("foto"))
+            return jsonify({"ok": True})
+
+    return jsonify({"ok": False, "error": "Categoría no encontrada"}), 404
+
+
+@app.route("/api/admin/categoria/<id>", methods=["DELETE"])
+def api_admin_eliminar_categoria(id):
+    if not auth_api_valida():
+        return jsonify({"ok": False, "error": "No autorizado"}), 401
+
+    global categorias, productos
+
+    categoria_obj = next((c for c in categorias if str(c.get("slug")) == str(id) or str(c["id"]) == str(id)), None)
+    if not categoria_obj:
+        return jsonify({"ok": False, "error": "Categoría no encontrada"}), 404
+
+    categorias_base_slugs = [c["id"] for c in CATEGORIAS_BASE]
+    if categoria_obj.get("slug") in categorias_base_slugs:
+        return jsonify({"ok": False, "error": "No se puede borrar una categoría base"}), 400
+
+    categorias = [c for c in categorias if c != categoria_obj]
+    productos = [p for p in productos if p.get("categoria_id") != categoria_obj["id"]]
+
+    return jsonify({"ok": True})
+
+
+@app.route("/api/webhook-pedido", methods=["POST"])
+def api_webhook_pedido():
+    data = request.get_json(silent=True) or {}
+    pedidos.insert(0, {
+        "id": str(uuid.uuid4()),
+        "nombre": data.get("cliente", ""),
+        "telefono": data.get("telefono", ""),
+        "direccion": data.get("direccion", ""),
+        "colonia": "",
+        "nota": data.get("nota", ""),
+        "vendedor": data.get("vendedor", ""),
+        "tipo_entrega": data.get("tipo_entrega", ""),
+        "subtotal": 0,
+        "envio": 0,
+        "total": data.get("total", 0),
+        "productos": data.get("productos", [])
+    })
+    return jsonify({"ok": True})
 
 
 # ========================
