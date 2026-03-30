@@ -1,31 +1,234 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Mercado CLN</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mercado en Línea Culiacán</title>
+  <style>
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:#f4f4f4;
+      color:#111;
+      padding-bottom:90px;
+    }
+
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:#000;
+      color:#fff;
+      padding:14px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      box-shadow:0 2px 10px rgba(0,0,0,.25);
+    }
+
+    .brand{
+      font-size:20px;
+      font-weight:700;
+      text-align:center;
+      flex:1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .top-icon{
+      width:32px;
+      text-align:center;
+      font-size:22px;
+    }
+
+    .hero{
+      background:#fff;
+      margin:12px;
+      border-radius:18px;
+      padding:18px 14px;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+
+    .hero-title{
+      font-size:22px;
+      font-weight:800;
+      margin:0 0 8px;
+    }
+
+    .hero-sub{
+      margin:0;
+      color:#555;
+      font-size:14px;
+      line-height:1.4;
+    }
+
+    .section{
+      padding:0 12px;
+    }
+
+    .section-title{
+      font-size:18px;
+      font-weight:800;
+      margin:16px 0 10px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    .card{
+      background:#fff;
+      border-radius:18px;
+      padding:12px;
+      min-height:150px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+      text-decoration:none;
+      color:#111;
+    }
+
+    .card-img{
+      width:100%;
+      height:88px;
+      object-fit:cover;
+      border-radius:12px;
+      margin-bottom:10px;
+      background:#eee;
+    }
+
+    .emoji{
+      font-size:38px;
+      margin-bottom:10px;
+    }
+
+    .card-title{
+      font-size:15px;
+      font-weight:700;
+      line-height:1.25;
+    }
+
+    .loading,
+    .empty{
+      background:#fff;
+      border-radius:16px;
+      padding:18px;
+      text-align:center;
+      color:#666;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:#fff;
+      border-top:1px solid #ddd;
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      z-index:60;
+    }
+
+    .nav-btn{
+      padding:10px 4px 12px;
+      text-align:center;
+      text-decoration:none;
+      color:#222;
+      font-size:12px;
+    }
+
+    .nav-ico{
+      display:block;
+      font-size:22px;
+      margin-bottom:4px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>🛒 Mercado en Línea Culiacán</h1>
+  <div class="topbar">
+    <div class="top-icon">☰</div>
+    <div class="brand">Mercado en Línea Culiacán</div>
+    <div class="top-icon">🛒</div>
+  </div>
 
-<div id="productos"></div>
+  <div class="hero">
+    <h1 class="hero-title">Bienvenido</h1>
+    <p class="hero-sub">Compra rápido, contra entrega y con categorías grandes tipo app.</p>
+  </div>
 
-<script>
-fetch("/api/productos")
-  .then(res => res.json())
-  .then(data => {
-    const cont = document.getElementById("productos");
+  <div class="section">
+    <div class="section-title">Categorías</div>
+    <div id="categorias" class="grid">
+      <div class="loading">Cargando categorías...</div>
+    </div>
+  </div>
 
-    data.forEach(p => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <h3>${p.nombre}</h3>
-        <p>$${p.precio}</p>
-        <hr>
-      `;
-      cont.appendChild(div);
-    });
-  });
-</script>
+  <div class="bottom-nav">
+    <a class="nav-btn" href="/">
+      <span class="nav-ico">🏠</span>
+      Inicio
+    </a>
+    <a class="nav-btn" href="/pedidos.html">
+      <span class="nav-ico">📦</span>
+      Mis pedidos
+    </a>
+    <a class="nav-btn" href="/publicidad.html">
+      <span class="nav-ico">📣</span>
+      Publicidad
+    </a>
+    <a class="nav-btn" href="/admin.html">
+      <span class="nav-ico">👤</span>
+      Ingresar
+    </a>
+  </div>
 
+  <script>
+    async function cargarCategorias() {
+      const cont = document.getElementById("categorias");
+
+      try {
+        const res = await fetch("/api/categorias");
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          cont.innerHTML = `<div class="empty">No hay categorías todavía.</div>`;
+          return;
+        }
+
+        cont.innerHTML = "";
+
+        data.forEach(c => {
+          const a = document.createElement("a");
+          a.className = "card";
+          a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
+
+          const imagen = c.imagen
+            ? `<img class="card-img" src="${c.imagen}" alt="${c.nombre}">`
+            : `<div class="emoji">${c.emoji || "🛍️"}</div>`;
+
+          a.innerHTML = `
+            ${imagen}
+            <div class="card-title">${c.nombre || "Categoría"}</div>
+          `;
+
+          cont.appendChild(a);
+        });
+      } catch (e) {
+        cont.innerHTML = `<div class="empty">No se pudieron cargar las categorías.</div>`;
+      }
+    }
+
+    cargarCategorias();
+  </script>
 </body>
 </html>
