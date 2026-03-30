@@ -165,10 +165,10 @@ body{
 <a href="/carrito.html" class="carrito" id="btnCarrito">🛒 (0)</a>
 
 <div class="bottom">
-<a href="/">Inicio</a>
-<a href="/pedidos.html">Pedidos</a>
-<a href="/publicidad.html">Publicidad</a>
-<a href="/admin">Admin</a>
+  <a href="/">Inicio</a>
+  <a href="/pedidos.html">Pedidos</a>
+  <a href="/publicidad.html">Publicidad</a>
+  <a href="https://mercado-cln-1.onrender.com/admin">Admin</a>
 </div>
 
 <script>
@@ -214,7 +214,6 @@ function cambiar(id, valor){
     });
   }else if(i !== -1){
     c[i].cantidad = Number(c[i].cantidad || 0) + valor;
-
     if(c[i].cantidad <= 0){
       c.splice(i, 1);
     }
