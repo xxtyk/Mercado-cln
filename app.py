@@ -1,11 +1,15 @@
 import os
 import uuid
+from functools import wraps
 from flask import Flask, render_template, request, redirect, session, url_for
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "12345")
 
 COSTO_ENVIO = 40
+
+ADMIN_USER = os.environ.get("ADMIN_USER", "hector")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "1234")
 
 VENDEDORES = [
     "Mercado en Línea Culiacán",
@@ -53,13 +57,23 @@ def total_items_carrito(carrito):
     return sum(int(item.get("cantidad", 1)) for item in carrito)
 
 
+def admin_requerido(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not session.get("admin_logueado"):
+            return redirect(url_for("login_admin"))
+        return func(*args, **kwargs)
+    return wrapper
+
+
 @app.context_processor
 def utilidades_templates():
     carrito = obtener_carrito()
     return dict(
         resolver_imagen=resolver_imagen,
         carrito_cantidad=total_items_carrito(carrito),
-        costo_envio=COSTO_ENVIO
+        costo_envio=COSTO_ENVIO,
+        admin_logueado=session.get("admin_logueado", False)
     )
 
 
@@ -78,6 +92,32 @@ def catalogo():
         categorias=categorias,
         productos=productos
     )
+
+
+# ========================
+# LOGIN ADMIN
+# ========================
+@app.route("/login_admin", methods=["GET", "POST"])
+def login_admin():
+    error = ""
+
+    if request.method == "POST":
+        usuario = request.form.get("usuario", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if usuario == ADMIN_USER and password == ADMIN_PASSWORD:
+            session["admin_logueado"] = True
+            return redirect(url_for("admin"))
+        else:
+            error = "Usuario o contraseña incorrectos"
+
+    return render_template("login_admin.html", error=error)
+
+
+@app.route("/logout_admin")
+def logout_admin():
+    session.pop("admin_logueado", None)
+    return redirect("/catalogo")
 
 
 # ========================
@@ -251,6 +291,7 @@ def finalizar_pedido():
 # PANEL ADMIN
 # ========================
 @app.route("/admin")
+@admin_requerido
 def admin():
     return render_template(
         "admin.html",
@@ -261,6 +302,7 @@ def admin():
 
 
 @app.route("/eliminar_pedido/<id>")
+@admin_requerido
 def eliminar_pedido(id):
     global pedidos
     pedidos = [p for p in pedidos if p["id"] != id]
@@ -271,13 +313,15 @@ def eliminar_pedido(id):
 # AGREGAR CATEGORIA
 # ========================
 @app.route("/agregar_categoria", methods=["POST"])
+@admin_requerido
 def agregar_categoria():
     nombre = request.form.get("nombre", "").strip()
     foto = request.form.get("foto", "").strip()
 
     if nombre:
+        nuevo_id = max([c["id"] for c in categorias], default=0) + 1
         categorias.append({
-            "id": len(categorias) + 1,
+            "id": nuevo_id,
             "nombre": nombre,
             "foto": foto if foto else None
         })
@@ -289,6 +333,7 @@ def agregar_categoria():
 # AGREGAR PRODUCTO
 # ========================
 @app.route("/agregar_producto", methods=["POST"])
+@admin_requerido
 def agregar_producto():
     nombre = request.form.get("nombre", "").strip()
     precio = request.form.get("precio", "").strip()
@@ -303,8 +348,10 @@ def agregar_producto():
         elif categorias:
             categoria_id_valor = categorias[0]["id"]
 
+        nuevo_id = max([p["id"] for p in productos], default=0) + 1
+
         productos.append({
-            "id": len(productos) + 1,
+            "id": nuevo_id,
             "nombre": nombre,
             "precio": float(precio),
             "categoria_id": categoria_id_valor,
