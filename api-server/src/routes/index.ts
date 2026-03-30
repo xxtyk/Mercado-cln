@@ -1,11 +1,10 @@
-
 import { Router } from "express";
 
-import health from "./health";
-import productos from "./productos";
-import categorias from "./categorias";
-import upload from "./upload";
-import webhook from "./webhook-proxy";
+import health from "./health.js";
+import productos from "./productos.js";
+import categorias from "./categorias.js";
+import upload from "./upload.js";
+import webhook from "./webhook-proxy.js";
 
 const router = Router();
 
