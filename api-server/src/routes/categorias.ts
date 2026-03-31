@@ -36,7 +36,7 @@ router.get("/categorias", (_req, res) => {
   res.json(leer());
 });
 
-// 👉 CREAR CATEGORIA (ARREGLADO IMAGEN)
+// 👉 CREAR CATEGORIA (🔥 CORREGIDO FOTO)
 router.post("/categorias", (req: any, res) => {
   if (!auth(req, res)) return;
 
@@ -45,13 +45,13 @@ router.post("/categorias", (req: any, res) => {
   const nombre = String(req.body?.nombre || "").trim();
   const emoji = String(req.body?.emoji || "🛍️").trim();
 
-  // 🔥 ACEPTA CUALQUIER NOMBRE DE FOTO
-  const imagen =
-    req.body?.imagen ||
-    req.body?.foto ||
-    req.body?.image ||
-    req.body?.imageUrl ||
-    "";
+  // 🔥 SOLO UNA FUENTE DE IMAGEN (EVITA BUG)
+  let imagen = "";
+
+  if (req.body?.imagen) imagen = req.body.imagen;
+  else if (req.body?.foto) imagen = req.body.foto;
+  else if (req.body?.image) imagen = req.body.image;
+  else if (req.body?.imageUrl) imagen = req.body.imageUrl;
 
   if (!nombre) {
     return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
