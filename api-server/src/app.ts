@@ -8,25 +8,30 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PUBLIC_DIR = path.resolve(__dirname, "../public");
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔥 1. ADMIN PRIMERO (ANTES DE TODO)
-app.get("/admin", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../public/admin.html"));
+// ADMIN
+app.get("/admin", (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
 });
 
-// 🔥 2. API
+app.get("/admin.html", (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
+});
+
+// API
 app.use("/api", router);
 
-// 🔥 3. ARCHIVOS PUBLICOS
-app.use(express.static(path.resolve(__dirname, "../public")));
+// ARCHIVOS PÚBLICOS
+app.use(express.static(PUBLIC_DIR));
 
-// 🔥 4. FALLBACK (LO ÚLTIMO SIEMPRE)
-app.get("*", (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../public/index.html"));
+// FALLBACK
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
 
 export default app;
