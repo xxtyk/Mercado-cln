@@ -13,20 +13,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API
-app.use("/api", router);
-
-// 🔥 ADMIN FIX REAL
+// 🔥 1. ADMIN PRIMERO (ANTES DE TODO)
 app.get("/admin", (req, res) => {
   res.sendFile(path.resolve(__dirname, "../public/admin.html"));
 });
 
-// ARCHIVOS
-app.use(express.static(path.join(__dirname, "../public")));
+// 🔥 2. API
+app.use("/api", router);
 
-// FALLBACK
+// 🔥 3. ARCHIVOS PUBLICOS
+app.use(express.static(path.resolve(__dirname, "../public")));
+
+// 🔥 4. FALLBACK (LO ÚLTIMO SIEMPRE)
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+  res.sendFile(path.resolve(__dirname, "../public/index.html"));
 });
 
 export default app;
