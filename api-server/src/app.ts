@@ -6,7 +6,6 @@ import router from "./routes/index.js";
 
 const app = express();
 
-// 👉 FIX rutas (IMPORTANTE)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -14,18 +13,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 👉 API
+// API
 app.use("/api", router);
 
-// 👉 ADMIN (ARREGLADO)
+// 🔥 ADMIN FIX REAL
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/admin.html"));
+  res.sendFile(path.resolve(__dirname, "../public/admin.html"));
 });
 
-// 👉 ARCHIVOS PUBLICOS
+// ARCHIVOS
 app.use(express.static(path.join(__dirname, "../public")));
 
-// 👉 TODO LO DEMÁS
+// FALLBACK
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
