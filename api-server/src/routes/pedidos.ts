@@ -5,7 +5,7 @@ const router = Router();
 let pedidos: any[] = [];
 
 // VER PEDIDOS
-router.get("/pedidos", (req, res) => {
+router.get("/pedidos", (_req, res) => {
   res.json(pedidos);
 });
 
@@ -21,15 +21,15 @@ router.post("/pedidos", (req, res) => {
   res.json({ ok: true, pedido });
 });
 
-// ELIMINAR
+// ELIMINAR PEDIDO
 router.delete("/pedidos/:id", (req, res) => {
-  pedidos = pedidos.filter(p => p.id !== req.params.id);
+  pedidos = pedidos.filter((p) => p.id !== req.params.id);
   res.json({ ok: true });
 });
 
-// WHATSAPP (simulado por ahora)
-router.post("/pedidos/:id/whatsapp", (req, res) => {
-  pedidos = pedidos.filter(p => p.id !== req.params.id);
+// ENVIAR A WHATSAPP Y BORRAR
+router.post("/pedidos/:id/whatsapp", (_req, res) => {
+  pedidos = pedidos.filter((p) => p.id !== _req.params.id);
   res.json({ ok: true });
 });
 
