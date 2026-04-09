@@ -6,48 +6,68 @@
 <title>Panel Admin</title>
 
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  font-family:Arial;
+  font-family:Arial,sans-serif;
   background:#f5f5f5;
+  color:#111;
 }
 
 .barra{
   background:#000;
   color:#fff;
-  padding:15px;
+  padding:16px;
   text-align:center;
-  font-size:20px;
+  font-size:22px;
   font-weight:bold;
+  position:sticky;
+  top:0;
+  z-index:20;
 }
 
 .contenedor{
-  padding:10px;
+  padding:12px;
+  max-width:800px;
+  margin:0 auto;
 }
 
 .bloque{
   background:#fff;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,.1);
+  padding:14px;
+  margin-bottom:14px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
+}
+
+h3{
+  margin:0 0 12px;
+  font-size:20px;
 }
 
 input, select{
   width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:8px;
+  padding:12px;
+  margin:6px 0;
+  border-radius:10px;
   border:1px solid #ccc;
+  font-size:16px;
+  background:#fff;
+}
+
+input[type="file"]{
+  padding:10px;
 }
 
 button{
   width:100%;
-  padding:10px;
+  padding:12px;
   border:none;
-  border-radius:8px;
-  margin-top:5px;
+  border-radius:10px;
+  margin-top:8px;
   font-weight:bold;
+  font-size:16px;
 }
 
 .btn{
@@ -55,12 +75,47 @@ button{
   color:#fff;
 }
 
-.btn-rojo{
-  background:red;
+.btn-verde{
+  background:#18c10f;
   color:#fff;
 }
-</style>
 
+.btn-rojo{
+  background:#d32f2f;
+  color:#fff;
+}
+
+.tarjeta{
+  border:1px solid #eee;
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+  background:#fafafa;
+}
+
+.linea{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:4px 0;
+}
+
+.foto-mini{
+  width:70px;
+  height:70px;
+  object-fit:cover;
+  border-radius:10px;
+  background:#eee;
+  display:block;
+  margin-top:8px;
+}
+
+.estado{
+  margin-top:8px;
+  font-size:14px;
+  color:#333;
+}
+</style>
 </head>
 <body>
 
@@ -70,90 +125,267 @@ button{
 
   <div class="bloque">
     <h3>📦 Pedidos</h3>
-    <div id="pedidos"></div>
+    <div id="pedidos">Cargando...</div>
+  </div>
+
+  <div class="bloque">
+    <h3>👥 Agregar vendedor</h3>
+    <input id="venNombre" placeholder="Nombre del vendedor">
+    <button class="btn" onclick="agregarVendedor()">Guardar vendedor</button>
+    <div id="listaVendedores"></div>
   </div>
 
   <div class="bloque">
     <h3>📂 Agregar Categoría</h3>
     <input id="catNombre" placeholder="Nombre">
-    <input id="catImagen" placeholder="URL imagen">
-    <button class="btn" onclick="agregarCategoria()">Guardar</button>
+    <input id="catImagen" placeholder="URL imagen (opcional)">
+    <input id="catArchivo" type="file" accept="image/*">
+    <button class="btn-verde" onclick="subirFotoCategoria()">Subir foto desde el celular</button>
+    <div id="catEstado" class="estado"></div>
+    <img id="catPreview" class="foto-mini" style="display:none;">
+    <button class="btn" onclick="agregarCategoria()">Guardar categoría</button>
   </div>
 
   <div class="bloque">
     <h3>🛒 Agregar Producto</h3>
     <input id="prodNombre" placeholder="Nombre">
     <input id="prodPrecio" placeholder="Precio">
-    <input id="prodImagen" placeholder="Imagen URL">
-    <input id="prodCategoria" placeholder="Categoria slug">
-    <button class="btn" onclick="agregarProducto()">Guardar</button>
+    <input id="prodImagen" placeholder="Imagen URL (opcional)">
+    <input id="prodArchivo" type="file" accept="image/*">
+    <button class="btn-verde" onclick="subirFotoProducto()">Subir foto desde el celular</button>
+    <div id="prodEstado" class="estado"></div>
+    <img id="prodPreview" class="foto-mini" style="display:none;">
+    <input id="prodCategoria" placeholder="Categoría slug">
+    <button class="btn" onclick="agregarProducto()">Guardar producto</button>
   </div>
 
 </div>
 
 <script>
+async function subirArchivo(inputId, estadoId, previewId, destinoInputId){
+  const input = document.getElementById(inputId);
+  const estado = document.getElementById(estadoId);
+  const preview = document.getElementById(previewId);
+  const destino = document.getElementById(destinoInputId);
+
+  if(!input.files || !input.files[0]){
+    alert("Selecciona una foto");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", input.files[0]);
+
+  estado.textContent = "Subiendo foto...";
+
+  try{
+    const res = await fetch("/api/admin/upload", {
+      method:"POST",
+      body: formData
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if(!res.ok || !data.url){
+      alert(data.error || "No se pudo subir la foto");
+      estado.textContent = "";
+      return;
+    }
+
+    destino.value = data.url;
+    preview.src = data.url;
+    preview.style.display = "block";
+    estado.textContent = "Foto subida correctamente";
+  }catch(error){
+    estado.textContent = "";
+    alert("Error al subir la foto");
+  }
+}
+
+async function subirFotoCategoria(){
+  await subirArchivo("catArchivo", "catEstado", "catPreview", "catImagen");
+}
+
+async function subirFotoProducto(){
+  await subirArchivo("prodArchivo", "prodEstado", "prodPreview", "prodImagen");
+}
 
 async function cargarPedidos(){
   const res = await fetch("/api/pedidos");
-  const data = await res.json();
+  const data = await res.json().catch(() => []);
 
   const cont = document.getElementById("pedidos");
   cont.innerHTML = "";
 
+  if(!Array.isArray(data) || !data.length){
+    cont.innerHTML = `<div class="tarjeta">No hay pedidos todavía.</div>`;
+    return;
+  }
+
   data.forEach(p=>{
+    const productosHtml = Array.isArray(p.productos)
+      ? p.productos.map(item => `
+          <div class="linea">
+            <span>${item.nombre || ""} x${Number(item.cantidad || 1)}</span>
+            <span>$${Number(item.precio || 0) * Number(item.cantidad || 1)}</span>
+          </div>
+        `).join("")
+      : "";
+
     const div = document.createElement("div");
-    div.className="bloque";
+    div.className = "tarjeta";
 
     div.innerHTML = `
-      <b>${p.nombre}</b><br>
-      Total: $${p.total}<br><br>
+      <b>${p.nombre || "Sin nombre"}</b><br>
+      Tel: ${p.telefono || ""}<br>
+      Dirección: ${p.direccion || ""}<br>
+      Vendedor: ${p.vendedor || ""}<br>
+      Entrega: ${p.tipo_entrega || ""}<br>
+      Nota: ${p.nota || ""}<br><br>
 
-      <button onclick="enviar('${p.id}')">Enviar WhatsApp</button>
-      <button class="btn-rojo" onclick="eliminar('${p.id}')">Eliminar</button>
+      ${productosHtml}
+
+      <div class="linea"><b>Subtotal</b><b>$${Number(p.subtotal || 0)}</b></div>
+      <div class="linea"><b>Envío</b><b>$${Number(p.envio || 0)}</b></div>
+      <div class="linea"><b>Total</b><b>$${Number(p.total || 0)}</b></div>
+
+      <button class="btn-verde" onclick="enviar('${p.id}')">Enviar WhatsApp</button>
+      <button class="btn-rojo" onclick="eliminarPedido('${p.id}')">Eliminar</button>
     `;
 
     cont.appendChild(div);
   });
 }
 
-async function eliminar(id){
-  await fetch("/api/pedidos/"+id,{method:"DELETE"});
+async function eliminarPedido(id){
+  await fetch("/api/pedidos/" + id, { method:"DELETE" });
   cargarPedidos();
 }
 
 async function enviar(id){
-  await fetch("/api/pedidos/"+id+"/whatsapp",{method:"POST"});
+  await fetch("/api/pedidos/" + id + "/whatsapp", { method:"POST" });
   cargarPedidos();
 }
 
 async function agregarCategoria(){
-  await fetch("/api/admin/categoria",{
+  const nombre = document.getElementById("catNombre").value.trim();
+  const imagen = document.getElementById("catImagen").value.trim();
+
+  if(!nombre){
+    alert("Escribe el nombre de la categoría");
+    return;
+  }
+
+  await fetch("/api/admin/categoria", {
     method:"POST",
-    headers:{ "Content-Type":"application/json"},
-    body:JSON.stringify({
-      nombre:catNombre.value,
-      imagen:catImagen.value
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      nombre,
+      imagen
     })
   });
-  alert("Guardado");
+
+  alert("Categoría guardada");
+  document.getElementById("catNombre").value = "";
+  document.getElementById("catImagen").value = "";
+  document.getElementById("catArchivo").value = "";
+  document.getElementById("catEstado").textContent = "";
+  document.getElementById("catPreview").style.display = "none";
 }
 
 async function agregarProducto(){
-  await fetch("/api/admin/producto",{
+  const nombre = document.getElementById("prodNombre").value.trim();
+  const precio = Number(document.getElementById("prodPrecio").value || 0);
+  const imagen = document.getElementById("prodImagen").value.trim();
+  const categoria = document.getElementById("prodCategoria").value.trim();
+
+  if(!nombre){
+    alert("Escribe el nombre del producto");
+    return;
+  }
+
+  if(!precio){
+    alert("Escribe el precio");
+    return;
+  }
+
+  if(!categoria){
+    alert("Escribe la categoría slug");
+    return;
+  }
+
+  await fetch("/api/admin/producto", {
     method:"POST",
-    headers:{ "Content-Type":"application/json"},
-    body:JSON.stringify({
-      nombre:prodNombre.value,
-      precio:Number(prodPrecio.value),
-      imagen:prodImagen.value,
-      categoria:prodCategoria.value
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+      nombre,
+      precio,
+      imagen,
+      categoria
     })
   });
-  alert("Guardado");
+
+  alert("Producto guardado");
+  document.getElementById("prodNombre").value = "";
+  document.getElementById("prodPrecio").value = "";
+  document.getElementById("prodImagen").value = "";
+  document.getElementById("prodArchivo").value = "";
+  document.getElementById("prodCategoria").value = "";
+  document.getElementById("prodEstado").textContent = "";
+  document.getElementById("prodPreview").style.display = "none";
+}
+
+async function cargarVendedores(){
+  const res = await fetch("/api/vendedores");
+  const data = await res.json().catch(() => []);
+
+  const cont = document.getElementById("listaVendedores");
+  cont.innerHTML = "";
+
+  if(!Array.isArray(data) || !data.length){
+    cont.innerHTML = `<div class="tarjeta">No hay vendedores todavía.</div>`;
+    return;
+  }
+
+  data.forEach(v => {
+    const div = document.createElement("div");
+    div.className = "tarjeta";
+    div.innerHTML = `
+      <div class="linea">
+        <b>${v.nombre}</b>
+        <button class="btn-rojo" style="width:auto;padding:8px 12px;margin-top:0;" onclick="eliminarVendedor('${v.id}')">Eliminar</button>
+      </div>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+async function agregarVendedor(){
+  const nombre = document.getElementById("venNombre").value.trim();
+
+  if(!nombre){
+    alert("Escribe el nombre del vendedor");
+    return;
+  }
+
+  await fetch("/api/vendedores", {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ nombre })
+  });
+
+  document.getElementById("venNombre").value = "";
+  alert("Vendedor guardado");
+  cargarVendedores();
+}
+
+async function eliminarVendedor(id){
+  await fetch("/api/vendedores/" + id, { method:"DELETE" });
+  cargarVendedores();
 }
 
 cargarPedidos();
-
+cargarVendedores();
 </script>
 
 </body>
