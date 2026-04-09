@@ -1,85 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+.barra{
+  background:#000;
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:sticky;
+  top:0;
+  z-index:20;
+}
+
+.barra .volver{
+  position:absolute;
+  left:14px;
+  color:#fff;
+  text-decoration:none;
+  font-size:28px;
+}
+
+.barra .titulo-barra{
+  font-size:22px;
+  font-weight:bold;
+}
+
+.contenedor{
+  padding:12px;
+}
+
+.item{
+  background:#fff;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.total{
+  font-size:22px;
+  font-weight:bold;
+  background:#fff;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:12px;
+}
+
+.bloque{
+  background:#fff;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:14px;
+}
+
+label{
+  display:block;
+  margin-top:10px;
+  font-weight:bold;
+}
+
+input, textarea, select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  background:#18c10f;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="barra">
+  <a class="volver" href="/">←</a>
+  <div class="titulo-barra">🛒 Carrito</div>
+</div>
+
+<div class="contenedor">
+
+<div id="lista"></div>
+<div class="total" id="total"></div>
+
+<div class="bloque">
+
+<label>Nombre</label>
+<input id="nombre">
+
+<label>Teléfono</label>
+<input id="telefono">
+
+<label>Dirección</label>
+<input id="direccion">
+
+<label>Vendedor</label>
+<select id="vendedor">
+  <option value="">Cargando...</option>
+</select>
+
+<label>Nota</label>
+<textarea id="nota"></textarea>
+
+</div>
+
+<button onclick="finalizar()">FINALIZAR PEDIDO</button>
+
+</div>
+
 <script>
+
+let costoEntrega = 40;
+
+function obtener(){
+  return JSON.parse(localStorage.getItem("carrito") || "[]");
+}
+
+function guardar(data){
+  localStorage.setItem("carrito", JSON.stringify(data));
+}
+
+function cargar(){
+  const carrito = obtener();
+  const cont = document.getElementById("lista");
+  const totalDiv = document.getElementById("total");
+
+  if(!carrito.length){
+    cont.innerHTML = "Carrito vacío";
+    return;
+  }
+
+  let total = 0;
+  cont.innerHTML = "";
+
+  carrito.forEach((p,i)=>{
+    const subtotal = p.precio * p.cantidad;
+    total += subtotal;
+
+    cont.innerHTML += `
+      <div class="item">
+        <b>${p.nombre}</b><br>
+        $${p.precio} x ${p.cantidad}<br>
+        Subtotal: $${subtotal}<br>
+        <button onclick="eliminar(${i})">Eliminar</button>
+      </div>
+    `;
+  });
+
+  totalDiv.innerHTML = "Total: $" + (total + costoEntrega);
+}
+
+function eliminar(i){
+  let carrito = obtener();
+  carrito.splice(i,1);
+  guardar(carrito);
+  cargar();
+}
+
+async function cargarVendedores(){
+  const res = await fetch("/api/vendedores");
+  const data = await res.json();
+  const select = document.getElementById("vendedor");
+
+  select.innerHTML = `<option value="">Selecciona vendedor</option>`;
+
+  data.forEach(v=>{
+    select.innerHTML += `<option value="${v.nombre}">${v.nombre}</option>`;
+  });
+}
+
 async function finalizar(){
   const carrito = obtener();
 
-  if(!carrito.length){
-    alert("Carrito vacío");
-    return;
-  }
-
-  const cliente = document.getElementById("nombre").value.trim();
-  const telefono = document.getElementById("telefono").value.trim();
-  const direccion = document.getElementById("direccion").value.trim();
-  const vendedor = document.getElementById("vendedor").value.trim();
-  const nota = document.getElementById("nota").value.trim();
-
-  if(!cliente){
-    alert("Escribe tu nombre");
-    return;
-  }
-
-  if(!telefono){
-    alert("Escribe tu WhatsApp");
-    return;
-  }
-
-  if(tipoEntrega === "domicilio" && !direccion){
-    alert("Escribe la dirección");
-    return;
-  }
-
-  if(!vendedor){
-    alert("Selecciona un vendedor");
-    return;
-  }
-
-  const productos = carrito.map(p => ({
-    nombre: p.nombre || "",
-    cantidad: Number(p.cantidad || 1),
-    precio: Number(p.precio || 0),
-    imagen: p.imagen || p.foto || p.image || ""
-  }));
-
-  const subtotal = productos.reduce((t, p) => t + (p.precio * p.cantidad), 0);
-  const total = subtotal + costoEntrega;
-
   const pedido = {
-    nombre: cliente,
-    telefono,
-    direccion,
-    vendedor,
-    tipo_entrega: tipoEntrega,
-    nota,
-    productos,
-    subtotal,
+    nombre: document.getElementById("nombre").value,
+    telefono: document.getElementById("telefono").value,
+    direccion: document.getElementById("direccion").value,
+    vendedor: document.getElementById("vendedor").value,
+    nota: document.getElementById("nota").value,
+    productos: carrito,
+    subtotal: carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0),
     envio: costoEntrega,
-    total
+    total: carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0)+costoEntrega
   };
 
-  try{
-    const res = await fetch("/api/pedidos", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(pedido)
-    });
+  await fetch("/api/pedidos",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body: JSON.stringify(pedido)
+  });
 
-    const data = await res.json().catch(() => ({}));
+  localStorage.removeItem("carrito");
 
-    if(!res.ok){
-      alert(data.error || "No se pudo enviar el pedido");
-      return;
-    }
-
-    // limpiar carrito
-    localStorage.removeItem("carrito");
-
-    alert("Pedido recibido correctamente");
-
-    // ir al admin para ver pedido
-    window.location = "/admin";
-
-  }catch(error){
-    alert("Error al enviar el pedido");
-  }
+  alert("Pedido enviado");
+  window.location="/admin";
 }
+
+cargar();
+cargarVendedores();
+
 </script>
+
+</body>
+</html>
