@@ -1,378 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carrito</title>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#f5f5f5;
-  color:#111;
-}
-
-.barra{
-  background:#000;
-  color:#fff;
-  padding:16px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:sticky;
-  top:0;
-  z-index:20;
-}
-
-.barra .volver{
-  position:absolute;
-  left:14px;
-  color:#fff;
-  text-decoration:none;
-  font-size:28px;
-  line-height:1;
-}
-
-.barra .titulo-barra{
-  font-size:22px;
-  font-weight:bold;
-}
-
-.contenedor{
-  padding:12px;
-  padding-bottom:40px;
-}
-
-.item{
-  background:#fff;
-  padding:14px;
-  margin-bottom:10px;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-}
-
-.item-info{
-  flex:1;
-}
-
-.item-img{
-  width:90px;
-  height:90px;
-  border-radius:12px;
-  object-fit:cover;
-  background:#eee;
-}
-
-.item button{
-  background:#d32f2f;
-  margin-top:10px;
-}
-
-.total{
-  font-size:22px;
-  font-weight:bold;
-  background:#fff;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-
-.bloque{
-  background:#fff;
-  padding:14px;
-  margin-bottom:12px;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-
-.titulo{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:10px;
-}
-
-label{
-  display:block;
-  margin-top:10px;
-  margin-bottom:6px;
-  font-weight:bold;
-}
-
-input, textarea, select{
-  width:100%;
-  padding:14px;
-  border:1px solid #ddd;
-  border-radius:12px;
-  font-size:16px;
-  background:#fff;
-}
-
-textarea{
-  resize:vertical;
-  min-height:90px;
-}
-
-.opciones-entrega{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-  margin-top:8px;
-}
-
-.opcion-entrega{
-  border:2px solid #ddd;
-  border-radius:14px;
-  padding:14px;
-  background:#fff;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.opcion-entrega.activa{
-  border-color:#1976d2;
-  background:#eef6ff;
-}
-
-.resumen-linea{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  padding:6px 0;
-  font-size:16px;
-}
-
-.resumen-linea.total-final{
-  font-size:22px;
-  font-weight:bold;
-  border-top:1px solid #ddd;
-  margin-top:8px;
-  padding-top:10px;
-}
-
-button{
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  background:#000;
-  color:#fff;
-  border:none;
-  border-radius:12px;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.btn-finalizar{
-  background:#18c10f;
-  box-shadow:0 6px 18px rgba(24,193,15,0.30);
-}
-
-.volver-abajo{
-  display:block;
-  text-align:center;
-  margin-top:12px;
-  text-decoration:none;
-  color:#111;
-  font-weight:bold;
-}
-
-.mensaje{
-  background:#eaf7ea;
-  color:#1b5e20;
-  padding:12px;
-  border-radius:12px;
-  font-size:15px;
-  margin-top:12px;
-}
-
-.vacio{
-  background:#fff;
-  padding:16px;
-  border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-}
-</style>
-</head>
-
-<body>
-
-<div class="barra">
-  <a class="volver" href="javascript:history.back()">←</a>
-  <div class="titulo-barra">🛒 Carrito</div>
-</div>
-
-<div class="contenedor">
-
-  <div id="lista"></div>
-
-  <div class="total" id="total"></div>
-
-  <div class="bloque">
-    <div class="titulo">Datos de entrega</div>
-
-    <label for="nombre">Nombre completo</label>
-    <input id="nombre" type="text" placeholder="Ej: María González">
-
-    <label for="direccion">Dirección de entrega</label>
-    <input id="direccion" type="text" placeholder="Ej: Calle Ángel Flores 345, Col. Centro">
-
-    <label for="telefono">Número de WhatsApp</label>
-    <input id="telefono" type="tel" placeholder="Ej: 6671234567">
-
-    <label for="nota">Nota (opcional)</label>
-    <textarea id="nota" placeholder="Ej: Dejar con el vecino, timbre no funciona..."></textarea>
-
-    <label for="vendedor">Nombre del vendedor</label>
-    <select id="vendedor">
-      <option value="">— Selecciona un vendedor —</option>
-      <option value="Mercado en Línea Culiacán">Mercado en Línea Culiacán</option>
-      <option value="Silvia">Silvia</option>
-      <option value="Hector">Hector</option>
-      <option value="Juan">Juan</option>
-      <option value="Cristian">Cristian</option>
-      <option value="Amayrani">Amayrani</option>
-      <option value="Brisa">Brisa</option>
-      <option value="Claudia">Claudia</option>
-      <option value="Natalia">Natalia</option>
-    </select>
-
-    <label>¿Cómo quieres recibir tu pedido?</label>
-    <div class="opciones-entrega">
-      <div class="opcion-entrega activa" onclick="seleccionarEntrega('domicilio', 40)" id="op-domicilio">
-        <span>Envío a domicilio</span>
-        <span>$40</span>
-      </div>
-
-      <div class="opcion-entrega" onclick="seleccionarEntrega('bodega', 0)" id="op-bodega">
-        <span>Recoger en bodega</span>
-        <span>Gratis</span>
-      </div>
-    </div>
-
-    <div class="mensaje">
-      ✅ Al presionar FINALIZAR, tu pedido quedará registrado.
-    </div>
-  </div>
-
-  <div class="bloque">
-    <div class="titulo">Resumen del pedido</div>
-    <div id="resumen"></div>
-  </div>
-
-  <button class="btn-finalizar" onclick="finalizar()">Finalizar</button>
-
-  <a href="/" class="volver-abajo">⬅ Volver a tienda</a>
-
-</div>
-
 <script>
-let tipoEntrega = "domicilio";
-let costoEntrega = 40;
-
-function obtener(){
-  return JSON.parse(localStorage.getItem("carrito") || "[]");
-}
-
-function guardar(data){
-  localStorage.setItem("carrito", JSON.stringify(data));
-}
-
-function seleccionarEntrega(tipo, costo){
-  tipoEntrega = tipo;
-  costoEntrega = costo;
-
-  document.getElementById("op-domicilio").classList.remove("activa");
-  document.getElementById("op-bodega").classList.remove("activa");
-
-  if(tipo === "domicilio"){
-    document.getElementById("op-domicilio").classList.add("activa");
-  } else {
-    document.getElementById("op-bodega").classList.add("activa");
-  }
-
-  cargar();
-}
-
-function cargar(){
-  const carrito = obtener();
-  const cont = document.getElementById("lista");
-  const totalDiv = document.getElementById("total");
-  const resumen = document.getElementById("resumen");
-
-  if(!carrito.length){
-    cont.innerHTML = '<div class="vacio">Carrito vacío</div>';
-    totalDiv.innerHTML = "";
-    resumen.innerHTML = "";
-    return;
-  }
-
-  let subtotal = 0;
-  cont.innerHTML = "";
-  resumen.innerHTML = "";
-
-  carrito.forEach((p, index) => {
-    const precio = Number(p.precio || 0);
-    const cantidad = Number(p.cantidad || 1);
-    const subtotalItem = precio * cantidad;
-    const imagen = p.imagen || p.foto || p.image || "";
-    subtotal += subtotalItem;
-
-    const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      ${imagen ? `<img class="item-img" src="${imagen}" alt="${p.nombre}">` : ""}
-      <div class="item-info">
-        <b>${p.nombre}</b><br>
-        $${precio} x ${cantidad}<br>
-        Subtotal: $${subtotalItem}
-        <br>
-        <button onclick="eliminar(${index})">Eliminar</button>
-      </div>
-    `;
-
-    cont.appendChild(div);
-
-    resumen.innerHTML += `
-      <div class="resumen-linea">
-        <span>${p.nombre} x${cantidad}</span>
-        <span>$${subtotalItem}</span>
-      </div>
-    `;
-  });
-
-  const totalFinal = subtotal + costoEntrega;
-
-  resumen.innerHTML += `
-    <div class="resumen-linea">
-      <span>Costo de entrega</span>
-      <span>${costoEntrega > 0 ? "$" + costoEntrega : "Gratis"}</span>
-    </div>
-    <div class="resumen-linea total-final">
-      <span>Total</span>
-      <span>$${totalFinal}</span>
-    </div>
-  `;
-
-  totalDiv.innerHTML = "Subtotal productos: $" + subtotal;
-}
-
-function eliminar(index){
-  let carrito = obtener();
-  carrito.splice(index, 1);
-  guardar(carrito);
-  cargar();
-}
-
 async function finalizar(){
   const carrito = obtener();
 
@@ -418,18 +44,20 @@ async function finalizar(){
   const total = subtotal + costoEntrega;
 
   const pedido = {
-    cliente,
+    nombre: cliente,
     telefono,
     direccion,
     vendedor,
-    tipo_entrega: tipoEntrega === "domicilio" ? "Envío a domicilio" : "Recoger en bodega",
+    tipo_entrega: tipoEntrega,
     nota,
     productos,
+    subtotal,
+    envio: costoEntrega,
     total
   };
 
   try{
-    const res = await fetch("/api/webhook-pedido", {
+    const res = await fetch("/api/pedidos", {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify(pedido)
@@ -442,17 +70,16 @@ async function finalizar(){
       return;
     }
 
+    // limpiar carrito
     localStorage.removeItem("carrito");
+
     alert("Pedido recibido correctamente");
-    window.location = "/";
+
+    // ir al admin para ver pedido
+    window.location = "/admin";
 
   }catch(error){
     alert("Error al enviar el pedido");
   }
 }
-
-cargar();
 </script>
-
-</body>
-</html>
