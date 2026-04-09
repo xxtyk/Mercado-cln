@@ -28,8 +28,8 @@ router.delete("/pedidos/:id", (req, res) => {
 });
 
 // ENVIAR A WHATSAPP Y BORRAR
-router.post("/pedidos/:id/whatsapp", (_req, res) => {
-  pedidos = pedidos.filter((p) => p.id !== _req.params.id);
+router.post("/pedidos/:id/whatsapp", (req, res) => {
+  pedidos = pedidos.filter((p) => p.id !== req.params.id);
   res.json({ ok: true });
 });
 
