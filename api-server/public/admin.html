@@ -1,393 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Categoría</title>
-  <style>
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:Arial,sans-serif;
-      background:#f4f4f4;
-      color:#111;
-      padding-bottom:90px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin</title>
 
-    .topbar{
-      position:sticky;
-      top:0;
-      z-index:50;
-      background:#000;
-      color:#fff;
-      padding:14px 12px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      box-shadow:0 2px 10px rgba(0,0,0,.25);
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#f5f5f5;
+}
 
-    .volver{
-      color:#fff;
-      text-decoration:none;
-      font-size:24px;
-      width:34px;
-      text-align:center;
-    }
+.barra{
+  background:#000;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+}
 
-    .brand{
-      font-size:20px;
-      font-weight:700;
-      flex:1;
-      text-align:center;
-      margin-right:34px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
+.contenedor{
+  padding:10px;
+}
 
-    .section{
-      padding:12px;
-    }
+.bloque{
+  background:#fff;
+  padding:12px;
+  margin-bottom:12px;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+}
 
-    .titulo{
-      font-size:24px;
-      font-weight:800;
-      margin:8px 0 14px;
-    }
+input, select{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  margin-top:5px;
+  font-weight:bold;
+}
 
-    .card{
-      background:#fff;
-      border-radius:18px;
-      padding:12px;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
-    }
+.btn{
+  background:#000;
+  color:#fff;
+}
 
-    .card-img{
-      width:100%;
-      height:130px;
-      object-fit:cover;
-      border-radius:12px;
-      background:#eee;
-      margin-bottom:10px;
-      display:block;
-    }
+.btn-rojo{
+  background:red;
+  color:#fff;
+}
+</style>
 
-    .sin-foto{
-      width:100%;
-      height:130px;
-      border-radius:12px;
-      background:#eee;
-      color:#666;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:14px;
-      margin-bottom:10px;
-    }
-
-    .nombre{
-      font-size:15px;
-      font-weight:700;
-      line-height:1.25;
-      min-height:38px;
-      margin-bottom:8px;
-    }
-
-    .precio{
-      font-size:18px;
-      font-weight:800;
-      margin-bottom:10px;
-    }
-
-    .desc-btn{
-      width:100%;
-      border:none;
-      border-radius:10px;
-      padding:10px;
-      font-size:13px;
-      font-weight:700;
-      background:#efefef;
-      color:#111;
-      margin-bottom:10px;
-    }
-
-    .descripcion{
-      display:none;
-      background:#f8f8f8;
-      border-radius:10px;
-      padding:10px;
-      font-size:13px;
-      line-height:1.35;
-      margin-bottom:10px;
-      color:#333;
-    }
-
-    .descripcion.activa{
-      display:block;
-    }
-
-    .cantidad-box{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:8px;
-      margin-top:8px;
-    }
-
-    .cantidad-btn{
-      width:38px;
-      height:38px;
-      border:none;
-      border-radius:10px;
-      background:#000;
-      color:#fff;
-      font-size:22px;
-      font-weight:700;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:0;
-    }
-
-    .cantidad-num{
-      flex:1;
-      text-align:center;
-      font-size:18px;
-      font-weight:800;
-    }
-
-    .empty{
-      background:#fff;
-      border-radius:16px;
-      padding:18px;
-      text-align:center;
-      color:#666;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
-    }
-
-    .carrito-fijo{
-      position:fixed;
-      right:14px;
-      bottom:95px;
-      z-index:70;
-      background:#000;
-      color:#fff;
-      border-radius:999px;
-      padding:12px 16px;
-      text-decoration:none;
-      font-weight:700;
-      box-shadow:0 4px 14px rgba(0,0,0,.25);
-    }
-
-    .bottom-nav{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom:0;
-      background:#fff;
-      border-top:1px solid #ddd;
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      z-index:60;
-    }
-
-    .nav-btn{
-      padding:10px 4px 12px;
-      text-align:center;
-      text-decoration:none;
-      color:#222;
-      font-size:12px;
-    }
-
-    .nav-ico{
-      display:block;
-      font-size:22px;
-      margin-bottom:4px;
-    }
-  </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <a class="volver" href="/">←</a>
-    <div class="brand" id="nombreCategoria">Categoría</div>
+<div class="barra">Panel Admin</div>
+
+<div class="contenedor">
+
+  <div class="bloque">
+    <h3>📦 Pedidos</h3>
+    <div id="pedidos"></div>
   </div>
 
-  <div class="section">
-    <div class="titulo" id="tituloCategoria">Productos</div>
-    <div class="grid" id="productos">
-      <div class="empty">Cargando productos...</div>
-    </div>
+  <div class="bloque">
+    <h3>📂 Agregar Categoría</h3>
+    <input id="catNombre" placeholder="Nombre">
+    <input id="catImagen" placeholder="URL imagen">
+    <button class="btn" onclick="agregarCategoria()">Guardar</button>
   </div>
 
-  <a class="carrito-fijo" href="/carrito.html" id="botonCarrito">🛒 Carrito (0)</a>
-
-  <div class="bottom-nav">
-    <a class="nav-btn" href="/">
-      <span class="nav-ico">🏠</span>
-      Inicio
-    </a>
-    <a class="nav-btn" href="/pedidos.html">
-      <span class="nav-ico">📦</span>
-      Mis pedidos
-    </a>
-    <a class="nav-btn" href="/publicidad.html">
-      <span class="nav-ico">📣</span>
-      Publicidad
-    </a>
-    <a class="nav-btn" href="/admin">
-      <span class="nav-ico">👤</span>
-      Ingresar
-    </a>
+  <div class="bloque">
+    <h3>🛒 Agregar Producto</h3>
+    <input id="prodNombre" placeholder="Nombre">
+    <input id="prodPrecio" placeholder="Precio">
+    <input id="prodImagen" placeholder="Imagen URL">
+    <input id="prodCategoria" placeholder="Categoria slug">
+    <button class="btn" onclick="agregarProducto()">Guardar</button>
   </div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const categoriaId = params.get("id") || "";
-    let productosActuales = [];
+</div>
 
-    function obtenerCarrito() {
-      try {
-        return JSON.parse(localStorage.getItem("carrito") || "[]");
-      } catch {
-        return [];
-      }
-    }
+<script>
 
-    function guardarCarrito(carrito) {
-      localStorage.setItem("carrito", JSON.stringify(carrito));
-      actualizarBotonCarrito();
-    }
+async function cargarPedidos(){
+  const res = await fetch("/api/pedidos");
+  const data = await res.json();
 
-    function actualizarBotonCarrito() {
-      const carrito = obtenerCarrito();
-      const total = carrito.reduce((s, item) => s + Number(item.cantidad || 0), 0);
-      document.getElementById("botonCarrito").textContent = `🛒 Carrito (${total})`;
-    }
+  const cont = document.getElementById("pedidos");
+  cont.innerHTML = "";
 
-    function cantidadEnCarrito(id) {
-      const carrito = obtenerCarrito();
-      const item = carrito.find(p => String(p.id) === String(id));
-      return item ? Number(item.cantidad || 0) : 0;
-    }
+  data.forEach(p=>{
+    const div = document.createElement("div");
+    div.className="bloque";
 
-    function cambiarCantidad(productoId, cambio) {
-      const carrito = obtenerCarrito();
-      const producto = productosActuales.find(p => String(p.id) === String(productoId));
-      if (!producto) return;
+    div.innerHTML = `
+      <b>${p.nombre}</b><br>
+      Total: $${p.total}<br><br>
 
-      const i = carrito.findIndex(p => String(p.id) === String(productoId));
+      <button onclick="enviar('${p.id}')">Enviar WhatsApp</button>
+      <button class="btn-rojo" onclick="eliminar('${p.id}')">Eliminar</button>
+    `;
 
-      if (i === -1 && cambio > 0) {
-        carrito.push({
-          id: producto.id,
-          nombre: producto.nombre,
-          precio: Number(producto.precio || 0),
-          imagen: producto.imagen || producto.foto || producto.image || "",
-          cantidad: 1
-        });
-      } else if (i !== -1) {
-        carrito[i].cantidad = Number(carrito[i].cantidad || 0) + cambio;
+    cont.appendChild(div);
+  });
+}
 
-        if (carrito[i].cantidad <= 0) {
-          carrito.splice(i, 1);
-        }
-      }
+async function eliminar(id){
+  await fetch("/api/pedidos/"+id,{method:"DELETE"});
+  cargarPedidos();
+}
 
-      guardarCarrito(carrito);
-      actualizarCantidadVisual(productoId);
-    }
+async function enviar(id){
+  await fetch("/api/pedidos/"+id+"/whatsapp",{method:"POST"});
+  cargarPedidos();
+}
 
-    function actualizarCantidadVisual(productoId) {
-      const span = document.getElementById("cant-" + productoId);
-      if (span) {
-        span.textContent = cantidadEnCarrito(productoId);
-      }
-    }
+async function agregarCategoria(){
+  await fetch("/api/admin/categoria",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify({
+      nombre:catNombre.value,
+      imagen:catImagen.value
+    })
+  });
+  alert("Guardado");
+}
 
-    function toggleDescripcion(id) {
-      const box = document.getElementById("desc-" + id);
-      if (box) {
-        box.classList.toggle("activa");
-      }
-    }
+async function agregarProducto(){
+  await fetch("/api/admin/producto",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body:JSON.stringify({
+      nombre:prodNombre.value,
+      precio:Number(prodPrecio.value),
+      imagen:prodImagen.value,
+      categoria:prodCategoria.value
+    })
+  });
+  alert("Guardado");
+}
 
-    async function cargarTodo() {
-      const cont = document.getElementById("productos");
+cargarPedidos();
 
-      try {
-        const [resCategorias, resProductos] = await Promise.all([
-          fetch("/api/categorias"),
-          fetch("/api/productos")
-        ]);
+</script>
 
-        const categorias = await resCategorias.json();
-        const productos = await resProductos.json();
-
-        const categoria = Array.isArray(categorias)
-          ? categorias.find(c => String(c.id) === String(categoriaId))
-          : null;
-
-        document.getElementById("nombreCategoria").textContent = categoria?.nombre || "Categoría";
-        document.getElementById("tituloCategoria").textContent = categoria?.nombre || "Productos";
-
-        const filtrados = Array.isArray(productos)
-          ? productos.filter(p =>
-              String(p.categoria) === String(categoriaId) ||
-              String(p.categoria_id) === String(categoriaId)
-            )
-          : [];
-
-        productosActuales = filtrados;
-
-        if (!filtrados.length) {
-          cont.innerHTML = `<div class="empty">No hay productos en esta categoría.</div>`;
-          return;
-        }
-
-        cont.innerHTML = "";
-
-        filtrados.forEach(p => {
-          const div = document.createElement("div");
-          div.className = "card";
-
-          const fotoProducto = p.imagen || p.foto || p.image || "";
-          const imagen = fotoProducto
-            ? `<img class="card-img" src="${fotoProducto}" alt="${p.nombre || ""}" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div class=&quot;sin-foto&quot;>Sin foto</div>')">`
-            : `<div class="sin-foto">Sin foto</div>`;
-
-          const descripcion = (p.descripcion || "").trim();
-
-          div.innerHTML = `
-            ${imagen}
-            <div class="nombre">${p.nombre || ""}</div>
-            <div class="precio">$${Number(p.precio || 0)}</div>
-            <button class="desc-btn" onclick="toggleDescripcion('${p.id}')">Ver descripción</button>
-            <div class="descripcion" id="desc-${p.id}">${descripcion || "Sin descripción"}</div>
-
-            <div class="cantidad-box">
-              <button class="cantidad-btn" onclick="cambiarCantidad('${p.id}', -1)">−</button>
-              <div class="cantidad-num" id="cant-${p.id}">${cantidadEnCarrito(p.id)}</div>
-              <button class="cantidad-btn" onclick="cambiarCantidad('${p.id}', 1)">+</button>
-            </div>
-          `;
-
-          cont.appendChild(div);
-        });
-      } catch (e) {
-        cont.innerHTML = `<div class="empty">No se pudieron cargar los productos.</div>`;
-      }
-    }
-
-    actualizarBotonCarrito();
-    cargarTodo();
-  </script>
 </body>
 </html>
