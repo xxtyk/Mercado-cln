@@ -85,6 +85,11 @@ button{
   color:#fff;
 }
 
+.btn-gris{
+  background:#666;
+  color:#fff;
+}
+
 .tarjeta{
   border:1px solid #eee;
   border-radius:12px;
@@ -98,6 +103,19 @@ button{
   justify-content:space-between;
   gap:10px;
   padding:4px 0;
+  align-items:center;
+}
+
+.acciones{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.acciones button{
+  margin-top:0;
+  width:auto;
+  padding:10px 12px;
 }
 
 .foto-mini{
@@ -129,7 +147,7 @@ button{
   </div>
 
   <div class="bloque">
-    <h3>👥 Agregar vendedor</h3>
+    <h3>👥 Vendedores</h3>
     <input id="venNombre" placeholder="Nombre del vendedor">
     <button class="btn" onclick="agregarVendedor()">Guardar vendedor</button>
     <div id="listaVendedores"></div>
@@ -138,7 +156,6 @@ button{
   <div class="bloque">
     <h3>📂 Agregar Categoría</h3>
     <input id="catNombre" placeholder="Nombre">
-    <input id="catImagen" placeholder="URL imagen (opcional)">
     <input id="catArchivo" type="file" accept="image/*">
     <button class="btn-verde" onclick="subirFotoCategoria()">Subir foto desde el celular</button>
     <div id="catEstado" class="estado"></div>
@@ -150,7 +167,6 @@ button{
     <h3>🛒 Agregar Producto</h3>
     <input id="prodNombre" placeholder="Nombre">
     <input id="prodPrecio" placeholder="Precio">
-    <input id="prodImagen" placeholder="Imagen URL (opcional)">
     <input id="prodArchivo" type="file" accept="image/*">
     <button class="btn-verde" onclick="subirFotoProducto()">Subir foto desde el celular</button>
     <div id="prodEstado" class="estado"></div>
@@ -162,15 +178,17 @@ button{
 </div>
 
 <script>
-async function subirArchivo(inputId, estadoId, previewId, destinoInputId){
+let catImagenSubida = "";
+let prodImagenSubida = "";
+
+async function subirArchivo(inputId, estadoId, previewId){
   const input = document.getElementById(inputId);
   const estado = document.getElementById(estadoId);
   const preview = document.getElementById(previewId);
-  const destino = document.getElementById(destinoInputId);
 
   if(!input.files || !input.files[0]){
     alert("Selecciona una foto");
-    return;
+    return "";
   }
 
   const formData = new FormData();
@@ -189,25 +207,33 @@ async function subirArchivo(inputId, estadoId, previewId, destinoInputId){
     if(!res.ok || !data.url){
       alert(data.error || "No se pudo subir la foto");
       estado.textContent = "";
-      return;
+      return "";
     }
 
-    destino.value = data.url;
     preview.src = data.url;
     preview.style.display = "block";
     estado.textContent = "Foto subida correctamente";
+    return data.url;
+
   }catch(error){
     estado.textContent = "";
     alert("Error al subir la foto");
+    return "";
   }
 }
 
 async function subirFotoCategoria(){
-  await subirArchivo("catArchivo", "catEstado", "catPreview", "catImagen");
+  const url = await subirArchivo("catArchivo", "catEstado", "catPreview");
+  if(url){
+    catImagenSubida = url;
+  }
 }
 
 async function subirFotoProducto(){
-  await subirArchivo("prodArchivo", "prodEstado", "prodPreview", "prodImagen");
+  const url = await subirArchivo("prodArchivo", "prodEstado", "prodPreview");
+  if(url){
+    prodImagenSubida = url;
+  }
 }
 
 async function cargarPedidos(){
@@ -249,8 +275,10 @@ async function cargarPedidos(){
       <div class="linea"><b>Envío</b><b>$${Number(p.envio || 0)}</b></div>
       <div class="linea"><b>Total</b><b>$${Number(p.total || 0)}</b></div>
 
-      <button class="btn-verde" onclick="enviar('${p.id}')">Enviar WhatsApp</button>
-      <button class="btn-rojo" onclick="eliminarPedido('${p.id}')">Eliminar</button>
+      <div class="acciones">
+        <button class="btn-verde" onclick="enviar('${p.id}')">Enviar WhatsApp</button>
+        <button class="btn-rojo" onclick="eliminarPedido('${p.id}')">Eliminar</button>
+      </div>
     `;
 
     cont.appendChild(div);
@@ -269,34 +297,39 @@ async function enviar(id){
 
 async function agregarCategoria(){
   const nombre = document.getElementById("catNombre").value.trim();
-  const imagen = document.getElementById("catImagen").value.trim();
 
   if(!nombre){
     alert("Escribe el nombre de la categoría");
     return;
   }
 
+  if(!catImagenSubida){
+    alert("Primero sube la foto desde el celular");
+    return;
+  }
+
   await fetch("/api/admin/categoria", {
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
+    headers:{
+      "Content-Type":"application/json"
+    },
     body: JSON.stringify({
       nombre,
-      imagen
+      imagen: catImagenSubida
     })
   });
 
   alert("Categoría guardada");
   document.getElementById("catNombre").value = "";
-  document.getElementById("catImagen").value = "";
   document.getElementById("catArchivo").value = "";
   document.getElementById("catEstado").textContent = "";
   document.getElementById("catPreview").style.display = "none";
+  catImagenSubida = "";
 }
 
 async function agregarProducto(){
   const nombre = document.getElementById("prodNombre").value.trim();
   const precio = Number(document.getElementById("prodPrecio").value || 0);
-  const imagen = document.getElementById("prodImagen").value.trim();
   const categoria = document.getElementById("prodCategoria").value.trim();
 
   if(!nombre){
@@ -314,13 +347,20 @@ async function agregarProducto(){
     return;
   }
 
+  if(!prodImagenSubida){
+    alert("Primero sube la foto desde el celular");
+    return;
+  }
+
   await fetch("/api/admin/producto", {
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
+    headers:{
+      "Content-Type":"application/json"
+    },
     body: JSON.stringify({
       nombre,
       precio,
-      imagen,
+      imagen: prodImagenSubida,
       categoria
     })
   });
@@ -328,11 +368,11 @@ async function agregarProducto(){
   alert("Producto guardado");
   document.getElementById("prodNombre").value = "";
   document.getElementById("prodPrecio").value = "";
-  document.getElementById("prodImagen").value = "";
   document.getElementById("prodArchivo").value = "";
   document.getElementById("prodCategoria").value = "";
   document.getElementById("prodEstado").textContent = "";
   document.getElementById("prodPreview").style.display = "none";
+  prodImagenSubida = "";
 }
 
 async function cargarVendedores(){
@@ -353,7 +393,10 @@ async function cargarVendedores(){
     div.innerHTML = `
       <div class="linea">
         <b>${v.nombre}</b>
-        <button class="btn-rojo" style="width:auto;padding:8px 12px;margin-top:0;" onclick="eliminarVendedor('${v.id}')">Eliminar</button>
+      </div>
+      <div class="acciones">
+        <button class="btn-gris" onclick="editarVendedor('${v.id}', '${String(v.nombre).replace(/'/g, "\\'")}')">Editar</button>
+        <button class="btn-rojo" onclick="eliminarVendedor('${v.id}')">Eliminar</button>
       </div>
     `;
     cont.appendChild(div);
@@ -376,6 +419,28 @@ async function agregarVendedor(){
 
   document.getElementById("venNombre").value = "";
   alert("Vendedor guardado");
+  cargarVendedores();
+}
+
+async function editarVendedor(id, nombreActual){
+  const nuevoNombre = prompt("Editar vendedor", nombreActual);
+
+  if(nuevoNombre === null) return;
+
+  const nombre = nuevoNombre.trim();
+
+  if(!nombre){
+    alert("El nombre no puede ir vacío");
+    return;
+  }
+
+  await fetch("/api/vendedores/" + id, {
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ nombre })
+  });
+
+  alert("Vendedor actualizado");
   cargarVendedores();
 }
 
