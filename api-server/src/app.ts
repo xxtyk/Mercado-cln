@@ -14,6 +14,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 🔥 SERVIR IMÁGENES SUBIDAS
+app.use("/api/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 // ADMIN
 app.get("/admin", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
