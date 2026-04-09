@@ -171,7 +171,9 @@ button{
     <button class="btn-verde" onclick="subirFotoProducto()">Subir foto desde el celular</button>
     <div id="prodEstado" class="estado"></div>
     <img id="prodPreview" class="foto-mini" style="display:none;">
-    <input id="prodCategoria" placeholder="Categoría slug">
+    <select id="prodCategoria">
+      <option value="">Selecciona una categoría</option>
+    </select>
     <button class="btn" onclick="agregarProducto()">Guardar producto</button>
   </div>
 
@@ -325,12 +327,13 @@ async function agregarCategoria(){
   document.getElementById("catEstado").textContent = "";
   document.getElementById("catPreview").style.display = "none";
   catImagenSubida = "";
+  cargarCategoriasEnSelect();
 }
 
 async function agregarProducto(){
   const nombre = document.getElementById("prodNombre").value.trim();
   const precio = Number(document.getElementById("prodPrecio").value || 0);
-  const categoria = document.getElementById("prodCategoria").value.trim();
+  const categoria = document.getElementById("prodCategoria").value;
 
   if(!nombre){
     alert("Escribe el nombre del producto");
@@ -343,7 +346,7 @@ async function agregarProducto(){
   }
 
   if(!categoria){
-    alert("Escribe la categoría slug");
+    alert("Selecciona una categoría");
     return;
   }
 
@@ -373,6 +376,32 @@ async function agregarProducto(){
   document.getElementById("prodEstado").textContent = "";
   document.getElementById("prodPreview").style.display = "none";
   prodImagenSubida = "";
+}
+
+async function cargarCategoriasEnSelect(){
+  try{
+    const res = await fetch("/api/categorias");
+    const data = await res.json().catch(() => []);
+    const select = document.getElementById("prodCategoria");
+
+    if(!select) return;
+
+    select.innerHTML = `<option value="">Selecciona una categoría</option>`;
+
+    if(Array.isArray(data)){
+      data.forEach(cat => {
+        const valor = cat.id || cat.slug || cat.nombre || "";
+        const texto = cat.nombre || "Sin nombre";
+
+        const option = document.createElement("option");
+        option.value = valor;
+        option.textContent = texto;
+        select.appendChild(option);
+      });
+    }
+  }catch(error){
+    console.log("No se pudieron cargar categorías");
+  }
 }
 
 async function cargarVendedores(){
@@ -451,6 +480,7 @@ async function eliminarVendedor(id){
 
 cargarPedidos();
 cargarVendedores();
+cargarCategoriasEnSelect();
 </script>
 
 </body>
