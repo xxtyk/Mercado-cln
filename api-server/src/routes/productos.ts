@@ -33,26 +33,34 @@ function autenticado(req: any, res: any): boolean {
 }
 
 function normalizarProducto(body: any, id: number, actual?: any) {
+  const categoria = String(
+    body.categoria ??
+    actual?.categoria ??
+    "otro"
+  ).trim();
+
+  const categoria_id = String(
+    body.categoria_id ??
+    actual?.categoria_id ??
+    ""
+  ).trim();
+
   return {
     id,
-    codigo: body.codigo ?? actual?.codigo ?? "",
-    nombre: body.nombre ?? actual?.nombre ?? "",
-    descripcion: body.descripcion ?? actual?.descripcion ?? "",
-    imagen: body.imagen ?? body.foto ?? body.image ?? actual?.imagen ?? "",
-    etiqueta: body.etiqueta ?? actual?.etiqueta ?? "Nuevo",
-    precio: body.precio !== undefined ? Number(body.precio) : Number(actual?.precio ?? 0),
-    categoria:
-      body.categoria ??
-      body.categoria_id ??
-      actual?.categoria ??
-      actual?.categoria_id ??
-      "",
-    categoria_id:
-      body.categoria_id ??
-      body.categoria ??
-      actual?.categoria_id ??
-      actual?.categoria ??
+    codigo: String(body.codigo ?? actual?.codigo ?? ""),
+    nombre: String(body.nombre ?? actual?.nombre ?? "").trim(),
+    descripcion: String(body.descripcion ?? actual?.descripcion ?? "").trim(),
+    imagen: String(
+      body.imagen ??
+      body.foto ??
+      body.image ??
+      actual?.imagen ??
       ""
+    ).trim(),
+    etiqueta: String(body.etiqueta ?? actual?.etiqueta ?? "Nuevo").trim(),
+    precio: body.precio !== undefined ? Number(body.precio) : Number(actual?.precio ?? 0),
+    categoria,
+    categoria_id
   };
 }
 
@@ -72,7 +80,6 @@ router.get("/productos/:id", (req, res) => {
   return res.json(producto);
 });
 
-/* CREAR PRODUCTO DESDE PANEL */
 router.post("/productos", (req: any, res) => {
   const lista = leer();
   const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
@@ -83,8 +90,8 @@ router.post("/productos", (req: any, res) => {
     return res.status(400).json({ ok: false, error: "Falta nombre" });
   }
 
-  if (!nuevo.precio && nuevo.precio !== 0) {
-    return res.status(400).json({ ok: false, error: "Falta precio" });
+  if (Number.isNaN(nuevo.precio)) {
+    return res.status(400).json({ ok: false, error: "Precio inválido" });
   }
 
   lista.push(nuevo);
@@ -93,7 +100,6 @@ router.post("/productos", (req: any, res) => {
   return res.json({ ok: true, producto: nuevo });
 });
 
-/* EDITAR PRODUCTO DESDE PANEL */
 router.put("/productos/:id", (req: any, res) => {
   const lista = leer();
   const id = Number(req.params.id);
@@ -109,7 +115,6 @@ router.put("/productos/:id", (req: any, res) => {
   return res.json({ ok: true, producto: lista[i] });
 });
 
-/* ELIMINAR PRODUCTO DESDE PANEL */
 router.delete("/productos/:id", (req: any, res) => {
   const lista = leer();
   const nuevaLista = lista.filter((p: any) => Number(p.id) !== Number(req.params.id));
@@ -123,13 +128,20 @@ router.delete("/productos/:id", (req: any, res) => {
   return res.json({ ok: true });
 });
 
-/* RUTAS VIEJAS PARA NO ROMPER NADA */
 router.post("/admin/producto", (req: any, res) => {
   if (!autenticado(req, res)) return;
 
   const lista = leer();
   const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
   const nuevo = normalizarProducto(req.body ?? {}, maxId + 1);
+
+  if (!nuevo.nombre) {
+    return res.status(400).json({ ok: false, error: "Falta nombre" });
+  }
+
+  if (Number.isNaN(nuevo.precio)) {
+    return res.status(400).json({ ok: false, error: "Precio inválido" });
+  }
 
   lista.push(nuevo);
   guardar(lista);
