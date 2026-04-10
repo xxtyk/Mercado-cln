@@ -25,23 +25,34 @@ function guardar(data: any[]) {
 
 function auth(req: any, res: any): boolean {
   if (req.headers.authorization !== `Bearer ${ADMIN_PASS}`) {
-    res.status(401).json({ ok: false });
+    res.status(401).json({ ok: false, error: "No autorizado" });
     return false;
   }
   return true;
 }
 
-// 🔥 GENERAR SLUG AUTOMÁTICO
 function generarSlug(nombre: string) {
-  return nombre
+  return String(nombre || "")
     .toLowerCase()
-    .replaceAll(" ", "_")
-    .replace(/[^\w_]/g, "");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "") || "otro";
+}
+
+function tomarImagen(body: any, actual = ""): string {
+  if (body?.imagen !== undefined) return String(body.imagen || "").trim();
+  if (body?.foto !== undefined) return String(body.foto || "").trim();
+  if (body?.image !== undefined) return String(body.image || "").trim();
+  if (body?.imageUrl !== undefined) return String(body.imageUrl || "").trim();
+  return String(actual || "").trim();
 }
 
 // GET
 router.get("/categorias", (_req, res) => {
-  res.json(leer());
+  return res.json(leer());
 });
 
 // POST
@@ -51,17 +62,23 @@ router.post("/categorias", (req: any, res) => {
   const categorias = leer();
 
   const nombre = String(req.body?.nombre || "").trim();
-  const emoji = String(req.body?.emoji || "🛍️").trim();
-
-  let imagen = req.body?.imagen || "";
+  const emoji = String(req.body?.emoji || "🛍️").trim() || "🛍️";
+  const imagen = tomarImagen(req.body, "");
 
   if (!nombre) {
-    return res.status(400).json({ ok: false });
+    return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
+  }
+
+  let slug = generarSlug(nombre);
+
+  const slugRepetido = categorias.some((c: any) => String(c.slug || "") === slug);
+  if (slugRepetido) {
+    slug = `${slug}_${Date.now()}`;
   }
 
   const nueva = {
     id: Date.now().toString(),
-    slug: generarSlug(nombre), // 🔥 CLAVE
+    slug,
     nombre,
     emoji,
     imagen
@@ -70,10 +87,10 @@ router.post("/categorias", (req: any, res) => {
   categorias.push(nueva);
   guardar(categorias);
 
-  res.json({ ok: true, categoria: nueva });
+  return res.json({ ok: true, categoria: nueva });
 });
 
-// PUT 🔥 NECESARIO PARA EDITAR
+// PUT
 router.put("/categorias/:id", (req: any, res) => {
   if (!auth(req, res)) return;
 
@@ -81,22 +98,57 @@ router.put("/categorias/:id", (req: any, res) => {
   const i = categorias.findIndex((c: any) => String(c.id) === String(req.params.id));
 
   if (i === -1) {
-    return res.status(404).json({ ok: false });
+    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
   }
 
-  const nombre = req.body?.nombre || categorias[i].nombre;
+  const nombre = String(req.body?.nombre || categorias[i].nombre || "").trim();
+  const emoji = String(req.body?.emoji ?? categorias[i].emoji ?? "🛍️").trim() || "🛍️";
+  const imagen = tomarImagen(req.body, categorias[i].imagen || "");
+
+  if (!nombre) {
+    return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
+  }
+
+  let slug = generarSlug(nombre);
+
+  const slugRepetido = categorias.some(
+    (c: any, index: number) =>
+      index !== i && String(c.slug || "") === slug
+  );
+
+  if (slugRepetido) {
+    slug = `${slug}_${Date.now()}`;
+  }
 
   categorias[i] = {
     ...categorias[i],
     nombre,
-    slug: generarSlug(nombre), // 🔥 ACTUALIZA SLUG
-    emoji: req.body?.emoji ?? categorias[i].emoji,
-    imagen: req.body?.imagen ?? categorias[i].imagen
+    slug,
+    emoji,
+    imagen
   };
 
   guardar(categorias);
 
-  res.json({ ok: true, categoria: categorias[i] });
+  return res.json({ ok: true, categoria: categorias[i] });
+});
+
+// DELETE
+router.delete("/categorias/:id", (req: any, res) => {
+  if (!auth(req, res)) return;
+
+  const categorias = leer();
+  const nuevas = categorias.filter(
+    (c: any) => String(c.id) !== String(req.params.id)
+  );
+
+  if (nuevas.length === categorias.length) {
+    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
+  }
+
+  guardar(nuevas);
+
+  return res.json({ ok: true });
 });
 
 export default router;
