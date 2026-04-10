@@ -1,231 +1,221 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo | Mercado en Línea Culiacán</title>
-    <style>
-        *{
-            box-sizing:border-box;
-            margin:0;
-            padding:0;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo | Mercado en Línea Culiacán</title>
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
 
-        body{
-            font-family:Arial, sans-serif;
-            background:#efefef;
-            color:#111;
-        }
+    body{
+      font-family:Arial, sans-serif;
+      background:#efefef;
+      color:#111;
+      padding-bottom:90px;
+    }
 
-        .barra-superior{
-            background:#1b1b1b;
-            color:white;
-            padding:16px 14px;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:14px;
-            position:sticky;
-            top:0;
-            z-index:20;
-            box-shadow:0 2px 8px rgba(0,0,0,0.20);
-        }
+    .barra-superior{
+      background:#1b1b1b;
+      color:white;
+      padding:16px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      position:sticky;
+      top:0;
+      z-index:20;
+      box-shadow:0 2px 8px rgba(0,0,0,0.20);
+    }
 
-        .titulo{
-            font-size:22px;
-            color:#ffffff;
-            text-transform:uppercase;
-            font-weight:bold;
-            letter-spacing:1px;
-        }
+    .titulo{
+      font-size:22px;
+      color:#ffffff;
+      text-transform:uppercase;
+      font-weight:bold;
+      letter-spacing:1px;
+    }
 
-        .acciones-superiores{
-            display:flex;
-            align-items:center;
-            gap:8px;
-        }
+    .acciones-superiores{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
 
-        .btn-admin{
-            background:#ffffff;
-            color:#111;
-            text-decoration:none;
-            padding:8px 12px;
-            border-radius:10px;
-            font-size:14px;
-            font-weight:bold;
-        }
+    .btn-admin{
+      background:#ffffff;
+      color:#111;
+      text-decoration:none;
+      padding:8px 12px;
+      border-radius:10px;
+      font-size:14px;
+      font-weight:bold;
+    }
 
-        .contenedor{
-            padding:14px;
-            padding-bottom:100px;
-        }
+    .contenedor{
+      padding:14px;
+      padding-bottom:100px;
+    }
 
-        .seccion{
-            margin-bottom:20px;
-        }
+    .seccion{
+      margin-bottom:20px;
+    }
 
-        .seccion h2{
-            font-size:20px;
-            margin-bottom:12px;
-        }
+    .seccion h2{
+      font-size:20px;
+      margin-bottom:12px;
+    }
 
-        .grid-categorias{
-            display:grid;
-            grid-template-columns:repeat(2, 1fr);
-            gap:12px;
-        }
+    .grid-categorias{
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:12px;
+    }
 
-        .card-categoria{
-            display:block;
-            background:white;
-            border-radius:18px;
-            padding:20px 12px;
-            text-align:center;
-            box-shadow:0 4px 16px rgba(0,0,0,0.10);
-            font-size:18px;
-            font-weight:bold;
-            color:#111;
-            text-decoration:none;
-        }
+    .card-categoria{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:150px;
+      background:white;
+      border-radius:18px;
+      padding:20px 12px;
+      text-align:center;
+      box-shadow:0 4px 16px rgba(0,0,0,0.10);
+      font-size:18px;
+      font-weight:bold;
+      color:#111;
+      text-decoration:none;
+    }
 
-        .grid-productos{
-            display:grid;
-            grid-template-columns:repeat(2, 1fr);
-            gap:12px;
-        }
+    .card-img{
+      width:100%;
+      height:90px;
+      object-fit:cover;
+      border-radius:12px;
+      margin-bottom:10px;
+      background:#eee;
+    }
 
-        .card-producto{
-            background:white;
-            border-radius:18px;
-            padding:14px;
-            box-shadow:0 4px 16px rgba(0,0,0,0.10);
-            display:flex;
-            flex-direction:column;
-            justify-content:space-between;
-            min-height:180px;
-        }
+    .emoji{
+      font-size:40px;
+      margin-bottom:10px;
+    }
 
-        .nombre-producto{
-            font-size:18px;
-            font-weight:bold;
-            margin-bottom:10px;
-        }
+    .vacio{
+      background:white;
+      border-radius:18px;
+      padding:28px 18px;
+      text-align:center;
+      color:#555;
+      box-shadow:0 2px 10px rgba(0,0,0,0.10);
+    }
 
-        .precio-producto{
-            font-size:20px;
-            font-weight:bold;
-            color:#1976d2;
-            margin-bottom:14px;
-        }
+    .barra-inferior{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:#ffffff;
+      border-top:1px solid #ddd;
+      padding:12px;
+      box-shadow:0 -2px 10px rgba(0,0,0,0.10);
+      z-index:30;
+    }
 
-        .btn-agregar{
-            width:100%;
-            border:none;
-            background:#000;
-            color:white;
-            padding:12px;
-            border-radius:12px;
-            font-size:15px;
-            font-weight:bold;
-            cursor:pointer;
-        }
-
-        .vacio{
-            background:white;
-            border-radius:18px;
-            padding:28px 18px;
-            text-align:center;
-            color:#555;
-            box-shadow:0 2px 10px rgba(0,0,0,0.10);
-        }
-
-        .barra-inferior{
-            position:fixed;
-            left:0;
-            right:0;
-            bottom:0;
-            background:#ffffff;
-            border-top:1px solid #ddd;
-            padding:12px;
-            box-shadow:0 -2px 10px rgba(0,0,0,0.10);
-        }
-
-        .btn-carrito{
-            display:block;
-            width:100%;
-            max-width:420px;
-            margin:0 auto;
-            text-align:center;
-            background:#1976d2;
-            color:white;
-            text-decoration:none;
-            padding:14px;
-            border-radius:14px;
-            font-size:16px;
-            font-weight:bold;
-        }
-    </style>
+    .btn-carrito{
+      display:block;
+      width:100%;
+      max-width:420px;
+      margin:0 auto;
+      text-align:center;
+      background:#1976d2;
+      color:white;
+      text-decoration:none;
+      padding:14px;
+      border-radius:14px;
+      font-size:16px;
+      font-weight:bold;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="barra-superior">
-        <div class="titulo">Catálogo</div>
-
-        <div class="acciones-superiores">
-            {% if admin_logueado %}
-                <a href="/admin" class="btn-admin">Panel</a>
-            {% endif %}
-        </div>
+  <div class="barra-superior">
+    <div class="titulo">Catálogo</div>
+    <div class="acciones-superiores">
+      <a href="/admin" class="btn-admin">Panel</a>
     </div>
+  </div>
 
-    <div class="contenedor">
-
-        <div class="seccion">
-            <h2>Categorías</h2>
-            {% if categorias and categorias|length > 0 %}
-                <div class="grid-categorias">
-                    {% for categoria in categorias %}
-                        <a href="/categoria/{{ categoria.id }}" class="card-categoria">
-                            {{ categoria.nombre }}
-                        </a>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="vacio">
-                    Aún no hay categorías disponibles.
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="seccion">
-            <h2>Productos</h2>
-            {% if productos and productos|length > 0 %}
-                <div class="grid-productos">
-                    {% for producto in productos %}
-                        <div class="card-producto">
-                            <div>
-                                <div class="nombre-producto">{{ producto.nombre }}</div>
-                                <div class="precio-producto">${{ producto.precio }}</div>
-                            </div>
-
-                            <form action="/agregar_al_carrito/{{ producto.id }}" method="POST">
-                                <button type="submit" class="btn-agregar">Agregar al carrito</button>
-                            </form>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="vacio">
-                    Aún no hay productos disponibles.
-                </div>
-            {% endif %}
-        </div>
-
+  <div class="contenedor">
+    <div class="seccion">
+      <h2>Categorías</h2>
+      <div id="categorias" class="grid-categorias">
+        <div class="vacio">Cargando categorías...</div>
+      </div>
     </div>
+  </div>
 
-    <div class="barra-inferior">
-        <a href="/carrito" class="btn-carrito">Ver carrito</a>
-    </div>
+  <div class="barra-inferior">
+    <a href="/carrito.html" class="btn-carrito" id="btnCarrito">Ver carrito (0)</a>
+  </div>
+
+  <script>
+    function getCarrito() {
+      return JSON.parse(localStorage.getItem("carrito") || "[]");
+    }
+
+    function actualizarCarrito() {
+      const carrito = getCarrito();
+      const total = carrito.reduce((acc, item) => acc + Number(item.cantidad || 0), 0);
+      document.getElementById("btnCarrito").textContent = "Ver carrito (" + total + ")";
+    }
+
+    async function cargarCategorias() {
+      const cont = document.getElementById("categorias");
+
+      try {
+        const res = await fetch("/api/categorias?nocache=" + Date.now());
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          cont.innerHTML = '<div class="vacio">Aún no hay categorías disponibles.</div>';
+          return;
+        }
+
+        cont.innerHTML = "";
+
+        data.forEach(categoria => {
+          const card = document.createElement("a");
+          card.className = "card-categoria";
+          card.href = "/categoria.html?id=" + encodeURIComponent(categoria.id || "");
+
+          const imagen = categoria.imagen
+            ? '<img src="' + categoria.imagen + '" class="card-img" alt="' + (categoria.nombre || "") + '">'
+            : '<div class="emoji">' + (categoria.emoji || "🛍️") + '</div>';
+
+          card.innerHTML = `
+            ${imagen}
+            <div>${categoria.nombre || "Categoría"}</div>
+          `;
+
+          cont.appendChild(card);
+        });
+      } catch (error) {
+        console.error(error);
+        cont.innerHTML = '<div class="vacio">No se pudieron cargar las categorías.</div>';
+      }
+    }
+
+    actualizarCarrito();
+    cargarCategorias();
+  </script>
 
 </body>
 </html>
