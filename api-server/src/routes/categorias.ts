@@ -31,38 +31,59 @@ function auth(req: any, res: any): boolean {
   return true;
 }
 
-// 👉 OBTENER CATEGORIAS
+function slugify(texto: string): string {
+  return String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_]/g, "")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "") || "otro";
+}
+
+function normalizarCategoria(body: any, actual?: any) {
+  const nombre = String(body?.nombre ?? actual?.nombre ?? "").trim();
+  const emoji = String(body?.emoji ?? actual?.emoji ?? "🛍️").trim() || "🛍️";
+
+  let imagen = String(actual?.imagen ?? actual?.foto ?? "").trim();
+
+  if (body?.imagen !== undefined) imagen = String(body.imagen || "").trim();
+  else if (body?.foto !== undefined) imagen = String(body.foto || "").trim();
+  else if (body?.image !== undefined) imagen = String(body.image || "").trim();
+  else if (body?.imageUrl !== undefined) imagen = String(body.imageUrl || "").trim();
+
+  const slug = String(body?.slug ?? actual?.slug ?? slugify(nombre)).trim() || slugify(nombre);
+
+  return {
+    id: String(actual?.id ?? Date.now().toString()),
+    slug,
+    nombre,
+    emoji,
+    imagen
+  };
+}
+
+// OBTENER CATEGORIAS
 router.get("/categorias", (_req, res) => {
   res.json(leer());
 });
 
-// 👉 CREAR CATEGORIA (🔥 CORREGIDO FOTO)
+// CREAR CATEGORIA
 router.post("/categorias", (req: any, res) => {
   if (!auth(req, res)) return;
 
   const categorias = leer();
+  const nueva = normalizarCategoria(req.body ?? {});
 
-  const nombre = String(req.body?.nombre || "").trim();
-  const emoji = String(req.body?.emoji || "🛍️").trim();
-
-  // 🔥 SOLO UNA FUENTE DE IMAGEN (EVITA BUG)
-  let imagen = "";
-
-  if (req.body?.imagen) imagen = req.body.imagen;
-  else if (req.body?.foto) imagen = req.body.foto;
-  else if (req.body?.image) imagen = req.body.image;
-  else if (req.body?.imageUrl) imagen = req.body.imageUrl;
-
-  if (!nombre) {
+  if (!nueva.nombre) {
     return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
   }
 
-  const nueva = {
-    id: Date.now().toString(),
-    nombre,
-    emoji,
-    imagen: String(imagen).trim()
-  };
+  const slugYaExiste = categorias.some((c: any) => String(c.slug) === String(nueva.slug));
+  if (slugYaExiste) {
+    nueva.slug = `${nueva.slug}_${Date.now()}`;
+  }
 
   categorias.push(nueva);
   guardar(categorias);
@@ -70,12 +91,49 @@ router.post("/categorias", (req: any, res) => {
   return res.json({ ok: true, categoria: nueva });
 });
 
-// 👉 ELIMINAR
+// EDITAR CATEGORIA
+router.put("/categorias/:id", (req: any, res) => {
+  if (!auth(req, res)) return;
+
+  const categorias = leer();
+  const id = String(req.params.id);
+  const index = categorias.findIndex((c: any) => String(c.id) === id);
+
+  if (index === -1) {
+    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
+  }
+
+  const actual = categorias[index];
+  const actualizada = normalizarCategoria(req.body ?? {}, actual);
+
+  if (!actualizada.nombre) {
+    return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
+  }
+
+  const slugDuplicado = categorias.some(
+    (c: any, i: number) => i !== index && String(c.slug) === String(actualizada.slug)
+  );
+
+  if (slugDuplicado) {
+    actualizada.slug = `${actualizada.slug}_${Date.now()}`;
+  }
+
+  categorias[index] = actualizada;
+  guardar(categorias);
+
+  return res.json({ ok: true, categoria: actualizada });
+});
+
+// ELIMINAR CATEGORIA
 router.delete("/categorias/:id", (req: any, res) => {
   if (!auth(req, res)) return;
 
   const categorias = leer();
   const nuevas = categorias.filter((c: any) => String(c.id) !== String(req.params.id));
+
+  if (nuevas.length === categorias.length) {
+    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
+  }
 
   guardar(nuevas);
   return res.json({ ok: true });
