@@ -25,118 +25,78 @@ function guardar(data: any[]) {
 
 function auth(req: any, res: any): boolean {
   if (req.headers.authorization !== `Bearer ${ADMIN_PASS}`) {
-    res.status(401).json({ ok: false, error: "No autorizado" });
+    res.status(401).json({ ok: false });
     return false;
   }
   return true;
 }
 
-function slugify(texto: string): string {
-  return String(texto || "")
+// 🔥 GENERAR SLUG AUTOMÁTICO
+function generarSlug(nombre: string) {
+  return nombre
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "_")
-    .replace(/[^a-z0-9_]/g, "")
-    .replace(/_+/g, "_")
-    .replace(/^_+|_+$/g, "") || "otro";
+    .replaceAll(" ", "_")
+    .replace(/[^\w_]/g, "");
 }
 
-function normalizarCategoria(body: any, actual?: any) {
-  const nombre = String(body?.nombre ?? actual?.nombre ?? "").trim();
-  const emoji = String(body?.emoji ?? actual?.emoji ?? "🛍️").trim() || "🛍️";
-
-  let imagen = String(actual?.imagen ?? actual?.foto ?? "").trim();
-
-  if (body?.imagen !== undefined) imagen = String(body.imagen || "").trim();
-  else if (body?.foto !== undefined) imagen = String(body.foto || "").trim();
-  else if (body?.image !== undefined) imagen = String(body.image || "").trim();
-  else if (body?.imageUrl !== undefined) imagen = String(body.imageUrl || "").trim();
-
-  const slug = String(body?.slug ?? actual?.slug ?? slugify(nombre)).trim() || slugify(nombre);
-
-  return {
-    id: String(actual?.id ?? Date.now().toString()),
-    slug,
-    nombre,
-    emoji,
-    imagen
-  };
-}
-
-// OBTENER CATEGORIAS
+// GET
 router.get("/categorias", (_req, res) => {
   res.json(leer());
 });
 
-// CREAR CATEGORIA
+// POST
 router.post("/categorias", (req: any, res) => {
   if (!auth(req, res)) return;
 
   const categorias = leer();
-  const nueva = normalizarCategoria(req.body ?? {});
 
-  if (!nueva.nombre) {
-    return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
+  const nombre = String(req.body?.nombre || "").trim();
+  const emoji = String(req.body?.emoji || "🛍️").trim();
+
+  let imagen = req.body?.imagen || "";
+
+  if (!nombre) {
+    return res.status(400).json({ ok: false });
   }
 
-  const slugYaExiste = categorias.some((c: any) => String(c.slug) === String(nueva.slug));
-  if (slugYaExiste) {
-    nueva.slug = `${nueva.slug}_${Date.now()}`;
-  }
+  const nueva = {
+    id: Date.now().toString(),
+    slug: generarSlug(nombre), // 🔥 CLAVE
+    nombre,
+    emoji,
+    imagen
+  };
 
   categorias.push(nueva);
   guardar(categorias);
 
-  return res.json({ ok: true, categoria: nueva });
+  res.json({ ok: true, categoria: nueva });
 });
 
-// EDITAR CATEGORIA
+// PUT 🔥 NECESARIO PARA EDITAR
 router.put("/categorias/:id", (req: any, res) => {
   if (!auth(req, res)) return;
 
   const categorias = leer();
-  const id = String(req.params.id);
-  const index = categorias.findIndex((c: any) => String(c.id) === id);
+  const i = categorias.findIndex((c: any) => String(c.id) === String(req.params.id));
 
-  if (index === -1) {
-    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
+  if (i === -1) {
+    return res.status(404).json({ ok: false });
   }
 
-  const actual = categorias[index];
-  const actualizada = normalizarCategoria(req.body ?? {}, actual);
+  const nombre = req.body?.nombre || categorias[i].nombre;
 
-  if (!actualizada.nombre) {
-    return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
-  }
+  categorias[i] = {
+    ...categorias[i],
+    nombre,
+    slug: generarSlug(nombre), // 🔥 ACTUALIZA SLUG
+    emoji: req.body?.emoji ?? categorias[i].emoji,
+    imagen: req.body?.imagen ?? categorias[i].imagen
+  };
 
-  const slugDuplicado = categorias.some(
-    (c: any, i: number) => i !== index && String(c.slug) === String(actualizada.slug)
-  );
-
-  if (slugDuplicado) {
-    actualizada.slug = `${actualizada.slug}_${Date.now()}`;
-  }
-
-  categorias[index] = actualizada;
   guardar(categorias);
 
-  return res.json({ ok: true, categoria: actualizada });
-});
-
-// ELIMINAR CATEGORIA
-router.delete("/categorias/:id", (req: any, res) => {
-  if (!auth(req, res)) return;
-
-  const categorias = leer();
-  const nuevas = categorias.filter((c: any) => String(c.id) !== String(req.params.id));
-
-  if (nuevas.length === categorias.length) {
-    return res.status(404).json({ ok: false, error: "Categoría no encontrada" });
-  }
-
-  guardar(nuevas);
-  return res.json({ ok: true });
+  res.json({ ok: true, categoria: categorias[i] });
 });
 
 export default router;
