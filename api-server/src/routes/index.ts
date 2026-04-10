@@ -10,10 +10,10 @@ import vendedores from "./vendedores.js";
 
 const router = Router();
 
-// 🔥 RUTA DE PRUEBA
-router.use("/health", health);
+// 🔥 HEALTH (queda en /api/health)
+router.use("/", health);
 
-// 🔥 API PRINCIPAL
+// 🔥 API
 router.use("/", productos);
 router.use("/", categorias);
 router.use("/", upload);
