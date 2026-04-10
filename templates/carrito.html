@@ -1,196 +1,336 @@
-<!DOCTYPE html>  <html lang="es">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>Carrito</title>  <style>  
-*{  
-    box-sizing:border-box;  
-}  
-  
-body{  
-    margin:0;  
-    font-family:Arial, sans-serif;  
-    background:#f5f5f5;  
-    color:#111;  
-}  
-  
-.barra{  
-    background:#000;  
-    color:#fff;  
-    padding:14px 12px;  
-    display:flex;  
-    align-items:center;  
-    justify-content:space-between;  
-    position:sticky;  
-    top:0;  
-    z-index:20;  
-    box-shadow:0 2px 8px rgba(0,0,0,0.18);  
-}  
-  
-.barra-izq{  
-    display:flex;  
-    align-items:center;  
-    gap:12px;  
-}  
-  
-.barra a{  
-    color:#fff;  
-    text-decoration:none;  
-    font-size:24px;  
-    line-height:1;  
-}  
-  
-.barra h1{  
-    margin:0;  
-    font-size:20px;  
-}  
-  
-.contenedor{  
-    max-width:700px;  
-    margin:0 auto;  
-    padding:12px;  
-    padding-bottom:130px;  
-}  
-  
-.card{  
-    background:#fff;  
-    border-radius:16px;  
-    padding:12px;  
-    margin-bottom:12px;  
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);  
-    display:flex;  
-    gap:12px;  
-    align-items:center;  
-}  
-  
-.card img{  
-    width:90px;  
-    height:90px;  
-    object-fit:cover;  
-    border-radius:12px;  
-    background:#ececec;  
-    flex-shrink:0;  
-}  
-  
-.sin-foto{  
-    width:90px;  
-    height:90px;  
-    border-radius:12px;  
-    background:#ececec;  
-    display:flex;  
-    align-items:center;  
-    justify-content:center;  
-    color:#666;  
-    font-size:12px;  
-    flex-shrink:0;  
-}  
-  
-.info{  
-    flex:1;  
-    min-width:0;  
-}  
-  
-.nombre{  
-    font-size:17px;  
-    font-weight:bold;  
-    margin-bottom:8px;  
-    line-height:1.3;  
-}  
-  
-.detalle{  
-    color:#444;  
-    font-size:14px;  
-    margin-bottom:4px;  
-}  
-  
-.total-item{  
-    color:#2e7d32;  
-    font-size:18px;  
-    font-weight:bold;  
-    margin-top:6px;  
-}  
-  
-.vacio{  
-    background:#fff;  
-    border-radius:16px;  
-    padding:24px;  
-    text-align:center;  
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);  
-}  
-  
-.resumen{  
-    position:fixed;  
-    left:10px;  
-    right:10px;  
-    bottom:12px;  
-    background:#fff;  
-    border-radius:18px;  
-    box-shadow:0 6px 18px rgba(0,0,0,0.15);  
-    padding:14px;  
-}  
-  
-.linea{  
-    display:flex;  
-    justify-content:space-between;  
-    align-items:center;  
-    margin-bottom:12px;  
-    font-size:18px;  
-    font-weight:bold;  
-}  
-  
-.btn-finalizar{  
-    display:block;  
-    width:100%;  
-    text-align:center;  
-    text-decoration:none;  
-    background:#1976d2;  
-    color:#fff;  
-    border:none;  
-    border-radius:14px;  
-    padding:15px;  
-    font-size:18px;  
-    font-weight:bold;  
-}  
-</style>  </head>  
-<body>  <div class="barra">  
-    <div class="barra-izq">  
-        <a href="javascript:history.back()">←</a>  
-        <h1>Carrito</h1>  
-    </div>  
-</div>  <div class="contenedor">  
-    {% if carrito %}  
-        {% for item in carrito %}  
-        <div class="card">  
-            {% if item.foto %}  
-                <img src="{{ resolver_imagen(item.foto) }}" alt="{{ item.nombre }}">  
-            {% else %}  
-                <div class="sin-foto">Sin imagen</div>  
-            {% endif %}  <div class="info">  
-            <div class="nombre">{{ item.nombre }}</div>  
-            <div class="detalle">Cantidad: {{ item.cantidad }}</div>  
-            <div class="detalle">Precio: ${{ '%.2f'|format(item.precio or 0) }}</div>  
-            <div class="total-item">  
-                ${{ '%.2f'|format((item.precio or 0) * (item.cantidad or 0)) }}  
-            </div>  
-        </div>  
-    </div>  
-    {% endfor %}  
-{% else %}  
-    <div class="vacio">  
-        <h2>Tu carrito está vacío</h2>  
-        <p>Agrega productos para continuar.</p>  
-        <a href="javascript:history.back()" class="btn-finalizar" style="margin-top:14px;">Ir a comprar</a>  
-    </div>  
-{% endif %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito</title>
 
-</div>  {% if carrito %}
+<style>
+*{
+  box-sizing:border-box;
+}
 
-<div class="resumen">  
-    <div class="linea">  
-        <span>Subtotal</span>  
-        <span>${{ '%.2f'|format(subtotal or 0) }}</span>  
-    </div>  
-    <a href="{{ url_for('datos_entrega') }}" class="btn-finalizar">Continuar</a>  
-</div>  
-{% endif %}  </body>  
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+.barra{
+  background:#000;
+  color:#fff;
+  padding:14px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky;
+  top:0;
+  z-index:20;
+  box-shadow:0 2px 8px rgba(0,0,0,0.18);
+}
+
+.barra-izq{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.barra a{
+  color:#fff;
+  text-decoration:none;
+  font-size:24px;
+  line-height:1;
+}
+
+.barra h1{
+  margin:0;
+  font-size:20px;
+}
+
+.contenedor{
+  max-width:700px;
+  margin:0 auto;
+  padding:12px;
+  padding-bottom:130px;
+}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.card img{
+  width:90px;
+  height:90px;
+  object-fit:cover;
+  border-radius:12px;
+  background:#ececec;
+  flex-shrink:0;
+}
+
+.sin-foto{
+  width:90px;
+  height:90px;
+  border-radius:12px;
+  background:#ececec;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#666;
+  font-size:12px;
+  flex-shrink:0;
+}
+
+.info{
+  flex:1;
+  min-width:0;
+}
+
+.nombre{
+  font-size:17px;
+  font-weight:bold;
+  margin-bottom:8px;
+  line-height:1.3;
+}
+
+.detalle{
+  color:#444;
+  font-size:14px;
+  margin-bottom:4px;
+}
+
+.total-item{
+  color:#2e7d32;
+  font-size:18px;
+  font-weight:bold;
+  margin-top:6px;
+}
+
+.controles{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:8px;
+}
+
+.btn-cantidad{
+  width:34px;
+  height:34px;
+  border:none;
+  border-radius:10px;
+  background:#000;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.btn-eliminar{
+  border:none;
+  border-radius:10px;
+  background:#c62828;
+  color:#fff;
+  padding:10px 12px;
+  font-size:13px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:8px;
+}
+
+.vacio{
+  background:#fff;
+  border-radius:16px;
+  padding:24px;
+  text-align:center;
+  box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.resumen{
+  position:fixed;
+  left:10px;
+  right:10px;
+  bottom:12px;
+  background:#fff;
+  border-radius:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.15);
+  padding:14px;
+}
+
+.linea{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.btn-finalizar{
+  display:block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  background:#1976d2;
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  padding:15px;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.btn-vaciar{
+  display:block;
+  width:100%;
+  text-align:center;
+  text-decoration:none;
+  background:#666;
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  padding:12px;
+  font-size:15px;
+  font-weight:bold;
+  margin-top:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <div class="barra-izq">
+    <a href="javascript:history.back()">←</a>
+    <h1>Carrito</h1>
+  </div>
+</div>
+
+<div class="contenedor" id="contenedor"></div>
+
+<div class="resumen" id="resumen" style="display:none;">
+  <div class="linea">
+    <span>Subtotal</span>
+    <span id="subtotal">$0.00</span>
+  </div>
+  <a href="/datos_entrega.html" class="btn-finalizar">Continuar</a>
+  <button class="btn-vaciar" onclick="vaciarCarrito()">Vaciar carrito</button>
+</div>
+
+<script>
+function getCarrito() {
+  return JSON.parse(localStorage.getItem("carrito") || "[]");
+}
+
+function setCarrito(carrito) {
+  localStorage.setItem("carrito", JSON.stringify(carrito));
+  renderCarrito();
+}
+
+function formatoDinero(valor) {
+  return "$" + Number(valor || 0).toFixed(2);
+}
+
+function cambiarCantidad(id, cambio) {
+  const carrito = getCarrito();
+  const index = carrito.findIndex(item => String(item.id) === String(id));
+
+  if (index === -1) return;
+
+  carrito[index].cantidad = Number(carrito[index].cantidad || 0) + cambio;
+
+  if (carrito[index].cantidad <= 0) {
+    carrito.splice(index, 1);
+  }
+
+  setCarrito(carrito);
+}
+
+function eliminarItem(id) {
+  const carrito = getCarrito().filter(item => String(item.id) !== String(id));
+  setCarrito(carrito);
+}
+
+function vaciarCarrito() {
+  localStorage.removeItem("carrito");
+  renderCarrito();
+}
+
+function renderCarrito() {
+  const carrito = getCarrito();
+  const contenedor = document.getElementById("contenedor");
+  const resumen = document.getElementById("resumen");
+  const subtotalEl = document.getElementById("subtotal");
+
+  contenedor.innerHTML = "";
+
+  if (!carrito.length) {
+    resumen.style.display = "none";
+    contenedor.innerHTML = `
+      <div class="vacio">
+        <h2>Tu carrito está vacío</h2>
+        <p>Agrega productos para continuar.</p>
+        <a href="javascript:history.back()" class="btn-finalizar" style="margin-top:14px;">Ir a comprar</a>
+      </div>
+    `;
+    return;
+  }
+
+  let subtotal = 0;
+
+  carrito.forEach(item => {
+    const precio = Number(item.precio || 0);
+    const cantidad = Number(item.cantidad || 0);
+    const total = precio * cantidad;
+    subtotal += total;
+
+    const foto = item.imagen || item.foto || "";
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      ${foto
+        ? `<img src="${foto}" alt="${escapeHtml(item.nombre || "")}">`
+        : `<div class="sin-foto">Sin imagen</div>`
+      }
+
+      <div class="info">
+        <div class="nombre">${escapeHtml(item.nombre || "")}</div>
+        <div class="detalle">Cantidad: ${cantidad}</div>
+        <div class="detalle">Precio: ${formatoDinero(precio)}</div>
+        <div class="total-item">${formatoDinero(total)}</div>
+
+        <div class="controles">
+          <button class="btn-cantidad" onclick="cambiarCantidad('${String(item.id)}', -1)">-</button>
+          <button class="btn-cantidad" onclick="cambiarCantidad('${String(item.id)}', 1)">+</button>
+        </div>
+
+        <button class="btn-eliminar" onclick="eliminarItem('${String(item.id)}')">Eliminar</button>
+      </div>
+    `;
+    contenedor.appendChild(card);
+  });
+
+  subtotalEl.textContent = formatoDinero(subtotal);
+  resumen.style.display = "block";
+}
+
+function escapeHtml(valor) {
+  return String(valor || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+renderCarrito();
+</script>
+
+</body>
 </html>
