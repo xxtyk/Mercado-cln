@@ -10,7 +10,10 @@ import vendedores from "./vendedores.js";
 
 const router = Router();
 
-router.use("/", health);
+// 🔥 RUTA DE PRUEBA
+router.use("/health", health);
+
+// 🔥 API PRINCIPAL
 router.use("/", productos);
 router.use("/", categorias);
 router.use("/", upload);
