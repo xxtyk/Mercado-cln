@@ -6,288 +6,209 @@
 <title>Datos de entrega</title>
 
 <style>
-    *{
-        box-sizing:border-box;
-    }
+*{box-sizing:border-box}
 
-    body{
-        margin:0;
-        font-family:Arial, sans-serif;
-        background:#f5f5f5;
-        color:#212121;
-    }
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f5f5;
+}
 
-    .contenedor-principal{
-        max-width:420px;
-        margin:0 auto;
-        min-height:100vh;
-        background:white;
-        display:flex;
-        flex-direction:column;
-    }
+.barra{
+  background:#1976d2;
+  color:white;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
 
-    .barra{
-        background:#1976d2;
-        color:white;
-        padding:16px 18px;
-        display:flex;
-        align-items:center;
-        gap:12px;
-        position:sticky;
-        top:0;
-        z-index:20;
-        box-shadow:0 2px 8px rgba(0,0,0,0.18);
-    }
+.volver{
+  color:white;
+  text-decoration:none;
+  font-size:26px;
+}
 
-    .volver{
-        color:white;
-        text-decoration:none;
-        font-size:28px;
-        line-height:1;
-    }
+.contenido{
+  padding:14px;
+}
 
-    .titulo{
-        font-size:20px;
-        font-weight:bold;
-    }
+.bloque{
+  background:white;
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:14px;
+}
 
-    .contenido{
-        padding:14px;
-        display:flex;
-        flex-direction:column;
-        gap:14px;
-    }
+input, select, textarea{
+  width:100%;
+  padding:12px;
+  margin-top:6px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
 
-    .bloque{
-        background:#fff;
-        border-radius:12px;
-        padding:14px;
-        box-shadow:0 2px 8px rgba(0,0,0,0.08);
-        border:1px solid #eaeaea;
-    }
+.btn{
+  width:100%;
+  padding:14px;
+  background:#25d366;
+  color:white;
+  border:none;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:bold;
+}
 
-    .subtitulo{
-        font-size:17px;
-        font-weight:bold;
-        margin-bottom:10px;
-    }
+.item{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:6px;
+}
 
-    .item-carrito{
-        display:flex;
-        justify-content:space-between;
-        gap:10px;
-        padding:8px 0;
-        border-bottom:1px solid #f0f0f0;
-        font-size:14px;
-    }
+.total{
+  font-weight:bold;
+  font-size:18px;
+}
 
-    .item-carrito:last-child{
-        border-bottom:none;
-    }
-
-    .nombre-item{
-        flex:1;
-    }
-
-    .importe-item{
-        font-weight:bold;
-        white-space:nowrap;
-    }
-
-    label{
-        display:block;
-        margin-top:10px;
-        margin-bottom:6px;
-        font-size:14px;
-        font-weight:bold;
-    }
-
-    input, textarea, select{
-        width:100%;
-        border:1px solid #d0d0d0;
-        border-radius:10px;
-        padding:12px;
-        font-size:15px;
-        outline:none;
-        background:#fff;
-    }
-
-    textarea{
-        min-height:90px;
-        resize:vertical;
-    }
-
-    .resumen-linea{
-        display:flex;
-        justify-content:space-between;
-        padding:6px 0;
-        font-size:15px;
-    }
-
-    .total{
-        font-size:20px;
-        font-weight:bold;
-        color:#1976d2;
-        border-top:1px solid #eee;
-        margin-top:8px;
-        padding-top:10px;
-    }
-
-    .btn-finalizar{
-        width:100%;
-        border:none;
-        background:#25d366;
-        color:white;
-        padding:14px;
-        border-radius:12px;
-        font-size:17px;
-        font-weight:bold;
-        cursor:pointer;
-        margin-top:8px;
-    }
-
-    .texto-suave{
-        font-size:13px;
-        color:#666;
-        margin-top:6px;
-    }
-
-    .oculto{
-        display:none;
-    }
+.oculto{
+  display:none;
+}
 </style>
 </head>
 <body>
 
-<div class="contenedor-principal">
+<div class="barra">
+  <a href="/carrito.html" class="volver">←</a>
+  <div>Finalizar pedido</div>
+</div>
 
-    <div class="barra">
-        <a href="{{ url_for('ver_carrito') }}" class="volver">←</a>
-        <div class="titulo">Finalizar pedido</div>
+<div class="contenido">
+
+  <div class="bloque">
+    <h3>Tu pedido</h3>
+    <div id="lista"></div>
+  </div>
+
+  <div class="bloque">
+    <h3>Datos</h3>
+
+    <input id="nombre" placeholder="Nombre">
+    <input id="telefono" placeholder="Teléfono">
+
+    <select id="tipo">
+      <option value="domicilio">Envío a domicilio</option>
+      <option value="bodega">Recoger en bodega</option>
+    </select>
+
+    <div id="domicilio">
+      <input id="direccion" placeholder="Dirección">
+      <input id="colonia" placeholder="Colonia">
     </div>
 
-    <div class="contenido">
+    <textarea id="nota" placeholder="Nota"></textarea>
 
-        <div class="bloque">
-            <div class="subtitulo">Tu pedido</div>
+    <select id="vendedor">
+      <option>Mercado en Línea Culiacán</option>
+      <option>Hector</option>
+      <option>Silvia</option>
+      <option>Juan</option>
+      <option>Cristian</option>
+      <option>Amayrani</option>
+      <option>Brisa</option>
+      <option>Claudia</option>
+      <option>Natalia</option>
+    </select>
+  </div>
 
-            {% for item in carrito %}
-                <div class="item-carrito">
-                    <div class="nombre-item">
-                        {{ item.cantidad }} x {{ item.nombre }}
-                    </div>
-                    <div class="importe-item">
-                        ${{ (item.precio * item.cantidad)|int }}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+  <div class="bloque">
+    <h3>Resumen</h3>
 
-        <form action="{{ url_for('datos_entrega') }}" method="POST">
-            <div class="bloque">
-                <div class="subtitulo">Datos de entrega</div>
-
-                <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" value="{{ datos.nombre if datos else '' }}" required>
-
-                <label for="telefono">Teléfono</label>
-                <input type="tel" id="telefono" name="telefono" value="{{ datos.telefono if datos else '' }}" required>
-
-                <label for="tipo_entrega">Tipo de entrega</label>
-                <select id="tipo_entrega" name="tipo_entrega" required>
-                    <option value="domicilio" {% if datos and datos.tipo_entrega == 'domicilio' %}selected{% endif %}>Envío a domicilio</option>
-                    <option value="bodega" {% if datos and datos.tipo_entrega == 'bodega' %}selected{% endif %}>Recoger en bodega</option>
-                </select>
-
-                <div id="campos_domicilio">
-                    <label for="direccion">Dirección</label>
-                    <input type="text" id="direccion" name="direccion" value="{{ datos.direccion if datos else '' }}">
-
-                    <label for="colonia">Colonia</label>
-                    <input type="text" id="colonia" name="colonia" value="{{ datos.colonia if datos else '' }}">
-
-                    <label for="referencia">Referencia</label>
-                    <input type="text" id="referencia" name="referencia" value="{{ datos.referencia if datos else '' }}" placeholder="Casa color, entre calles, portón, etc.">
-                </div>
-
-                <label for="nota">Nota</label>
-                <textarea id="nota" name="nota" placeholder="Ejemplo: casa color blanco, tocar el timbre, sin cebolla, etc.">{{ datos.nota if datos else '' }}</textarea>
-
-                <label for="vendedor">Vendedor</label>
-                <select id="vendedor" name="vendedor" required>
-                    <option value="" {% if not datos or not datos.vendedor %}selected{% endif %}>Selecciona un vendedor</option>
-                    {% for nombre_vendedor in vendedores %}
-                        <option value="{{ nombre_vendedor }}" {% if datos and datos.vendedor == nombre_vendedor %}selected{% endif %}>
-                            {{ nombre_vendedor }}
-                        </option>
-                    {% endfor %}
-                </select>
-
-                <div class="texto-suave">
-                    Pagas solamente cuando te entreguen tu pedido, en efectivo o transferencia.
-                </div>
-            </div>
-
-            <div class="bloque">
-                <div class="subtitulo">Resumen</div>
-
-                <div class="resumen-linea">
-                    <span>Subtotal</span>
-                    <span>$<span id="subtotal_texto">{{ subtotal|int }}</span></span>
-                </div>
-
-                <div class="resumen-linea">
-                    <span>Envío</span>
-                    <span>$<span id="envio_texto">40</span></span>
-                </div>
-
-                <div class="resumen-linea total">
-                    <span>Total</span>
-                    <span>$<span id="total_texto">{{ (subtotal + 40)|int }}</span></span>
-                </div>
-
-                <button type="submit" class="btn-finalizar">Finalizar pedido</button>
-            </div>
-        </form>
-
+    <div class="item">
+      <span>Subtotal</span>
+      <span id="subtotal">$0</span>
     </div>
+
+    <div class="item">
+      <span>Envío</span>
+      <span id="envio">$40</span>
+    </div>
+
+    <div class="item total">
+      <span>Total</span>
+      <span id="total">$0</span>
+    </div>
+
+    <button class="btn" onclick="finalizar()">Finalizar pedido</button>
+  </div>
+
 </div>
 
 <script>
-    const COSTO_ENVIO = 40;
-    const subtotal = {{ subtotal|int }};
+const COSTO_ENVIO = 40;
 
-    const tipoEntrega = document.getElementById("tipo_entrega");
-    const envioTexto = document.getElementById("envio_texto");
-    const totalTexto = document.getElementById("total_texto");
-    const camposDomicilio = document.getElementById("campos_domicilio");
-    const direccion = document.getElementById("direccion");
-    const colonia = document.getElementById("colonia");
+function getCarrito(){
+  return JSON.parse(localStorage.getItem("carrito") || "[]");
+}
 
-    function actualizarResumenEntrega() {
-        const tipo = tipoEntrega.value;
-        let envio = 0;
+function render(){
+  const carrito = getCarrito();
+  const lista = document.getElementById("lista");
 
-        if (tipo === "domicilio") {
-            envio = COSTO_ENVIO;
-            camposDomicilio.classList.remove("oculto");
-            direccion.required = true;
-            colonia.required = true;
-        } else {
-            envio = 0;
-            camposDomicilio.classList.add("oculto");
-            direccion.required = false;
-            colonia.required = false;
-            direccion.value = "";
-            colonia.value = "";
-        }
+  let subtotal = 0;
+  lista.innerHTML = "";
 
-        envioTexto.textContent = envio;
-        totalTexto.textContent = subtotal + envio;
-    }
+  carrito.forEach(p=>{
+    const total = p.precio * p.cantidad;
+    subtotal += total;
 
-    tipoEntrega.addEventListener("change", actualizarResumenEntrega);
-    actualizarResumenEntrega();
+    lista.innerHTML += `
+      <div class="item">
+        <span>${p.cantidad} x ${p.nombre}</span>
+        <span>$${total}</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("subtotal").innerText = "$" + subtotal;
+
+  actualizarTotal(subtotal);
+}
+
+function actualizarTotal(subtotal){
+  const tipo = document.getElementById("tipo").value;
+  let envio = tipo === "domicilio" ? COSTO_ENVIO : 0;
+
+  document.getElementById("envio").innerText = "$" + envio;
+  document.getElementById("total").innerText = "$" + (subtotal + envio);
+}
+
+document.getElementById("tipo").addEventListener("change", ()=>{
+  render();
+  const tipo = document.getElementById("tipo").value;
+
+  if(tipo === "domicilio"){
+    document.getElementById("domicilio").classList.remove("oculto");
+  }else{
+    document.getElementById("domicilio").classList.add("oculto");
+  }
+});
+
+function finalizar(){
+  const carrito = getCarrito();
+
+  if(!carrito.length){
+    alert("Carrito vacío");
+    return;
+  }
+
+  alert("Pedido enviado (simulado)");
+
+  localStorage.removeItem("carrito");
+  window.location.href = "/";
+}
+
+render();
 </script>
 
 </body>
