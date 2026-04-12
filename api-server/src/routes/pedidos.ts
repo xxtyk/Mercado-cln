@@ -1,12 +1,25 @@
 import { Router } from "express";
+import pool from "../db.js";
 
 const router = Router();
 
-let pedidos: any[] = [];
-
 // VER PEDIDOS
-router.get("/pedidos", (_req, res) => {
-  res.json(pedidos);
+router.get("/pedidos", async (_req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM pedidos ORDER BY creado DESC"
+    );
+
+    const pedidos = result.rows.map((p) => ({
+      ...p,
+      productos: p.productos || []
+    }));
+
+    res.json(pedidos);
+  } catch (error) {
+    console.error("ERROR GET /pedidos:", error);
+    res.status(500).json({ ok: false });
+  }
 });
 
 // CREAR PEDIDO + ENVIAR A WHATSAPP
@@ -17,9 +30,8 @@ router.post("/pedidos", async (req, res) => {
       ...req.body
     };
 
-    pedidos.unshift(pedido);
-
     const {
+      id,
       nombre,
       telefono,
       direccion,
@@ -33,6 +45,33 @@ router.post("/pedidos", async (req, res) => {
       envio,
       total
     } = pedido;
+
+    await pool.query(
+      `
+      INSERT INTO pedidos (
+        id, nombre, telefono, direccion, colonia, calle,
+        vendedor, nota, entrega, subtotal, envio, total, productos
+      ) VALUES (
+        $1,$2,$3,$4,$5,$6,
+        $7,$8,$9,$10,$11,$12,$13
+      )
+      `,
+      [
+        id,
+        nombre || "",
+        telefono || "",
+        direccion || "",
+        colonia || "",
+        calle || "",
+        vendedor || "",
+        nota || "",
+        entrega || "",
+        Number(subtotal || 0),
+        Number(envio || 0),
+        Number(total || 0),
+        JSON.stringify(productos || [])
+      ]
+    );
 
     const textoEntrega =
       String(entrega || "").toLowerCase().includes("domicilio")
@@ -83,21 +122,31 @@ Vendedor: ${vendedor || ""}
 
     res.json({ ok: true, pedido });
   } catch (error) {
-    console.error("ERROR WHATSAPP:", error);
+    console.error("ERROR POST /pedidos:", error);
     res.status(500).json({ ok: false });
   }
 });
 
 // ELIMINAR PEDIDO
-router.delete("/pedidos/:id", (req, res) => {
-  pedidos = pedidos.filter((p) => p.id !== req.params.id);
-  res.json({ ok: true });
+router.delete("/pedidos/:id", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM pedidos WHERE id = $1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("ERROR DELETE /pedidos/:id:", error);
+    res.status(500).json({ ok: false });
+  }
 });
 
 // MARCAR ENVIADO Y BORRAR
-router.post("/pedidos/:id/whatsapp", (req, res) => {
-  pedidos = pedidos.filter((p) => p.id !== req.params.id);
-  res.json({ ok: true });
+router.post("/pedidos/:id/whatsapp", async (req, res) => {
+  try {
+    await pool.query("DELETE FROM pedidos WHERE id = $1", [req.params.id]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("ERROR POST /pedidos/:id/whatsapp:", error);
+    res.status(500).json({ ok: false });
+  }
 });
 
 export default router;
