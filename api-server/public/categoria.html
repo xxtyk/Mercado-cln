@@ -12,7 +12,7 @@ body{
   font-family:Arial,sans-serif;
   background:#f4f4f4;
   color:#111;
-  padding-bottom:90px;
+  padding-bottom:40px;
 }
 
 .topbar{
@@ -132,7 +132,7 @@ body{
 
 .carrito{
   position:fixed;
-  bottom:80px;
+  bottom:90px;
   right:15px;
   background:#000;
   color:#fff;
@@ -140,23 +140,6 @@ body{
   border-radius:50px;
   text-decoration:none;
   z-index:40;
-}
-
-.bottom{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#fff;
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  border-top:1px solid #ddd;
-}
-
-.bottom a{
-  text-align:center;
-  padding:10px;
-  text-decoration:none;
-  color:#000;
 }
 
 .empty{
@@ -183,13 +166,6 @@ body{
 
 <a href="/carrito.html" class="carrito" id="btnCarrito">🛒 (0)</a>
 
-<div class="bottom">
-  <a href="/">Inicio</a>
-  <a href="/pedidos.html">Pedidos</a>
-  <a href="/publicidad.html">Publicidad</a>
-  <a href="/admin">Admin</a>
-</div>
-
 <script>
 const params = new URLSearchParams(window.location.search);
 const categoriaId = params.get("id") || "";
@@ -208,7 +184,8 @@ function setCarrito(c){
 function actualizarCarrito(){
   const c = getCarrito();
   const total = c.reduce((a,b)=>a + Number(b.cantidad || 0), 0);
-  document.getElementById("btnCarrito").innerText = "🛒 (" + total + ")";
+  const btn = document.getElementById("btnCarrito");
+  if(btn) btn.innerText = "🛒 (" + total + ")";
 }
 
 function cantidadActual(id){
