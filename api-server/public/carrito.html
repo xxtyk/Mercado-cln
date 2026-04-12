@@ -23,20 +23,14 @@ body{
   justify-content:center;
   position:sticky;
   top:0;
-  z-index:20;
 }
 
-.barra .volver{
+.volver{
   position:absolute;
   left:14px;
   color:#fff;
   text-decoration:none;
   font-size:28px;
-}
-
-.barra .titulo-barra{
-  font-size:22px;
-  font-weight:bold;
 }
 
 .contenedor{
@@ -48,7 +42,6 @@ body{
   padding:14px;
   margin-bottom:10px;
   border-radius:14px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
 .total{
@@ -67,17 +60,12 @@ body{
   border-radius:14px;
 }
 
-label{
-  display:block;
-  margin-top:10px;
-  font-weight:bold;
-}
-
 input, textarea, select{
   width:100%;
   padding:12px;
   border-radius:10px;
   border:1px solid #ddd;
+  margin-top:8px;
 }
 
 button{
@@ -90,7 +78,6 @@ button{
   font-size:18px;
   font-weight:bold;
 }
-
 </style>
 </head>
 
@@ -98,7 +85,7 @@ button{
 
 <div class="barra">
   <a class="volver" href="/">←</a>
-  <div class="titulo-barra">🛒 Carrito</div>
+  <div>🛒 Carrito</div>
 </div>
 
 <div class="contenedor">
@@ -108,22 +95,20 @@ button{
 
 <div class="bloque">
 
-<label>Nombre</label>
-<input id="nombre">
+<input id="nombre" placeholder="Nombre">
+<input id="telefono" placeholder="Teléfono">
+<input id="direccion" placeholder="Dirección">
 
-<label>Teléfono</label>
-<input id="telefono">
-
-<label>Dirección</label>
-<input id="direccion">
-
-<label>Vendedor</label>
-<select id="vendedor">
-  <option value="">Cargando...</option>
+<label>Tipo de entrega</label>
+<select id="tipoEntrega">
+  <option value="bodega">Recoger en bodega - $0</option>
+  <option value="domicilio">Servicio a domicilio - $40</option>
 </select>
 
-<label>Nota</label>
-<textarea id="nota"></textarea>
+<label>Vendedor</label>
+<select id="vendedor"></select>
+
+<textarea id="nota" placeholder="Nota"></textarea>
 
 </div>
 
@@ -133,8 +118,6 @@ button{
 
 <script>
 
-let costoEntrega = 40;
-
 function obtener(){
   return JSON.parse(localStorage.getItem("carrito") || "[]");
 }
@@ -143,15 +126,20 @@ function guardar(data){
   localStorage.setItem("carrito", JSON.stringify(data));
 }
 
+function calcularEnvio(){
+  const tipo = document.getElementById("tipoEntrega").value;
+  return tipo === "domicilio" ? 40 : 0;
+}
+
+function textoEntrega(){
+  return document.getElementById("tipoEntrega").value === "domicilio"
+    ? "Servicio a domicilio"
+    : "Recoger en bodega";
+}
+
 function cargar(){
   const carrito = obtener();
   const cont = document.getElementById("lista");
-  const totalDiv = document.getElementById("total");
-
-  if(!carrito.length){
-    cont.innerHTML = "Carrito vacío";
-    return;
-  }
 
   let total = 0;
   cont.innerHTML = "";
@@ -162,15 +150,15 @@ function cargar(){
 
     cont.innerHTML += `
       <div class="item">
-        <b>${p.nombre}</b><br>
+        ${p.nombre}<br>
         $${p.precio} x ${p.cantidad}<br>
-        Subtotal: $${subtotal}<br>
         <button onclick="eliminar(${i})">Eliminar</button>
       </div>
     `;
   });
 
-  totalDiv.innerHTML = "Total: $" + (total + costoEntrega);
+  document.getElementById("total").innerHTML =
+    "Total: $" + (total + calcularEnvio());
 }
 
 function eliminar(i){
@@ -186,14 +174,16 @@ async function cargarVendedores(){
   const select = document.getElementById("vendedor");
 
   select.innerHTML = `<option value="">Selecciona vendedor</option>`;
-
   data.forEach(v=>{
     select.innerHTML += `<option value="${v.nombre}">${v.nombre}</option>`;
   });
 }
 
 async function finalizar(){
+
   const carrito = obtener();
+  const envio = calcularEnvio();
+  const subtotal = carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0);
 
   const pedido = {
     nombre: document.getElementById("nombre").value,
@@ -201,10 +191,11 @@ async function finalizar(){
     direccion: document.getElementById("direccion").value,
     vendedor: document.getElementById("vendedor").value,
     nota: document.getElementById("nota").value,
+    entrega: textoEntrega(),
     productos: carrito,
-    subtotal: carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0),
-    envio: costoEntrega,
-    total: carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0)+costoEntrega
+    subtotal,
+    envio,
+    total: subtotal + envio
   };
 
   await fetch("/api/pedidos",{
@@ -216,7 +207,7 @@ async function finalizar(){
   localStorage.removeItem("carrito");
 
   alert("Pedido enviado");
-  window.location="/admin";
+  window.location="/";
 }
 
 cargar();
