@@ -1,44 +1,133 @@
-<script>
-  async function cargarCategorias() {
-    const cont = document.getElementById("categorias");
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mercado en Línea Culiacán</title>
+  <style>
+    * { box-sizing: border-box; }
 
-    try {
-      // 🔥 evita cache (esto es la clave)
-      const res = await fetch("/api/categorias?nocache=" + Date.now());
-      const data = await res.json();
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
 
-      console.log("CATEGORIAS:", data); // 👈 para debug
+    .barra {
+      background: #000;
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
 
-      if (!Array.isArray(data) || data.length === 0) {
-        cont.innerHTML = `<div class="empty">No hay categorías todavía.</div>`;
+    .contenedor {
+      padding: 12px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 12px;
+      text-decoration: none;
+      color: #111;
+      box-shadow: 0 2px 8px rgba(0,0,0,.10);
+      text-align: center;
+    }
+
+    .card-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+
+    .emoji {
+      font-size: 48px;
+      margin: 20px 0 10px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .empty {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.10);
+    }
+  </style>
+</head>
+<body>
+  <div class="barra">Mercado en Línea Culiacán</div>
+
+  <div class="contenedor">
+    <div id="categorias" class="grid"></div>
+  </div>
+
+  <script>
+    async function cargarCategorias() {
+      const cont = document.getElementById("categorias");
+
+      if (!cont) {
+        console.error('No existe el contenedor con id="categorias"');
         return;
       }
 
-      cont.innerHTML = "";
+      try {
+        const res = await fetch("/api/categorias?nocache=" + Date.now());
+        const data = await res.json();
 
-      data.forEach(c => {
-        const a = document.createElement("a");
-        a.className = "card";
-        a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
+        console.log("CATEGORIAS:", data);
 
-        const imagen = c.imagen
-          ? `<img class="card-img" src="${c.imagen}" alt="${c.nombre}">`
-          : `<div class="emoji">${c.emoji || "🛍️"}</div>`;
+        if (!Array.isArray(data) || data.length === 0) {
+          cont.innerHTML = `<div class="empty">No hay categorías todavía.</div>`;
+          return;
+        }
 
-        a.innerHTML = `
-          ${imagen}
-          <div class="card-title">${c.nombre || "Categoría"}</div>
-        `;
+        cont.innerHTML = "";
 
-        cont.appendChild(a);
-      });
+        data.forEach(c => {
+          const a = document.createElement("a");
+          a.className = "card";
+          a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
 
-    } catch (e) {
-      console.error(e);
-      cont.innerHTML = `<div class="empty">Error cargando categorías.</div>`;
+          const imagen = c.imagen
+            ? `<img class="card-img" src="${c.imagen}" alt="${c.nombre || "Categoría"}">`
+            : `<div class="emoji">${c.emoji || "🛍️"}</div>`;
+
+          a.innerHTML = `
+            ${imagen}
+            <div class="card-title">${c.nombre || "Categoría"}</div>
+          `;
+
+          cont.appendChild(a);
+        });
+
+      } catch (e) {
+        console.error(e);
+        cont.innerHTML = `<div class="empty">Error cargando categorías.</div>`;
+      }
     }
-  }
 
-  // 🔥 recarga siempre al entrar
-  window.onload = cargarCategorias;
-</script>
+    window.onload = cargarCategorias;
+  </script>
+</body>
+</html>
