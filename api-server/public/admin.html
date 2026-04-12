@@ -213,8 +213,19 @@
 
     <div id="tabCategorias" class="seccion activa">
       <div class="bloque">
-        <h2>Categorías fijas</h2>
-        <div class="mini">Aquí modificas nombre, emoji y foto de las categorías que ya existen.</div>
+        <h2>Nueva categoría</h2>
+        <div class="mini">Aquí puedes agregar categorías nuevas.</div>
+
+        <input id="nuevaCatNombre" type="text" placeholder="Nombre de la categoría">
+        <input id="nuevaCatEmoji" type="text" placeholder="Emoji (ejemplo: 🛍️)">
+        <input id="nuevaCatFile" type="file" accept="image/*">
+
+        <button onclick="crearCategoria()">Guardar categoría</button>
+      </div>
+
+      <div class="bloque">
+        <h2>Categorías guardadas</h2>
+        <div class="mini">Aquí modificas nombre, emoji y foto de las categorías existentes.</div>
         <div id="listaCategorias" class="grid"></div>
       </div>
     </div>
@@ -430,12 +441,58 @@
 
           <div class="acciones">
             <button class="danger" onclick="eliminarProducto(${Number(p.id)})">Eliminar</button>
-            <button class="gray" onclick="recargarTodo()">Recargar</button>
+            <button class="gray" onclick="editarProducto(${Number(p.id)})">Editar</button>
           </div>
         `;
 
         cont.appendChild(div);
       });
+    }
+
+    async function crearCategoria() {
+      const nombre = document.getElementById("nuevaCatNombre").value.trim();
+      const emoji = document.getElementById("nuevaCatEmoji").value.trim() || "🛍️";
+      const fileInput = document.getElementById("nuevaCatFile");
+      const file = fileInput.files[0];
+
+      if (!nombre) {
+        mostrarMensaje("Ponle nombre a la categoría", false);
+        return;
+      }
+
+      try {
+        let imagen = "";
+
+        if (file) {
+          imagen = await subirArchivo(file);
+        }
+
+        const res = await fetch("/api/categorias", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            nombre,
+            emoji,
+            imagen
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo crear la categoría", false);
+          return;
+        }
+
+        document.getElementById("nuevaCatNombre").value = "";
+        document.getElementById("nuevaCatEmoji").value = "";
+        document.getElementById("nuevaCatFile").value = "";
+
+        mostrarMensaje("Categoría creada");
+        await cargarCategorias();
+      } catch (e) {
+        mostrarMensaje(e.message || "Error al crear categoría", false);
+      }
     }
 
     async function guardarCategoria(id) {
@@ -533,6 +590,22 @@
       } catch (e) {
         mostrarMensaje(e.message || "Error al guardar producto", false);
       }
+    }
+
+    function editarProducto(id) {
+      const p = productos.find(x => Number(x.id) === Number(id));
+      if (!p) {
+        mostrarMensaje("No se encontró el producto", false);
+        return;
+      }
+
+      document.getElementById("nuevoNombre").value = p.nombre || "";
+      document.getElementById("nuevoPrecio").value = Number(p.precio || 0);
+      document.getElementById("nuevoCategoria").value = p.categoria || "";
+      document.getElementById("nuevoDescripcion").value = p.descripcion || "";
+
+      mostrarTab("nuevo");
+      mostrarMensaje("Edita los datos y guarda como nuevo o conecta luego edición completa");
     }
 
     async function eliminarProducto(id) {
