@@ -45,12 +45,14 @@ router.post("/pedidos", async (req, res) => {
       .map(p => `- ${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`)
       .join("\n");
 
-    // 📍 DIRECCIÓN
-    const direccionFinal = `
-Colonia: ${colonia || ""}
-Calle: ${calle || ""}
-Dirección: ${direccion || ""}
-`;
+    // 📍 DIRECCIÓN LIMPIA (SIN VACÍOS)
+    const direccionLineas = [
+      colonia ? `Colonia: ${colonia}` : "",
+      calle ? `Calle: ${calle}` : "",
+      direccion ? `Dirección: ${direccion}` : ""
+    ].filter(Boolean);
+
+    const direccionFinal = direccionLineas.join("\n");
 
     // 🟢 MENSAJE
     const mensaje = `🛒 NUEVO PEDIDO
@@ -95,13 +97,3 @@ Vendedor: ${vendedor || ""}
 // 🔹 ELIMINAR PEDIDO
 router.delete("/pedidos/:id", (req, res) => {
   pedidos = pedidos.filter((p) => p.id !== req.params.id);
-  res.json({ ok: true });
-});
-
-// 🔹 (OPCIONAL) MARCAR ENVIADO Y BORRAR
-router.post("/pedidos/:id/whatsapp", (req, res) => {
-  pedidos = pedidos.filter((p) => p.id !== req.params.id);
-  res.json({ ok: true });
-});
-
-export default router;
