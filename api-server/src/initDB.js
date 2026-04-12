@@ -2,6 +2,7 @@ import pool from "./db.js";
 
 export async function initDB() {
   try {
+    // ✅ TABLA PEDIDOS
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pedidos (
         id TEXT PRIMARY KEY,
@@ -21,7 +22,18 @@ export async function initDB() {
       );
     `);
 
-    console.log("✅ DB lista");
+    // 🔥 NUEVO: TABLA CATEGORÍAS
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS categorias (
+        id TEXT PRIMARY KEY,
+        slug TEXT,
+        nombre TEXT,
+        emoji TEXT,
+        imagen TEXT
+      );
+    `);
+
+    console.log("✅ DB lista completa");
   } catch (error) {
     console.error("❌ Error creando DB:", error);
   }
