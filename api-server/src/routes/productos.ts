@@ -1,27 +1,8 @@
 import { Router } from "express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import pool from "../db.js";
 
 const router = Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DATA_FILE = path.join(__dirname, "../../data/productos.json");
 const ADMIN_PASS = process.env.ADMIN_PASSWORD ?? "mercado2024";
-
-function leer(): any[] {
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
-  } catch {
-    return [];
-  }
-}
-
-function guardar(data: any[]) {
-  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf-8");
-}
 
 function autenticado(req: any, res: any): boolean {
   const auth = req.headers.authorization ?? "";
@@ -32,7 +13,7 @@ function autenticado(req: any, res: any): boolean {
   return true;
 }
 
-function normalizarProducto(body: any, id: number, actual?: any) {
+function normalizarProducto(body: any, id: number | string, actual?: any) {
   const categoria = String(
     body.categoria ??
     actual?.categoria ??
@@ -46,8 +27,8 @@ function normalizarProducto(body: any, id: number, actual?: any) {
   ).trim();
 
   return {
-    id,
-    codigo: String(body.codigo ?? actual?.codigo ?? ""),
+    id: Number(id),
+    codigo: String(body.codigo ?? actual?.codigo ?? "").trim(),
     nombre: String(body.nombre ?? actual?.nombre ?? "").trim(),
     descripcion: String(body.descripcion ?? actual?.descripcion ?? "").trim(),
     imagen: String(
@@ -64,121 +45,248 @@ function normalizarProducto(body: any, id: number, actual?: any) {
   };
 }
 
-router.get("/productos", (_req, res) => {
-  res.json(leer());
+router.get("/productos", async (_req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM productos ORDER BY id DESC");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("ERROR GET /productos:", error);
+    res.status(500).json({ ok: false, error: "Error obteniendo productos" });
+  }
 });
 
-router.get("/productos/:id", (req, res) => {
-  const lista = leer();
-  const id = Number(req.params.id);
-  const producto = lista.find((p: any) => Number(p.id) === id);
+router.get("/productos/:id", async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM productos WHERE id = $1 LIMIT 1",
+      [Number(req.params.id)]
+    );
 
-  if (!producto) {
-    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (error) {
+    console.error("ERROR GET /productos/:id:", error);
+    return res.status(500).json({ ok: false, error: "Error obteniendo producto" });
   }
-
-  return res.json(producto);
 });
 
-router.post("/productos", (req: any, res) => {
-  const lista = leer();
-  const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
+router.post("/productos", async (req: any, res) => {
+  try {
+    const max = await pool.query("SELECT COALESCE(MAX(id), 0) AS max_id FROM productos");
+    const nuevo = normalizarProducto(req.body ?? {}, Number(max.rows[0].max_id) + 1);
 
-  const nuevo = normalizarProducto(req.body ?? {}, maxId + 1);
+    if (!nuevo.nombre) {
+      return res.status(400).json({ ok: false, error: "Falta nombre" });
+    }
 
-  if (!nuevo.nombre) {
-    return res.status(400).json({ ok: false, error: "Falta nombre" });
+    if (Number.isNaN(nuevo.precio)) {
+      return res.status(400).json({ ok: false, error: "Precio inválido" });
+    }
+
+    await pool.query(
+      `
+      INSERT INTO productos
+      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      `,
+      [
+        nuevo.id,
+        nuevo.codigo,
+        nuevo.nombre,
+        nuevo.descripcion,
+        nuevo.imagen,
+        nuevo.etiqueta,
+        nuevo.precio,
+        nuevo.categoria,
+        nuevo.categoria_id
+      ]
+    );
+
+    return res.json({ ok: true, producto: nuevo });
+  } catch (error) {
+    console.error("ERROR POST /productos:", error);
+    return res.status(500).json({ ok: false, error: "Error guardando producto" });
   }
-
-  if (Number.isNaN(nuevo.precio)) {
-    return res.status(400).json({ ok: false, error: "Precio inválido" });
-  }
-
-  lista.push(nuevo);
-  guardar(lista);
-
-  return res.json({ ok: true, producto: nuevo });
 });
 
-router.put("/productos/:id", (req: any, res) => {
-  const lista = leer();
-  const id = Number(req.params.id);
-  const i = lista.findIndex((p: any) => Number(p.id) === id);
+router.put("/productos/:id", async (req: any, res) => {
+  try {
+    const id = Number(req.params.id);
 
-  if (i === -1) {
-    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    const actualResult = await pool.query(
+      "SELECT * FROM productos WHERE id = $1 LIMIT 1",
+      [id]
+    );
+
+    if (actualResult.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    }
+
+    const actualizado = normalizarProducto(req.body ?? {}, id, actualResult.rows[0]);
+
+    await pool.query(
+      `
+      UPDATE productos
+      SET codigo = $1,
+          nombre = $2,
+          descripcion = $3,
+          imagen = $4,
+          etiqueta = $5,
+          precio = $6,
+          categoria = $7,
+          categoria_id = $8
+      WHERE id = $9
+      `,
+      [
+        actualizado.codigo,
+        actualizado.nombre,
+        actualizado.descripcion,
+        actualizado.imagen,
+        actualizado.etiqueta,
+        actualizado.precio,
+        actualizado.categoria,
+        actualizado.categoria_id,
+        id
+      ]
+    );
+
+    return res.json({ ok: true, producto: actualizado });
+  } catch (error) {
+    console.error("ERROR PUT /productos/:id:", error);
+    return res.status(500).json({ ok: false, error: "Error actualizando producto" });
   }
-
-  lista[i] = normalizarProducto(req.body ?? {}, id, lista[i]);
-  guardar(lista);
-
-  return res.json({ ok: true, producto: lista[i] });
 });
 
-router.delete("/productos/:id", (req: any, res) => {
-  const lista = leer();
-  const nuevaLista = lista.filter((p: any) => Number(p.id) !== Number(req.params.id));
+router.delete("/productos/:id", async (req: any, res) => {
+  try {
+    const result = await pool.query(
+      "DELETE FROM productos WHERE id = $1",
+      [Number(req.params.id)]
+    );
 
-  if (nuevaLista.length === lista.length) {
-    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    }
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("ERROR DELETE /productos/:id:", error);
+    return res.status(500).json({ ok: false, error: "Error eliminando producto" });
   }
-
-  guardar(nuevaLista);
-
-  return res.json({ ok: true });
 });
 
-router.post("/admin/producto", (req: any, res) => {
+router.post("/admin/producto", async (req: any, res) => {
   if (!autenticado(req, res)) return;
 
-  const lista = leer();
-  const maxId = lista.reduce((m: number, p: any) => Math.max(m, Number(p.id) || 0), 0);
-  const nuevo = normalizarProducto(req.body ?? {}, maxId + 1);
+  try {
+    const max = await pool.query("SELECT COALESCE(MAX(id), 0) AS max_id FROM productos");
+    const nuevo = normalizarProducto(req.body ?? {}, Number(max.rows[0].max_id) + 1);
 
-  if (!nuevo.nombre) {
-    return res.status(400).json({ ok: false, error: "Falta nombre" });
+    if (!nuevo.nombre) {
+      return res.status(400).json({ ok: false, error: "Falta nombre" });
+    }
+
+    if (Number.isNaN(nuevo.precio)) {
+      return res.status(400).json({ ok: false, error: "Precio inválido" });
+    }
+
+    await pool.query(
+      `
+      INSERT INTO productos
+      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      `,
+      [
+        nuevo.id,
+        nuevo.codigo,
+        nuevo.nombre,
+        nuevo.descripcion,
+        nuevo.imagen,
+        nuevo.etiqueta,
+        nuevo.precio,
+        nuevo.categoria,
+        nuevo.categoria_id
+      ]
+    );
+
+    return res.json({ ok: true, producto: nuevo });
+  } catch (error) {
+    console.error("ERROR POST /admin/producto:", error);
+    return res.status(500).json({ ok: false, error: "Error guardando producto" });
   }
-
-  if (Number.isNaN(nuevo.precio)) {
-    return res.status(400).json({ ok: false, error: "Precio inválido" });
-  }
-
-  lista.push(nuevo);
-  guardar(lista);
-
-  return res.json({ ok: true, producto: nuevo });
 });
 
-router.put("/admin/producto/:id", (req: any, res) => {
+router.put("/admin/producto/:id", async (req: any, res) => {
   if (!autenticado(req, res)) return;
 
-  const lista = leer();
-  const id = Number(req.params.id);
-  const i = lista.findIndex((p: any) => Number(p.id) === id);
+  try {
+    const id = Number(req.params.id);
 
-  if (i === -1) {
-    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    const actualResult = await pool.query(
+      "SELECT * FROM productos WHERE id = $1 LIMIT 1",
+      [id]
+    );
+
+    if (actualResult.rows.length === 0) {
+      return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    }
+
+    const actualizado = normalizarProducto(req.body ?? {}, id, actualResult.rows[0]);
+
+    await pool.query(
+      `
+      UPDATE productos
+      SET codigo = $1,
+          nombre = $2,
+          descripcion = $3,
+          imagen = $4,
+          etiqueta = $5,
+          precio = $6,
+          categoria = $7,
+          categoria_id = $8
+      WHERE id = $9
+      `,
+      [
+        actualizado.codigo,
+        actualizado.nombre,
+        actualizado.descripcion,
+        actualizado.imagen,
+        actualizado.etiqueta,
+        actualizado.precio,
+        actualizado.categoria,
+        actualizado.categoria_id,
+        id
+      ]
+    );
+
+    return res.json({ ok: true, producto: actualizado });
+  } catch (error) {
+    console.error("ERROR PUT /admin/producto/:id:", error);
+    return res.status(500).json({ ok: false, error: "Error actualizando producto" });
   }
-
-  lista[i] = normalizarProducto(req.body ?? {}, id, lista[i]);
-  guardar(lista);
-
-  return res.json({ ok: true, producto: lista[i] });
 });
 
-router.delete("/admin/producto/:id", (req: any, res) => {
+router.delete("/admin/producto/:id", async (req: any, res) => {
   if (!autenticado(req, res)) return;
 
-  const lista = leer();
-  const nuevaLista = lista.filter((p: any) => Number(p.id) !== Number(req.params.id));
+  try {
+    const result = await pool.query(
+      "DELETE FROM productos WHERE id = $1",
+      [Number(req.params.id)]
+    );
 
-  if (nuevaLista.length === lista.length) {
-    return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    if ((result.rowCount ?? 0) === 0) {
+      return res.status(404).json({ ok: false, error: "Producto no encontrado" });
+    }
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("ERROR DELETE /admin/producto/:id:", error);
+    return res.status(500).json({ ok: false, error: "Error eliminando producto" });
   }
-
-  guardar(nuevaLista);
-
-  return res.json({ ok: true });
 });
 
 export default router;
