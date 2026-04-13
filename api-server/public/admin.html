@@ -407,6 +407,8 @@
           ? `<img src="${p.imagen}" class="preview" alt="${p.nombre}">`
           : `<div class="preview">📦</div>`;
 
+        const activo = p.activo !== false;
+
         div.innerHTML = `
           <div class="item-top">
             ${preview}
@@ -414,12 +416,16 @@
               <div class="item-title">${p.nombre || "Sin nombre"}</div>
               <div class="item-sub">$${Number(p.precio || 0).toFixed(2)}</div>
               <div class="producto-linea">Categoría: ${nombreCategoriaPorSlug(p.categoria || "otro")}</div>
+              <div class="producto-linea">${activo ? "✅ Activo" : "⛔ Inactivo"}</div>
             </div>
           </div>
 
           <div class="acciones">
             <button class="danger" onclick="eliminarProducto(${Number(p.id)})">Eliminar</button>
             <button class="gray" onclick="editarProducto(${Number(p.id)})">Editar</button>
+            <button class="${activo ? "gray" : "sec"}" onclick="toggleActivo(${Number(p.id)}, ${activo})">
+              ${activo ? "Desactivar" : "Activar"}
+            </button>
           </div>
         `;
 
@@ -627,6 +633,44 @@
         await cargarProductos();
       } catch {
         mostrarMensaje("Error al eliminar producto", false);
+      }
+    }
+
+    async function toggleActivo(id, activoActual) {
+      try {
+        const producto = productos.find(p => Number(p.id) === Number(id));
+
+        if (!producto) {
+          mostrarMensaje("No se encontró el producto", false);
+          return;
+        }
+
+        const res = await fetch(`/api/admin/producto/${id}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            nombre: producto.nombre || "",
+            precio: Number(producto.precio || 0),
+            categoria: producto.categoria || "",
+            categoria_id: producto.categoria_id || "",
+            imagen: producto.imagen || "",
+            descripcion: producto.descripcion || "",
+            etiqueta: producto.etiqueta || "Nuevo",
+            activo: !activoActual
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo cambiar el estado", false);
+          return;
+        }
+
+        mostrarMensaje(!activoActual ? "Producto activado" : "Producto desactivado");
+        await cargarProductos();
+      } catch (e) {
+        mostrarMensaje("Error al cambiar estado del producto", false);
       }
     }
 
