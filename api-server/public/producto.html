@@ -1,1 +1,154 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Producto</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+/* HEADER */
+.header{
+  background:#000;
+  color:#fff;
+  padding:14px;
+  display:flex;
+  align-items:center;
+}
+
+.volver{
+  color:#fff;
+  text-decoration:none;
+  font-size:24px;
+  margin-right:10px;
+}
+
+/* IMAGEN GRANDE */
+.img-container{
+  width:100%;
+  background:#000;
+}
+
+.img-container img{
+  width:100%;
+  height:320px;
+  object-fit:cover;
+}
+
+/* INFO */
+.info{
+  padding:14px;
+}
+
+.nombre{
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+
+.precio{
+  font-size:18px;
+  color:#18c10f;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.descripcion{
+  font-size:14px;
+  color:#555;
+  margin-bottom:14px;
+}
+
+/* BOTÓN */
+.btn{
+  width:100%;
+  padding:14px;
+  background:#25d366;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <a href="javascript:history.back()" class="volver">←</a>
+  Producto
+</div>
+
+<div class="img-container">
+  <img id="imgProducto">
+</div>
+
+<div class="info">
+  <div class="nombre" id="nombre"></div>
+  <div class="precio" id="precio"></div>
+  <div class="descripcion" id="descripcion"></div>
+
+  <button class="btn" onclick="agregar()">Agregar al carrito</button>
+</div>
+
+<script>
+function obtenerCarrito(){
+  return JSON.parse(localStorage.getItem("carrito") || "[]");
+}
+
+function guardarCarrito(data){
+  localStorage.setItem("carrito", JSON.stringify(data));
+}
+
+function agregar(){
+  let carrito = obtenerCarrito();
+
+  const existente = carrito.find(p => p.id === producto.id);
+
+  if (existente){
+    existente.cantidad += 1;
+  } else {
+    carrito.push({
+      id: producto.id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+      cantidad: 1
+    });
+  }
+
+  guardarCarrito(carrito);
+  alert("Agregado al carrito");
+}
+
+let producto = null;
+
+async function cargarProducto(){
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+
+  if (!id) return;
+
+  const res = await fetch("/api/productos/" + id);
+  producto = await res.json();
+
+  document.getElementById("imgProducto").src = producto.imagen;
+  document.getElementById("nombre").textContent = producto.nombre;
+  document.getElementById("precio").textContent = "$" + producto.precio;
+  document.getElementById("descripcion").textContent = producto.descripcion || "";
+}
+
+cargarProducto();
+</script>
+
+</body>
+</html>
