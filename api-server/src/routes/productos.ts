@@ -41,7 +41,10 @@ function normalizarProducto(body: any, id: number | string, actual?: any) {
     etiqueta: String(body.etiqueta ?? actual?.etiqueta ?? "Nuevo").trim(),
     precio: body.precio !== undefined ? Number(body.precio) : Number(actual?.precio ?? 0),
     categoria,
-    categoria_id
+    categoria_id,
+    activo: body.activo !== undefined
+      ? Boolean(body.activo)
+      : (actual?.activo !== undefined ? Boolean(actual.activo) : true)
   };
 }
 
@@ -89,8 +92,8 @@ router.post("/productos", async (req: any, res) => {
     await pool.query(
       `
       INSERT INTO productos
-      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id, activo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       `,
       [
         nuevo.id,
@@ -101,7 +104,8 @@ router.post("/productos", async (req: any, res) => {
         nuevo.etiqueta,
         nuevo.precio,
         nuevo.categoria,
-        nuevo.categoria_id
+        nuevo.categoria_id,
+        nuevo.activo
       ]
     );
 
@@ -137,8 +141,9 @@ router.put("/productos/:id", async (req: any, res) => {
           etiqueta = $5,
           precio = $6,
           categoria = $7,
-          categoria_id = $8
-      WHERE id = $9
+          categoria_id = $8,
+          activo = $9
+      WHERE id = $10
       `,
       [
         actualizado.codigo,
@@ -149,6 +154,7 @@ router.put("/productos/:id", async (req: any, res) => {
         actualizado.precio,
         actualizado.categoria,
         actualizado.categoria_id,
+        actualizado.activo,
         id
       ]
     );
@@ -196,8 +202,8 @@ router.post("/admin/producto", async (req: any, res) => {
     await pool.query(
       `
       INSERT INTO productos
-      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      (id, codigo, nombre, descripcion, imagen, etiqueta, precio, categoria, categoria_id, activo)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       `,
       [
         nuevo.id,
@@ -208,7 +214,8 @@ router.post("/admin/producto", async (req: any, res) => {
         nuevo.etiqueta,
         nuevo.precio,
         nuevo.categoria,
-        nuevo.categoria_id
+        nuevo.categoria_id,
+        nuevo.activo
       ]
     );
 
@@ -246,8 +253,9 @@ router.put("/admin/producto/:id", async (req: any, res) => {
           etiqueta = $5,
           precio = $6,
           categoria = $7,
-          categoria_id = $8
-      WHERE id = $9
+          categoria_id = $8,
+          activo = $9
+      WHERE id = $10
       `,
       [
         actualizado.codigo,
@@ -258,6 +266,7 @@ router.put("/admin/producto/:id", async (req: any, res) => {
         actualizado.precio,
         actualizado.categoria,
         actualizado.categoria_id,
+        actualizado.activo,
         id
       ]
     );
