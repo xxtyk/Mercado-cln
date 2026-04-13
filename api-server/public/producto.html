@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -35,13 +34,15 @@ body{
 /* IMAGEN GRANDE */
 .img-container{
   width:100%;
-  background:#000;
+  background:#fff;
 }
 
 .img-container img{
   width:100%;
-  height:320px;
-  object-fit:cover;
+  height:auto;
+  max-height:80vh;
+  object-fit:contain;
+  display:block;
 }
 
 /* INFO */
@@ -113,7 +114,7 @@ function guardarCarrito(data){
 function agregar(){
   let carrito = obtenerCarrito();
 
-  const existente = carrito.find(p => p.id === producto.id);
+  const existente = carrito.find(p => String(p.id) === String(producto.id));
 
   if (existente){
     existente.cantidad += 1;
@@ -121,13 +122,13 @@ function agregar(){
     carrito.push({
       id: producto.id,
       nombre: producto.nombre,
-      precio: producto.precio,
+      precio: Number(producto.precio || 0),
+      imagen: producto.imagen || producto.foto || producto.image || "",
       cantidad: 1
     });
   }
 
   guardarCarrito(carrito);
-  alert("Agregado al carrito");
 }
 
 let producto = null;
@@ -138,12 +139,19 @@ async function cargarProducto(){
 
   if (!id) return;
 
-  const res = await fetch("/api/productos/" + id);
+  const res = await fetch("/api/productos/" + encodeURIComponent(id));
   producto = await res.json();
 
-  document.getElementById("imgProducto").src = producto.imagen;
-  document.getElementById("nombre").textContent = producto.nombre;
-  document.getElementById("precio").textContent = "$" + producto.precio;
+  const img = producto.imagen || producto.foto || producto.image || "";
+
+  if (img){
+    document.getElementById("imgProducto").src = img;
+  } else {
+    document.getElementById("imgProducto").src = "";
+  }
+
+  document.getElementById("nombre").textContent = producto.nombre || "";
+  document.getElementById("precio").textContent = "$" + Number(producto.precio || 0).toFixed(2);
   document.getElementById("descripcion").textContent = producto.descripcion || "";
 }
 
