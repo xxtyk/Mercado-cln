@@ -41,8 +41,15 @@ export async function initDB() {
         etiqueta TEXT,
         precio NUMERIC DEFAULT 0,
         categoria TEXT,
-        categoria_id TEXT
+        categoria_id TEXT,
+        activo BOOLEAN DEFAULT TRUE
       );
+    `);
+
+    // 🔥 ESTA LÍNEA ES CLAVE (actualiza si ya existía la tabla)
+    await pool.query(`
+      ALTER TABLE productos
+      ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE;
     `);
 
     await pool.query(`
