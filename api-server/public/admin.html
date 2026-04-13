@@ -45,11 +45,6 @@
       font-size:20px;
     }
 
-    h3{
-      margin:0 0 10px;
-      font-size:17px;
-    }
-
     input, select, textarea, button{
       width:100%;
       padding:12px;
@@ -78,17 +73,9 @@
       cursor:pointer;
     }
 
-    button.sec{
-      background:#1976d2;
-    }
-
-    button.danger{
-      background:#c62828;
-    }
-
-    button.gray{
-      background:#666;
-    }
+    button.sec{ background:#1976d2; }
+    button.danger{ background:#c62828; }
+    button.gray{ background:#666; }
 
     .msg{
       padding:12px;
@@ -97,15 +84,8 @@
       font-size:14px;
     }
 
-    .ok{
-      background:#e8f5e9;
-      color:#1b5e20;
-    }
-
-    .err{
-      background:#ffebee;
-      color:#b71c1c;
-    }
+    .ok{ background:#e8f5e9; color:#1b5e20; }
+    .err{ background:#ffebee; color:#b71c1c; }
 
     .grid{
       display:grid;
@@ -167,7 +147,7 @@
 
     .tabs{
       display:grid;
-      grid-template-columns:1fr 1fr 1fr;
+      grid-template-columns:1fr 1fr 1fr 1fr;
       gap:8px;
       margin-bottom:14px;
     }
@@ -184,13 +164,8 @@
       border-color:#000;
     }
 
-    .seccion{
-      display:none;
-    }
-
-    .seccion.activa{
-      display:block;
-    }
+    .seccion{ display:none; }
+    .seccion.activa{ display:block; }
 
     .mini{
       font-size:13px;
@@ -209,6 +184,7 @@
       <button class="tab-btn activa" id="tabCategoriasBtn" onclick="mostrarTab('categorias')">Categorías</button>
       <button class="tab-btn" id="tabProductosBtn" onclick="mostrarTab('productos')">Productos</button>
       <button class="tab-btn" id="tabNuevoBtn" onclick="mostrarTab('nuevo')">Agregar producto</button>
+      <button class="tab-btn" id="tabVendedoresBtn" onclick="mostrarTab('vendedores')">Vendedores</button>
     </div>
 
     <div id="tabCategorias" class="seccion activa">
@@ -250,6 +226,19 @@
         <button onclick="guardarProducto()">Guardar producto</button>
       </div>
     </div>
+
+    <div id="tabVendedores" class="seccion">
+      <div class="bloque">
+        <h2>Nuevo vendedor</h2>
+        <input id="nuevoVendedorNombre" type="text" placeholder="Nombre del vendedor">
+        <button onclick="crearVendedor()">Guardar vendedor</button>
+      </div>
+
+      <div class="bloque">
+        <h2>Vendedores guardados</h2>
+        <div id="listaVendedores" class="grid"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -257,6 +246,7 @@
 
     let categorias = [];
     let productos = [];
+    let vendedores = [];
 
     function authHeaders() {
       return {
@@ -275,28 +265,14 @@
     }
 
     function mostrarTab(tab) {
-      document.getElementById("tabCategorias").classList.remove("activa");
-      document.getElementById("tabProductos").classList.remove("activa");
-      document.getElementById("tabNuevo").classList.remove("activa");
+      const secciones = ["categorias", "productos", "nuevo", "vendedores"];
+      secciones.forEach(s => {
+        document.getElementById("tab" + s.charAt(0).toUpperCase() + s.slice(1)).classList.remove("activa");
+        document.getElementById("tab" + s.charAt(0).toUpperCase() + s.slice(1) + "Btn").classList.remove("activa");
+      });
 
-      document.getElementById("tabCategoriasBtn").classList.remove("activa");
-      document.getElementById("tabProductosBtn").classList.remove("activa");
-      document.getElementById("tabNuevoBtn").classList.remove("activa");
-
-      if (tab === "categorias") {
-        document.getElementById("tabCategorias").classList.add("activa");
-        document.getElementById("tabCategoriasBtn").classList.add("activa");
-      }
-
-      if (tab === "productos") {
-        document.getElementById("tabProductos").classList.add("activa");
-        document.getElementById("tabProductosBtn").classList.add("activa");
-      }
-
-      if (tab === "nuevo") {
-        document.getElementById("tabNuevo").classList.add("activa");
-        document.getElementById("tabNuevoBtn").classList.add("activa");
-      }
+      document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add("activa");
+      document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Btn").classList.add("activa");
     }
 
     async function subirArchivo(file) {
@@ -326,14 +302,10 @@
       try {
         const res = await fetch("/api/categorias?nocache=" + Date.now());
         categorias = await res.json();
-
-        if (!Array.isArray(categorias)) {
-          categorias = [];
-        }
-
+        if (!Array.isArray(categorias)) categorias = [];
         renderCategorias();
         llenarSelectCategorias();
-      } catch (e) {
+      } catch {
         mostrarMensaje("No se pudieron cargar las categorías", false);
       }
     }
@@ -342,21 +314,27 @@
       try {
         const res = await fetch("/api/productos?nocache=" + Date.now());
         productos = await res.json();
-
-        if (!Array.isArray(productos)) {
-          productos = [];
-        }
-
+        if (!Array.isArray(productos)) productos = [];
         renderProductos();
-      } catch (e) {
+      } catch {
         mostrarMensaje("No se pudieron cargar los productos", false);
+      }
+    }
+
+    async function cargarVendedores() {
+      try {
+        const res = await fetch("/api/vendedores?nocache=" + Date.now());
+        vendedores = await res.json();
+        if (!Array.isArray(vendedores)) vendedores = [];
+        renderVendedores();
+      } catch {
+        mostrarMensaje("No se pudieron cargar los vendedores", false);
       }
     }
 
     function llenarSelectCategorias() {
       const select = document.getElementById("nuevoCategoria");
       select.innerHTML = "";
-
       categorias.forEach(cat => {
         const op = document.createElement("option");
         op.value = cat.slug || "";
@@ -449,6 +427,41 @@
       });
     }
 
+    function renderVendedores() {
+      const cont = document.getElementById("listaVendedores");
+
+      if (!vendedores.length) {
+        cont.innerHTML = `<div class="item">No hay vendedores.</div>`;
+        return;
+      }
+
+      cont.innerHTML = "";
+
+      vendedores.forEach(v => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        div.innerHTML = `
+          <div class="item-top">
+            <div class="preview">👤</div>
+            <div>
+              <div class="item-title">${escapeHtml(v.nombre || "Sin nombre")}</div>
+              <div class="item-sub">ID: ${v.id}</div>
+            </div>
+          </div>
+
+          <input id="ven_nombre_${v.id}" type="text" value="${escapeHtml(v.nombre || "")}" placeholder="Nombre">
+
+          <div class="acciones">
+            <button class="sec" onclick="guardarVendedor(${Number(v.id)})">Guardar cambios</button>
+            <button class="danger" onclick="eliminarVendedor(${Number(v.id)})">Eliminar</button>
+          </div>
+        `;
+
+        cont.appendChild(div);
+      });
+    }
+
     async function crearCategoria() {
       const nombre = document.getElementById("nuevaCatNombre").value.trim();
       const emoji = document.getElementById("nuevaCatEmoji").value.trim() || "🛍️";
@@ -462,19 +475,12 @@
 
       try {
         let imagen = "";
-
-        if (file) {
-          imagen = await subirArchivo(file);
-        }
+        if (file) imagen = await subirArchivo(file);
 
         const res = await fetch("/api/categorias", {
           method: "POST",
           headers: authHeaders(),
-          body: JSON.stringify({
-            nombre,
-            emoji,
-            imagen
-          })
+          body: JSON.stringify({ nombre, emoji, imagen })
         });
 
         const data = await res.json();
@@ -508,11 +514,7 @@
 
       try {
         let payload = { nombre, emoji };
-
-        if (file) {
-          const imagen = await subirArchivo(file);
-          payload.imagen = imagen;
-        }
+        if (file) payload.imagen = await subirArchivo(file);
 
         const res = await fetch(`/api/categorias/${id}`, {
           method: "PUT",
@@ -554,10 +556,7 @@
 
       try {
         let imagen = "";
-
-        if (file) {
-          imagen = await subirArchivo(file);
-        }
+        if (file) imagen = await subirArchivo(file);
 
         const res = await fetch("/api/admin/producto", {
           method: "POST",
@@ -626,14 +625,97 @@
 
         mostrarMensaje("Producto eliminado");
         await cargarProductos();
-      } catch (e) {
+      } catch {
         mostrarMensaje("Error al eliminar producto", false);
+      }
+    }
+
+    async function crearVendedor() {
+      const nombre = document.getElementById("nuevoVendedorNombre").value.trim();
+
+      if (!nombre) {
+        mostrarMensaje("Ponle nombre al vendedor", false);
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/vendedores", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ nombre })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo guardar el vendedor", false);
+          return;
+        }
+
+        document.getElementById("nuevoVendedorNombre").value = "";
+        mostrarMensaje("Vendedor guardado");
+        await cargarVendedores();
+      } catch {
+        mostrarMensaje("Error al guardar vendedor", false);
+      }
+    }
+
+    async function guardarVendedor(id) {
+      const nombre = document.getElementById(`ven_nombre_${id}`).value.trim();
+
+      if (!nombre) {
+        mostrarMensaje("Ponle nombre al vendedor", false);
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/vendedores/${id}`, {
+          method: "PUT",
+          headers: authHeaders(),
+          body: JSON.stringify({ nombre })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo actualizar el vendedor", false);
+          return;
+        }
+
+        mostrarMensaje("Vendedor actualizado");
+        await cargarVendedores();
+      } catch {
+        mostrarMensaje("Error al actualizar vendedor", false);
+      }
+    }
+
+    async function eliminarVendedor(id) {
+      if (!confirm("¿Eliminar este vendedor?")) return;
+
+      try {
+        const res = await fetch(`/api/vendedores/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo eliminar el vendedor", false);
+          return;
+        }
+
+        mostrarMensaje("Vendedor eliminado");
+        await cargarVendedores();
+      } catch {
+        mostrarMensaje("Error al eliminar vendedor", false);
       }
     }
 
     async function recargarTodo() {
       await cargarCategorias();
       await cargarProductos();
+      await cargarVendedores();
     }
 
     function escapeHtml(valor) {
