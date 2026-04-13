@@ -43,10 +43,9 @@ body{
 .logo-splash{
   width:220px;
   max-width:85%;
-  height:auto;
-  display:block;
 }
 
+/* BOTÓN AZUL */
 .btn-instalar-splash{
   width:100%;
   padding:16px;
@@ -101,8 +100,6 @@ body{
   height:170px;
   object-fit:cover;
   border-radius:14px;
-  margin:0;
-  display:block;
 }
 
 .emoji{
@@ -114,7 +111,6 @@ body{
   font-weight:bold;
   font-size:16px;
   margin-top:8px;
-  padding:0 6px 6px;
 }
 
 /* VACÍO */
@@ -137,7 +133,6 @@ body{
   font-weight:bold;
   box-shadow:0 4px 12px rgba(0,0,0,.25);
   text-decoration:none;
-  font-size:16px;
   z-index:100;
 }
 </style>
@@ -145,9 +140,10 @@ body{
 
 <body>
 
+<!-- SPLASH -->
 <div id="splash">
   <div class="splash-contenido">
-    <img src="/IMG-20260114-WA0001.jpg" alt="Logo" class="logo-splash">
+    <img src="/IMG-20260114-WA0001.jpg" class="logo-splash">
     <button id="btnInstalarSplash" class="btn-instalar-splash">
       Descargar aplicación
     </button>
@@ -165,40 +161,29 @@ body{
 <script>
 let deferredPrompt = null;
 
+// DETECTAR INSTALACIÓN
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
 });
 
-window.addEventListener("appinstalled", () => {
-  deferredPrompt = null;
-  const btn = document.getElementById("btnInstalarSplash");
-  if (btn) btn.style.display = "none";
-});
-
-document.getElementById("btnInstalarSplash")?.addEventListener("click", async () => {
+// BOTÓN INSTALAR
+document.getElementById("btnInstalarSplash").addEventListener("click", async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
-    return;
+  } else {
+    alert("Para instalar, abre el menú del navegador y toca 'Agregar a pantalla de inicio'");
   }
-
-  alert("Si no aparece la instalación automática, abre el menú del navegador y toca 'Agregar a pantalla de inicio'.");
 });
 
+// CARGAR CATEGORÍAS
 async function cargarCategorias() {
   const cont = document.getElementById("categorias");
-
-  if (!cont) return;
 
   try {
     const res = await fetch("/api/categorias?nocache=" + Date.now());
     const data = await res.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      cont.innerHTML = `<div class="empty">No hay categorías todavía.</div>`;
-      return;
-    }
 
     cont.innerHTML = "";
 
@@ -208,35 +193,35 @@ async function cargarCategorias() {
       a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
 
       const imagen = c.imagen
-        ? `<img class="card-img" src="${c.imagen}" alt="">`
-        : `<div class="emoji">${c.emoji || "🛍️"}</div>`;
+        ? `<img class="card-img" src="${c.imagen}">`
+        : `<div class="emoji">🛍️</div>`;
 
       a.innerHTML = `
         ${imagen}
-        <div class="card-title">${c.nombre || "Categoría"}</div>
+        <div class="card-title">${c.nombre}</div>
       `;
 
       cont.appendChild(a);
     });
 
   } catch (e) {
-    console.error(e);
-    cont.innerHTML = `<div class="empty">Error cargando categorías.</div>`;
+    cont.innerHTML = `<div class="empty">Error cargando</div>`;
   }
 }
 
+// SERVICE WORKER
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js").catch(console.error);
   });
 }
 
+// INICIO
 window.onload = () => {
   cargarCategorias();
 
   setTimeout(() => {
-    const splash = document.getElementById("splash");
-    if (splash) splash.style.display = "none";
+    document.getElementById("splash").style.display = "none";
   }, 5000);
 };
 </script>
