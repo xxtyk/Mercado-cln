@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mercado en Línea Culiacán</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
 
 <style>
 *{box-sizing:border-box}
@@ -27,6 +29,24 @@ body{
   position:sticky;
   top:0;
   z-index:50;
+}
+
+/* BLOQUE INSTALAR */
+.instalar-wrap{
+  padding:12px 12px 0;
+}
+
+.instalar-btn{
+  display:none;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#244bb8;
+  color:#fff;
+  font-size:18px;
+  font-weight:bold;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
 }
 
 /* GRID */
@@ -101,11 +121,44 @@ body{
   Mercado en Línea Culiacán
 </div>
 
+<div class="instalar-wrap">
+  <button id="btnInstalar" class="instalar-btn">Descargar aplicación</button>
+</div>
+
 <div id="categorias" class="grid"></div>
 
 <a href="/carrito.html" class="carrito-btn">🛒 Ver carrito</a>
 
 <script>
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.getElementById("btnInstalar");
+  if (btn) {
+    btn.style.display = "block";
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  const btn = document.getElementById("btnInstalar");
+  if (btn) {
+    btn.style.display = "none";
+  }
+  deferredPrompt = null;
+});
+
+document.addEventListener("click", async (e) => {
+  const btn = document.getElementById("btnInstalar");
+  if (!btn || e.target !== btn) return;
+  if (!deferredPrompt) return;
+
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+});
+
 async function cargarCategorias() {
   const cont = document.getElementById("categorias");
 
@@ -143,6 +196,12 @@ async function cargarCategorias() {
     console.error(e);
     cont.innerHTML = `<div class="empty">Error cargando categorías.</div>`;
   }
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").catch(console.error);
+  });
 }
 
 window.onload = cargarCategorias;
