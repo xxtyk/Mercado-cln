@@ -18,6 +18,54 @@ body{
   padding-bottom:100px;
 }
 
+/* SPLASH */
+#splash{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.splash-contenido{
+  width:100%;
+  max-width:360px;
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+
+.logo-splash{
+  width:180px;
+  max-width:80%;
+  height:auto;
+  display:block;
+  border-radius:18px;
+}
+
+.btn-instalar-splash{
+  display:none;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:28px;
+  background:linear-gradient(135deg,#2b5cff,#4a7dff);
+  color:#fff;
+  font-size:18px;
+  font-weight:bold;
+  box-shadow:0 6px 18px rgba(0,0,0,.30);
+  transition:all .2s ease;
+}
+
+.btn-instalar-splash:active{
+  transform:scale(0.96);
+}
+
 /* HEADER */
 .barra{
   background:#000;
@@ -29,29 +77,6 @@ body{
   position:sticky;
   top:0;
   z-index:50;
-}
-
-/* BLOQUE INSTALAR */
-.instalar-wrap{
-  padding:12px 12px 0;
-}
-
-.instalar-btn{
-  display:none;
-  width:100%;
-  padding:16px;
-  border:none;
-  border-radius:28px;
-  background:linear-gradient(135deg,#2b5cff,#4a7dff);
-  color:#fff;
-  font-size:18px;
-  font-weight:bold;
-  box-shadow:0 6px 18px rgba(0,0,0,.30);
-  transition: all 0.2s ease;
-}
-
-.instalar-btn:active{
-  transform:scale(0.96);
 }
 
 /* GRID */
@@ -122,12 +147,15 @@ body{
 
 <body>
 
-<div class="barra">
-  Mercado en Línea Culiacán
+<div id="splash">
+  <div class="splash-contenido">
+    <img src="/logo.png" alt="Logo" class="logo-splash">
+    <button id="btnInstalarSplash" class="btn-instalar-splash">Descargar aplicación</button>
+  </div>
 </div>
 
-<div class="instalar-wrap">
-  <button id="btnInstalar" class="instalar-btn">Descargar aplicación</button>
+<div class="barra">
+  Mercado en Línea Culiacán
 </div>
 
 <div id="categorias" class="grid"></div>
@@ -141,23 +169,21 @@ window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
 
-  const btn = document.getElementById("btnInstalar");
+  const btn = document.getElementById("btnInstalarSplash");
   if (btn) {
     btn.style.display = "block";
   }
 });
 
 window.addEventListener("appinstalled", () => {
-  const btn = document.getElementById("btnInstalar");
+  const btn = document.getElementById("btnInstalarSplash");
   if (btn) {
     btn.style.display = "none";
   }
   deferredPrompt = null;
 });
 
-document.addEventListener("click", async (e) => {
-  const btn = document.getElementById("btnInstalar");
-  if (!btn || e.target !== btn) return;
+document.getElementById("btnInstalarSplash")?.addEventListener("click", async () => {
   if (!deferredPrompt) return;
 
   deferredPrompt.prompt();
@@ -209,7 +235,16 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-window.onload = cargarCategorias;
+window.onload = () => {
+  cargarCategorias();
+
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+    if (splash) {
+      splash.style.display = "none";
+    }
+  }, 5000);
+};
 </script>
 
 </body>
