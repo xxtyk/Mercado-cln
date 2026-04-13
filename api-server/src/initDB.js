@@ -45,6 +45,13 @@ export async function initDB() {
       );
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS vendedores (
+        id SERIAL PRIMARY KEY,
+        nombre TEXT UNIQUE
+      );
+    `);
+
     console.log("✅ DB lista completa");
   } catch (error) {
     console.error("❌ Error creando DB:", error);
