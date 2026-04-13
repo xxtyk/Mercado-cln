@@ -220,9 +220,16 @@ if ("serviceWorker" in navigator) {
 window.onload = () => {
   cargarCategorias();
 
-  setTimeout(() => {
+  const splashYaVisto = sessionStorage.getItem("splashYaVisto");
+
+  if (splashYaVisto === "si") {
     document.getElementById("splash").style.display = "none";
-  }, 5000);
+  } else {
+    sessionStorage.setItem("splashYaVisto", "si");
+    setTimeout(() => {
+      document.getElementById("splash").style.display = "none";
+    }, 5000);
+  }
 };
 </script>
 
