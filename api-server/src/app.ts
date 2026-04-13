@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import router from "./routes/index.js";
+import vendedores from "./routes/vendedores.js";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/admin.html", (_req, res) => {
 
 // 🔥 API
 app.use("/api", router);
+app.use("/api", vendedores);
 
 // 🔥 ARCHIVOS PÚBLICOS (CATÁLOGO)
 app.use(express.static(PUBLIC_DIR));
