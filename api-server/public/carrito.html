@@ -179,16 +179,48 @@ async function cargarVendedores(){
 }
 
 async function finalizar(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+  const vendedor = document.getElementById("vendedor").value.trim();
+  const nota = document.getElementById("nota").value.trim();
+  const tipo = document.getElementById("tipoEntrega").value;
+
   const carrito = obtener();
   const envio = calcularEnvio();
   const subtotal = carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0);
 
+  if (carrito.length === 0) {
+    alert("Tu carrito está vacío");
+    return;
+  }
+
+  if (!nombre) {
+    alert("Escribe tu nombre");
+    return;
+  }
+
+  if (!telefono) {
+    alert("Escribe tu teléfono");
+    return;
+  }
+
+  if (!vendedor) {
+    alert("Selecciona un vendedor");
+    return;
+  }
+
+  if (tipo === "domicilio" && !direccion) {
+    alert("Escribe la dirección para servicio a domicilio");
+    return;
+  }
+
   const pedido = {
-    nombre: document.getElementById("nombre").value,
-    telefono: document.getElementById("telefono").value,
-    direccion: document.getElementById("direccion").value,
-    vendedor: document.getElementById("vendedor").value,
-    nota: document.getElementById("nota").value,
+    nombre,
+    telefono,
+    direccion,
+    vendedor,
+    nota,
     entrega: textoEntrega(),
     productos: carrito,
     subtotal,
