@@ -2,7 +2,6 @@ import pool from "./db.js";
 
 export async function initDB() {
   try {
-    // ✅ TABLA PEDIDOS
     await pool.query(`
       CREATE TABLE IF NOT EXISTS pedidos (
         id TEXT PRIMARY KEY,
@@ -22,7 +21,6 @@ export async function initDB() {
       );
     `);
 
-    // 🔥 NUEVO: TABLA CATEGORÍAS
     await pool.query(`
       CREATE TABLE IF NOT EXISTS categorias (
         id TEXT PRIMARY KEY,
@@ -30,6 +28,20 @@ export async function initDB() {
         nombre TEXT,
         emoji TEXT,
         imagen TEXT
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS productos (
+        id INTEGER PRIMARY KEY,
+        codigo TEXT,
+        nombre TEXT,
+        descripcion TEXT,
+        imagen TEXT,
+        etiqueta TEXT,
+        precio NUMERIC DEFAULT 0,
+        categoria TEXT,
+        categoria_id TEXT
       );
     `);
 
