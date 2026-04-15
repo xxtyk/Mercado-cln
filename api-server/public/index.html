@@ -183,17 +183,29 @@ body{
 <script>
 let deferredPrompt = null;
 
+function esIphoneOApple() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  return /iPhone|iPad|iPod/i.test(ua);
+}
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
 });
 
 document.getElementById("btnInstalarSplash").addEventListener("click", async () => {
+  const btn = document.getElementById("btnInstalarSplash");
+
   if (deferredPrompt) {
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
+    return;
+  }
+
+  if (esIphoneOApple()) {
+    btn.innerText = "En iPhone: Safari > Compartir > Agregar a inicio";
   } else {
-    alert("Para instalar, abre el menú del navegador y toca 'Agregar a pantalla de inicio'");
+    btn.innerText = "Usa menú ⋮ y luego Agregar a pantalla de inicio";
   }
 });
 
