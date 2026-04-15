@@ -77,6 +77,7 @@ body{
   font-size:15px;
   line-height:1.4;
   margin:0;
+  min-height:40px;
 }
 
 .btn-instalar-splash{
@@ -91,6 +92,7 @@ body{
   box-shadow:0 6px 18px rgba(0,0,0,.30);
 }
 
+/* HEADER */
 .barra{
   background:#000;
   color:#fff;
@@ -103,6 +105,7 @@ body{
   z-index:50;
 }
 
+/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -110,6 +113,7 @@ body{
   padding:12px;
 }
 
+/* CARD */
 .card{
   background:#fff;
   border-radius:16px;
@@ -138,6 +142,7 @@ body{
   margin-top:8px;
 }
 
+/* VACÍO */
 .empty{
   background:#fff;
   padding:16px;
@@ -145,6 +150,7 @@ body{
   text-align:center;
 }
 
+/* BOTÓN CARRITO */
 .carrito-btn{
   position:fixed;
   bottom:90px;
@@ -168,7 +174,7 @@ body{
     <img src="/IMG-20260114-WA0001.jpg" class="logo-splash">
     <p class="texto-instalar">Para instalar tu aplicación toca el botón azul</p>
     <button id="btnInstalarSplash" class="btn-instalar-splash">Descarga aquí la app</button>
-    <p class="subtexto-instalar">Instálala gratis en tu celular</p>
+    <p id="mensajeInstalar" class="subtexto-instalar">Instálala gratis en tu celular</p>
   </div>
 </div>
 
@@ -183,32 +189,88 @@ body{
 <script>
 let deferredPrompt = null;
 
+const btnInstalar = document.getElementById("btnInstalarSplash");
+const mensajeInstalar = document.getElementById("mensajeInstalar");
+
 function esIphoneOApple() {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   return /iPhone|iPad|iPod/i.test(ua);
 }
 
+function appYaInstalada() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function ponerModoInstalada() {
+  btnInstalar.innerText = "App instalada";
+  btnInstalar.disabled = true;
+  btnInstalar.style.opacity = "0.7";
+  mensajeInstalar.innerText = "Ya puedes abrirla desde la pantalla de inicio";
+}
+
+function ponerModoIphone() {
+  btnInstalar.disabled = false;
+  btnInstalar.style.opacity = "1";
+  btnInstalar.innerText = "Cómo instalar";
+  mensajeInstalar.innerText = "En iPhone: toca compartir y luego Agregar a inicio";
+}
+
+function ponerModoAndroidManual() {
+  btnInstalar.disabled = false;
+  btnInstalar.style.opacity = "1";
+  btnInstalar.innerText = "Cómo instalar";
+  mensajeInstalar.innerText = "Toca el botón y luego usa menú ⋮ > Agregar a pantalla de inicio";
+}
+
+function ponerModoInstalable() {
+  btnInstalar.disabled = false;
+  btnInstalar.style.opacity = "1";
+  btnInstalar.innerText = "Instalar app";
+  mensajeInstalar.innerText = "Toca el botón azul para instalarla";
+}
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
+
+  if (!appYaInstalada()) {
+    ponerModoInstalable();
+  }
 });
 
-document.getElementById("btnInstalarSplash").addEventListener("click", async () => {
-  const btn = document.getElementById("btnInstalarSplash");
+window.addEventListener("appinstalled", () => {
+  deferredPrompt = null;
+  ponerModoInstalada();
+});
+
+btnInstalar.addEventListener("click", async () => {
+  if (appYaInstalada()) {
+    ponerModoInstalada();
+    return;
+  }
 
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    const choiceResult = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+
+    if (choiceResult.outcome === "accepted") {
+      ponerModoInstalada();
+    } else {
+      ponerModoAndroidManual();
+    }
     return;
   }
 
   if (esIphoneOApple()) {
-    btn.innerText = "En iPhone: Safari > Compartir > Agregar a inicio";
-  } else {
-    btn.innerText = "Usa menú ⋮ y luego Agregar a pantalla de inicio";
+    ponerModoIphone();
+    return;
   }
+
+  ponerModoAndroidManual();
 });
 
+// CARGAR CATEGORÍAS
 async function cargarCategorias() {
   const cont = document.getElementById("categorias");
 
@@ -224,12 +286,12 @@ async function cargarCategorias() {
       a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
 
       const imagen = c.imagen
-        ? `<img class="card-img" src="${c.imagen}">`
+        ? `<img class="card-img" src="${c.imagen}" alt="${c.nombre || ""}">`
         : `<div class="emoji">🛍️</div>`;
 
       a.innerHTML = `
         ${imagen}
-        <div class="card-title">${c.nombre}</div>
+        <div class="card-title">${c.nombre || "Categoría"}</div>
       `;
 
       cont.appendChild(a);
@@ -240,14 +302,25 @@ async function cargarCategorias() {
   }
 }
 
+// SERVICE WORKER
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js").catch(console.error);
   });
 }
 
+// INICIO
 window.onload = () => {
   cargarCategorias();
+
+  if (appYaInstalada()) {
+    ponerModoInstalada();
+  } else if (esIphoneOApple()) {
+    ponerModoIphone();
+  } else {
+    btnInstalar.innerText = "Descarga aquí la app";
+    mensajeInstalar.innerText = "Instálala gratis en tu celular";
+  }
 
   const splashYaVisto = sessionStorage.getItem("splashYaVisto");
 
