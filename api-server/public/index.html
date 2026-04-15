@@ -7,14 +7,14 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
 
-<!-- META PARA VISTA PREVIA -->
+<!-- META PARA FACEBOOK / MESSENGER -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">
 <meta property="og:description" content="Haz tu pedido aquí para que el repartidor te lo entregue. Entregas el mismo día y pagas al recibir.">
 <meta property="og:url" content="https://mercado-cln-1.onrender.com/">
 
-<!-- 🔥 IMAGEN NUEVA (CORREGIDA) -->
 <meta property="og:image" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
+<meta property="og:image:secure_url" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 
@@ -79,7 +79,6 @@ body{
   margin:0;
 }
 
-/* BOTÓN AZUL */
 .btn-instalar-splash{
   width:100%;
   padding:18px 16px;
@@ -90,14 +89,8 @@ body{
   font-size:22px;
   font-weight:bold;
   box-shadow:0 6px 18px rgba(0,0,0,.30);
-  transition:all .2s ease;
 }
 
-.btn-instalar-splash:active{
-  transform:scale(0.96);
-}
-
-/* HEADER */
 .barra{
   background:#000;
   color:#fff;
@@ -110,7 +103,6 @@ body{
   z-index:50;
 }
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -118,7 +110,6 @@ body{
   padding:12px;
 }
 
-/* CARD */
 .card{
   background:#fff;
   border-radius:16px;
@@ -147,7 +138,6 @@ body{
   margin-top:8px;
 }
 
-/* VACÍO */
 .empty{
   background:#fff;
   padding:16px;
@@ -155,7 +145,6 @@ body{
   text-align:center;
 }
 
-/* BOTÓN CARRITO */
 .carrito-btn{
   position:fixed;
   bottom:90px;
@@ -174,22 +163,12 @@ body{
 
 <body>
 
-<!-- SPLASH -->
 <div id="splash">
   <div class="splash-contenido">
     <img src="/IMG-20260114-WA0001.jpg" class="logo-splash">
-
-    <p class="texto-instalar">
-      Para instalar tu aplicación toca el botón azul
-    </p>
-
-    <button id="btnInstalarSplash" class="btn-instalar-splash">
-      Descarga aquí la app
-    </button>
-
-    <p class="subtexto-instalar">
-      Instálala gratis en tu celular
-    </p>
+    <p class="texto-instalar">Para instalar tu aplicación toca el botón azul</p>
+    <button id="btnInstalarSplash" class="btn-instalar-splash">Descarga aquí la app</button>
+    <p class="subtexto-instalar">Instálala gratis en tu celular</p>
   </div>
 </div>
 
@@ -204,13 +183,11 @@ body{
 <script>
 let deferredPrompt = null;
 
-// DETECTAR INSTALACIÓN
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
 });
 
-// BOTÓN INSTALAR
 document.getElementById("btnInstalarSplash").addEventListener("click", async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -220,7 +197,6 @@ document.getElementById("btnInstalarSplash").addEventListener("click", async () 
   }
 });
 
-// CARGAR CATEGORÍAS
 async function cargarCategorias() {
   const cont = document.getElementById("categorias");
 
@@ -252,14 +228,12 @@ async function cargarCategorias() {
   }
 }
 
-// SERVICE WORKER
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js").catch(console.error);
   });
 }
 
-// INICIO
 window.onload = () => {
   cargarCategorias();
 
