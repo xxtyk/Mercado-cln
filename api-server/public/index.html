@@ -7,12 +7,10 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
 
-<!-- META PARA FACEBOOK / MESSENGER -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">
 <meta property="og:description" content="Haz tu pedido aquí para que el repartidor te lo entregue. Entregas el mismo día y pagas al recibir.">
 <meta property="og:url" content="https://mercado-cln-1.onrender.com/">
-
 <meta property="og:image" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
 <meta property="og:image:secure_url" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
 <meta property="og:image:width" content="1200">
@@ -36,7 +34,6 @@ body{
   padding-bottom:100px;
 }
 
-/* SPLASH */
 #splash{
   position:fixed;
   inset:0;
@@ -92,7 +89,6 @@ body{
   box-shadow:0 6px 18px rgba(0,0,0,.30);
 }
 
-/* HEADER */
 .barra{
   background:#000;
   color:#fff;
@@ -105,7 +101,6 @@ body{
   z-index:50;
 }
 
-/* GRID */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -113,7 +108,6 @@ body{
   padding:12px;
 }
 
-/* CARD */
 .card{
   background:#fff;
   border-radius:16px;
@@ -142,7 +136,6 @@ body{
   margin-top:8px;
 }
 
-/* VACÍO */
 .empty{
   background:#fff;
   padding:16px;
@@ -150,7 +143,6 @@ body{
   text-align:center;
 }
 
-/* BOTÓN CARRITO */
 .carrito-btn{
   position:fixed;
   bottom:90px;
@@ -182,7 +174,9 @@ body{
   Mercado en Línea Culiacán
 </div>
 
-<div id="categorias" class="grid"></div>
+<div id="categorias" class="grid">
+  <div class="empty">Cargando categorías...</div>
+</div>
 
 <a href="/carrito.html" class="carrito-btn">🛒 Ver carrito</a>
 
@@ -232,7 +226,6 @@ function ponerModoInstalable() {
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-
   if (!appYaInstalada()) {
     ponerModoInstalable();
   }
@@ -270,46 +263,61 @@ btnInstalar.addEventListener("click", async () => {
   ponerModoAndroidManual();
 });
 
-// CARGAR CATEGORÍAS
 async function cargarCategorias() {
   const cont = document.getElementById("categorias");
 
   try {
     const res = await fetch("/api/categorias?nocache=" + Date.now());
-    const data = await res.json();
+
+    if (!res.ok) {
+      cont.innerHTML = '<div class="empty">Error cargando categorías</div>';
+      return;
+    }
+
+    let data = await res.json();
+
+    if (Array.isArray(data)) {
+      data = data;
+    } else if (data && Array.isArray(data.categorias)) {
+      data = data.categorias;
+    } else if (data && Array.isArray(data.data)) {
+      data = data.data;
+    } else {
+      data = [];
+    }
 
     cont.innerHTML = "";
+
+    if (data.length === 0) {
+      cont.innerHTML = '<div class="empty">No hay categorías disponibles</div>';
+      return;
+    }
 
     data.forEach(c => {
       const a = document.createElement("a");
       a.className = "card";
-      a.href = `/categoria.html?id=${encodeURIComponent(c.id || "")}`;
+      a.href = "/categoria.html?id=" + encodeURIComponent(c.id || "");
 
       const imagen = c.imagen
-        ? `<img class="card-img" src="${c.imagen}" alt="${c.nombre || ""}">`
-        : `<div class="emoji">🛍️</div>`;
+        ? '<img class="card-img" src="' + c.imagen + '" alt="' + (c.nombre || "Categoría") + '">'
+        : '<div class="emoji">' + (c.emoji || "🛍️") + '</div>';
 
-      a.innerHTML = `
-        ${imagen}
-        <div class="card-title">${c.nombre || "Categoría"}</div>
-      `;
-
+      a.innerHTML = imagen + '<div class="card-title">' + (c.nombre || "Categoría") + '</div>';
       cont.appendChild(a);
     });
 
   } catch (e) {
-    cont.innerHTML = `<div class="empty">Error cargando</div>`;
+    console.error(e);
+    cont.innerHTML = '<div class="empty">No se pudieron cargar las categorías</div>';
   }
 }
 
-// SERVICE WORKER
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js").catch(console.error);
   });
 }
 
-// INICIO
 window.onload = () => {
   cargarCategorias();
 
