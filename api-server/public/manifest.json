@@ -9,12 +9,12 @@
     {
       "src": "/IMG-20260114-WA0001.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg"
     },
     {
       "src": "/IMG-20260114-WA0001.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg"
     }
   ]
 }
