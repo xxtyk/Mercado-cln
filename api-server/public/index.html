@@ -63,7 +63,7 @@ body{
 
 .texto-instalar{
   color:#fff;
-  font-size:22px;
+  font-size:26px;
   font-weight:bold;
   line-height:1.3;
   margin:0;
@@ -71,10 +71,10 @@ body{
 
 .subtexto-instalar{
   color:#d9d9d9;
-  font-size:15px;
+  font-size:18px;
   line-height:1.4;
   margin:0;
-  min-height:40px;
+  min-height:52px;
 }
 
 .btn-instalar-splash{
@@ -84,9 +84,10 @@ body{
   border-radius:28px;
   background:linear-gradient(135deg,#2b5cff,#4a7dff);
   color:#fff;
-  font-size:22px;
+  font-size:24px;
   font-weight:bold;
   box-shadow:0 6px 18px rgba(0,0,0,.30);
+  cursor:pointer;
 }
 
 .barra{
@@ -163,10 +164,10 @@ body{
 
 <div id="splash">
   <div class="splash-contenido">
-    <img src="/IMG-20260114-WA0001.jpg" class="logo-splash">
-    <p class="texto-instalar">Para instalar tu aplicación toca el botón azul</p>
-    <button id="btnInstalarSplash" class="btn-instalar-splash">Descarga aquí la app</button>
-    <p id="mensajeInstalar" class="subtexto-instalar">Instálala gratis en tu celular</p>
+    <img src="/IMG-20260114-WA0001.jpg" class="logo-splash" alt="Mercado en Línea Culiacán">
+    <p class="texto-instalar">Instala la app aquí</p>
+    <button id="btnInstalarSplash" class="btn-instalar-splash">Instalar aquí</button>
+    <p id="mensajeInstalar" class="subtexto-instalar">Toca el botón azul</p>
   </div>
 </div>
 
@@ -183,6 +184,7 @@ body{
 <script>
 let deferredPrompt = null;
 
+const splash = document.getElementById("splash");
 const btnInstalar = document.getElementById("btnInstalarSplash");
 const mensajeInstalar = document.getElementById("mensajeInstalar");
 
@@ -199,28 +201,32 @@ function ponerModoInstalada() {
   btnInstalar.innerText = "App instalada";
   btnInstalar.disabled = true;
   btnInstalar.style.opacity = "0.7";
-  mensajeInstalar.innerText = "Ya puedes abrirla desde la pantalla de inicio";
+  mensajeInstalar.innerText = "Ya puedes abrirla desde tu pantalla";
+}
+
+function ponerModoInstalable() {
+  btnInstalar.disabled = false;
+  btnInstalar.style.opacity = "1";
+  btnInstalar.innerText = "Instalar aquí";
+  mensajeInstalar.innerText = "Toca el botón azul";
+}
+
+function ponerModoManualAndroid() {
+  btnInstalar.disabled = false;
+  btnInstalar.style.opacity = "1";
+  btnInstalar.innerText = "Instalar aquí";
+  mensajeInstalar.innerText = "Si no sale sola: abre menú ⋮ y toca Agregar a pantalla de inicio";
 }
 
 function ponerModoIphone() {
   btnInstalar.disabled = false;
   btnInstalar.style.opacity = "1";
   btnInstalar.innerText = "Cómo instalar";
-  mensajeInstalar.innerText = "En iPhone: toca compartir y luego Agregar a inicio";
+  mensajeInstalar.innerText = "En iPhone toca Compartir y luego Agregar a inicio";
 }
 
-function ponerModoAndroidManual() {
-  btnInstalar.disabled = false;
-  btnInstalar.style.opacity = "1";
-  btnInstalar.innerText = "Cómo instalar";
-  mensajeInstalar.innerText = "Toca el botón y luego usa menú ⋮ > Agregar a pantalla de inicio";
-}
-
-function ponerModoInstalable() {
-  btnInstalar.disabled = false;
-  btnInstalar.style.opacity = "1";
-  btnInstalar.innerText = "Instalar app";
-  mensajeInstalar.innerText = "Toca el botón azul para instalarla";
+function mostrarInstruccionManual() {
+  alert("Si no sale la instalación sola, toca los 3 puntitos arriba y luego 'Agregar a pantalla de inicio'.");
 }
 
 window.addEventListener("beforeinstallprompt", (e) => {
@@ -243,24 +249,31 @@ btnInstalar.addEventListener("click", async () => {
   }
 
   if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-
-    if (choiceResult.outcome === "accepted") {
-      ponerModoInstalada();
-    } else {
-      ponerModoAndroidManual();
+    try {
+      await deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === "accepted") {
+        ponerModoInstalada();
+      } else {
+        ponerModoManualAndroid();
+        mostrarInstruccionManual();
+      }
+    } catch (error) {
+      ponerModoManualAndroid();
+      mostrarInstruccionManual();
     }
+    deferredPrompt = null;
     return;
   }
 
   if (esIphoneOApple()) {
     ponerModoIphone();
+    alert("En iPhone toca Compartir y luego 'Agregar a inicio'.");
     return;
   }
 
-  ponerModoAndroidManual();
+  ponerModoManualAndroid();
+  mostrarInstruccionManual();
 });
 
 async function cargarCategorias() {
@@ -326,18 +339,17 @@ window.onload = () => {
   } else if (esIphoneOApple()) {
     ponerModoIphone();
   } else {
-    btnInstalar.innerText = "Descarga aquí la app";
-    mensajeInstalar.innerText = "Instálala gratis en tu celular";
+    ponerModoInstalable();
   }
 
   const splashYaVisto = sessionStorage.getItem("splashYaVisto");
 
   if (splashYaVisto === "si") {
-    document.getElementById("splash").style.display = "none";
+    splash.style.display = "none";
   } else {
     sessionStorage.setItem("splashYaVisto", "si");
     setTimeout(() => {
-      document.getElementById("splash").style.display = "none";
+      splash.style.display = "none";
     }, 5000);
   }
 };
