@@ -1,20 +1,27 @@
 {
   "name": "Mercado en Línea Culiacán",
   "short_name": "Mercado CLN",
+  "description": "Haz tu pedido aquí para que el repartidor te lo entregue. Entregas el mismo día y pagas al recibir.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "orientation": "portrait",
+  "lang": "es-MX",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/IMG-20260114-WA0001.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
       "src": "/IMG-20260114-WA0001.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ]
 }
