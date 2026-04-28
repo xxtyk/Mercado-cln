@@ -20,6 +20,56 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* PANTALLA NEGRA DE INICIO */
+#pantallaInicio {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: white;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 25px;
+}
+
+#pantallaInicio img {
+  width: 260px;
+  max-width: 80%;
+  margin-bottom: 25px;
+}
+
+#pantallaInicio h1 {
+  font-size: 34px;
+  margin: 0 0 25px;
+}
+
+.estado-app {
+  background: linear-gradient(135deg, #1d5cff, #3154c9);
+  border-radius: 30px;
+  padding: 18px 40px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #cfcfcf;
+  margin-bottom: 25px;
+}
+
+.texto-app {
+  font-size: 24px;
+  color: #ddd;
+  margin-bottom: 35px;
+}
+
+.mensaje-confianza {
+  margin-top: 20px;
+  text-align: center;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1.4;
+}
+
 /* BOTÓN INSTALAR */
 #btnInstalarApp {
   position: fixed;
@@ -41,6 +91,24 @@ body {
 
 <body>
 
+<!-- PANTALLA NEGRA -->
+<div id="pantallaInicio">
+  <div>
+    <img src="/IMG-20260114-WA0001.jpg" alt="Mercado en Línea Culiacán">
+
+    <h1>Instala la app aquí</h1>
+
+    <div class="estado-app">App instalada</div>
+
+    <div class="texto-app">Ya puedes abrirla desde tu pantalla</div>
+
+    <div class="mensaje-confianza">
+      Entrega el mismo día 🚚<br>
+      Pagas hasta tenerlo en tus manos
+    </div>
+  </div>
+</div>
+
 <!-- TU APP (NO SE TOCA) -->
 <div id="app"></div>
 
@@ -49,6 +117,14 @@ body {
 
 <script>
 let eventoInstalar = null;
+
+// Ocultar pantalla negra después de 5 segundos
+setTimeout(function() {
+  const pantalla = document.getElementById("pantallaInicio");
+  if (pantalla) {
+    pantalla.style.display = "none";
+  }
+}, 5000);
 
 // ANDROID (instalación directa)
 window.addEventListener("beforeinstallprompt", function(e) {
@@ -59,7 +135,6 @@ window.addEventListener("beforeinstallprompt", function(e) {
 // CLICK BOTÓN
 document.getElementById("btnInstalarApp").addEventListener("click", async function() {
 
-  // Si Android permite instalar directo
   if (eventoInstalar) {
     eventoInstalar.prompt();
     await eventoInstalar.userChoice;
@@ -67,7 +142,6 @@ document.getElementById("btnInstalarApp").addEventListener("click", async functi
     return;
   }
 
-  // iPhone / otros
   alert("Para instalar:\n\nToca el botón de compartir ↑\ny luego: Agregar a inicio");
 });
 
