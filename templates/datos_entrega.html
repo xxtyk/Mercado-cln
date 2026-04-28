@@ -47,6 +47,7 @@ input, select, textarea{
   margin-bottom:10px;
   border-radius:10px;
   border:1px solid #ddd;
+  font-size:16px;
 }
 
 .btn{
@@ -74,6 +75,24 @@ input, select, textarea{
 .oculto{
   display:none;
 }
+
+.aviso{
+  background:#000;
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  font-size:17px;
+  font-weight:bold;
+  text-align:center;
+  margin-bottom:12px;
+}
+
+.error{
+  color:red;
+  font-weight:bold;
+  display:none;
+  margin-bottom:10px;
+}
 </style>
 </head>
 <body>
@@ -84,6 +103,10 @@ input, select, textarea{
 </div>
 
 <div class="contenido">
+
+  <div class="aviso">
+    💵 Pagas al recibir · 🚚 Entrega el mismo día
+  </div>
 
   <div class="bloque">
     <h3>Tu pedido</h3>
@@ -97,11 +120,16 @@ input, select, textarea{
     <input id="telefono" placeholder="Teléfono">
 
     <select id="tipo">
-      <option value="domicilio">Envío a domicilio</option>
-      <option value="bodega">Recoger en bodega</option>
+      <option value="">Selecciona tipo de entrega</option>
+      <option value="domicilio">Envío a domicilio (+$40)</option>
+      <option value="bodega">Recoger en bodega (Gratis)</option>
     </select>
 
-    <div id="domicilio">
+    <div id="errorTipo" class="error">
+      Debes elegir envío a domicilio o recoger en bodega.
+    </div>
+
+    <div id="domicilio" class="oculto">
       <input id="direccion" placeholder="Dirección">
       <input id="colonia" placeholder="Colonia">
     </div>
@@ -131,7 +159,7 @@ input, select, textarea{
 
     <div class="item">
       <span>Envío</span>
-      <span id="envio">$40</span>
+      <span id="envio">$0</span>
     </div>
 
     <div class="item total">
@@ -151,6 +179,21 @@ function getCarrito(){
   return JSON.parse(localStorage.getItem("carrito") || "[]");
 }
 
+function dinero(valor){
+  return "$" + Number(valor || 0).toFixed(2);
+}
+
+function calcularSubtotal(){
+  const carrito = getCarrito();
+  let subtotal = 0;
+
+  carrito.forEach(p=>{
+    subtotal += Number(p.precio || 0) * Number(p.cantidad || 0);
+  });
+
+  return subtotal;
+}
+
 function render(){
   const carrito = getCarrito();
   const lista = document.getElementById("lista");
@@ -159,39 +202,41 @@ function render(){
   lista.innerHTML = "";
 
   carrito.forEach(p=>{
-    const total = p.precio * p.cantidad;
+    const total = Number(p.precio || 0) * Number(p.cantidad || 0);
     subtotal += total;
 
     lista.innerHTML += `
       <div class="item">
         <span>${p.cantidad} x ${p.nombre}</span>
-        <span>$${total}</span>
+        <span>${dinero(total)}</span>
       </div>
     `;
   });
 
-  document.getElementById("subtotal").innerText = "$" + subtotal;
-
-  actualizarTotal(subtotal);
+  document.getElementById("subtotal").innerText = dinero(subtotal);
+  actualizarTotal();
 }
 
-function actualizarTotal(subtotal){
+function actualizarTotal(){
+  const subtotal = calcularSubtotal();
   const tipo = document.getElementById("tipo").value;
-  let envio = tipo === "domicilio" ? COSTO_ENVIO : 0;
+  const envio = tipo === "domicilio" ? COSTO_ENVIO : 0;
 
-  document.getElementById("envio").innerText = "$" + envio;
-  document.getElementById("total").innerText = "$" + (subtotal + envio);
+  document.getElementById("envio").innerText = dinero(envio);
+  document.getElementById("total").innerText = dinero(subtotal + envio);
 }
 
 document.getElementById("tipo").addEventListener("change", ()=>{
-  render();
   const tipo = document.getElementById("tipo").value;
+  document.getElementById("errorTipo").style.display = "none";
 
   if(tipo === "domicilio"){
     document.getElementById("domicilio").classList.remove("oculto");
   }else{
     document.getElementById("domicilio").classList.add("oculto");
   }
+
+  actualizarTotal();
 });
 
 function finalizar(){
@@ -202,7 +247,34 @@ function finalizar(){
     return;
   }
 
-  alert("Pedido enviado (simulado)");
+  const nombre = document.getElementById("nombre").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const tipo = document.getElementById("tipo").value;
+  const direccion = document.getElementById("direccion").value.trim();
+  const colonia = document.getElementById("colonia").value.trim();
+
+  if(!nombre){
+    alert("Escribe tu nombre.");
+    return;
+  }
+
+  if(!telefono){
+    alert("Escribe tu teléfono.");
+    return;
+  }
+
+  if(!tipo){
+    document.getElementById("errorTipo").style.display = "block";
+    alert("Debes elegir envío a domicilio o recoger en bodega.");
+    return;
+  }
+
+  if(tipo === "domicilio" && (!direccion || !colonia)){
+    alert("Para envío a domicilio escribe dirección y colonia.");
+    return;
+  }
+
+  alert("Pedido recibido. El repartidor te mandará WhatsApp para ponerse de acuerdo sobre la entrega.");
 
   localStorage.removeItem("carrito");
   window.location.href = "/";
