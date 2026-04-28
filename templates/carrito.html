@@ -6,9 +6,7 @@
 <title>Carrito</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{ box-sizing:border-box; }
 
 body{
   margin:0;
@@ -30,29 +28,26 @@ body{
   box-shadow:0 2px 8px rgba(0,0,0,0.18);
 }
 
-.barra-izq{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.barra a{
-  color:#fff;
-  text-decoration:none;
-  font-size:24px;
-  line-height:1;
-}
-
-.barra h1{
-  margin:0;
-  font-size:20px;
-}
+.barra-izq{ display:flex; align-items:center; gap:12px; }
+.barra a{ color:#fff; text-decoration:none; font-size:24px; line-height:1; }
+.barra h1{ margin:0; font-size:20px; }
 
 .contenedor{
   max-width:700px;
   margin:0 auto;
   padding:12px;
-  padding-bottom:130px;
+  padding-bottom:155px;
+}
+
+.aviso-pago{
+  background:#000;
+  color:#fff;
+  text-align:center;
+  padding:12px;
+  font-size:19px;
+  font-weight:bold;
+  border-radius:14px;
+  margin-bottom:12px;
 }
 
 .card{
@@ -88,37 +83,12 @@ body{
   flex-shrink:0;
 }
 
-.info{
-  flex:1;
-  min-width:0;
-}
+.info{ flex:1; min-width:0; }
+.nombre{ font-size:17px; font-weight:bold; margin-bottom:8px; line-height:1.3; }
+.detalle{ color:#444; font-size:14px; margin-bottom:4px; }
+.total-item{ color:#2e7d32; font-size:18px; font-weight:bold; margin-top:6px; }
 
-.nombre{
-  font-size:17px;
-  font-weight:bold;
-  margin-bottom:8px;
-  line-height:1.3;
-}
-
-.detalle{
-  color:#444;
-  font-size:14px;
-  margin-bottom:4px;
-}
-
-.total-item{
-  color:#2e7d32;
-  font-size:18px;
-  font-weight:bold;
-  margin-top:6px;
-}
-
-.controles{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:8px;
-}
+.controles{ display:flex; align-items:center; gap:8px; margin-top:8px; }
 
 .btn-cantidad{
   width:34px;
@@ -218,7 +188,11 @@ body{
     <span>Subtotal</span>
     <span id="subtotal">$0.00</span>
   </div>
-  <a href="/datos_entrega.html" class="btn-finalizar">Continuar</a>
+
+  <a href="/datos_entrega.html" class="btn-finalizar">
+    Continuar — pagas al recibir
+  </a>
+
   <button class="btn-vaciar" onclick="vaciarCarrito()">Vaciar carrito</button>
 </div>
 
@@ -280,6 +254,12 @@ function renderCarrito() {
     `;
     return;
   }
+
+  contenedor.innerHTML = `
+    <div class="aviso-pago">
+      🚚 Entrega el mismo día · 💵 Pagas al recibir
+    </div>
+  `;
 
   let subtotal = 0;
 
