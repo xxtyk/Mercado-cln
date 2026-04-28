@@ -6,438 +6,227 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+* {
+    box-sizing: border-box;
+}
 
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        color: #212121;
-    }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #212121;
+}
 
-    .contenedor-principal {
-        max-width: 420px;
-        margin: 0 auto;
-        min-height: 100vh;
-        background: white;
-        display: flex;
-        flex-direction: column;
-    }
+.contenedor-principal {
+    max-width: 420px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+}
 
-    .barra {
-        background: #1976d2;
-        color: white;
-        padding: 16px 18px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
+.barra {
+    background: #1976d2;
+    color: white;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
 
-    .volver {
-        color: white;
-        text-decoration: none;
-        font-size: 24px;
-        line-height: 1;
-    }
+.volver {
+    color: white;
+    text-decoration: none;
+    font-size: 24px;
+    line-height: 1;
+}
 
-    .titulo {
-        font-size: 20px;
-        font-weight: 700;
-    }
+.titulo {
+    font-size: 20px;
+    font-weight: 700;
+}
 
-    .contenedor {
-        padding: 16px;
-        padding-bottom: 120px;
-    }
+.contenedor {
+    padding: 16px;
+    padding-bottom: 140px;
+}
 
-    .intro {
-        font-size: 14px;
-        color: #555;
-        line-height: 1.5;
-        margin-bottom: 18px;
-    }
+.intro {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 18px;
+}
 
-    .grupo {
-        margin-bottom: 16px;
-    }
+.grupo {
+    margin-bottom: 16px;
+}
 
-    .label {
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-        color: #555;
-        margin-bottom: 6px;
-    }
+.label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 6px;
+}
 
-    input, select, textarea {
-        width: 100%;
-        padding: 11px 12px;
-        border-radius: 7px;
-        border: 1.5px solid #e0e0e0;
-        background: white;
-        font-size: 14px;
-        color: #212121;
-        margin: 0;
-    }
+input, select, textarea {
+    width: 100%;
+    padding: 11px 12px;
+    border-radius: 7px;
+    border: 1.5px solid #e0e0e0;
+    background: white;
+    font-size: 14px;
+    color: #212121;
+}
 
-    input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: #1976d2;
-        box-shadow: 0 0 0 2px rgba(25,118,210,0.12);
-    }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25,118,210,0.12);
+}
 
-    textarea {
-        min-height: 80px;
-        resize: vertical;
-    }
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
 
-    .opciones-entrega {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+.opciones-entrega {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
-    .opcion {
-        display: block;
-        cursor: pointer;
-    }
+.opcion input {
+    display: none;
+}
 
-    .opcion input {
-        display: none;
-    }
+.caja-opcion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
 
-    .caja-opcion {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 14px 16px;
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
-        background: #fff;
-        transition: 0.2s ease;
-    }
+.opcion input:checked + .domicilio {
+    border-color: #1976d2;
+    background: #e3f2fd;
+}
 
-    .opcion input:checked + .caja-opcion.domicilio {
-        border-color: #1976d2;
-        background: #e3f2fd;
-    }
+.opcion input:checked + .bodega {
+    border-color: #2e7d32;
+    background: #e8f5e9;
+}
 
-    .opcion input:checked + .caja-opcion.bodega {
-        border-color: #2e7d32;
-        background: #e8f5e9;
-    }
+.resumen {
+    margin-top: 18px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 14px;
+}
 
-    .texto-opcion {
-        font-size: 15px;
-        font-weight: 700;
-        color: #212121;
-    }
+.fila-total {
+    font-size: 16px;
+    font-weight: bold;
+}
 
-    .precio-opcion {
-        font-size: 15px;
-        font-weight: 700;
-    }
+.metodo-pago {
+    margin-top: 16px;
+    background: #e8f5e9;
+    border-radius: 10px;
+    padding: 12px;
+}
 
-    .domicilio .precio-opcion {
-        color: #1976d2;
-    }
+.aviso {
+    margin-top: 12px;
+    background: #e3f2fd;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 13px;
+}
 
-    .bodega .precio-opcion {
-        color: #2e7d32;
-    }
+.pie {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 16px;
+}
 
-    .resumen {
-        margin-top: 18px;
-        background: #f9f9f9;
-        border-radius: 10px;
-        padding: 14px;
-    }
+/* BOTÓN GRANDE */
+.boton {
+    width: 100%;
+    padding: 22px;
+    background: #1db510;
+    color: white;
+    border: none;
+    font-size: 24px;
+    font-weight: 900;
+    border-radius: 16px;
+}
 
-    .resumen-titulo {
-        font-size: 13px;
-        font-weight: 700;
-        color: #333;
-        margin-bottom: 8px;
-    }
-
-    .linea-item {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        font-size: 13px;
-        color: #555;
-        margin-bottom: 5px;
-    }
-
-    .linea-item span:first-child {
-        flex: 1;
-    }
-
-    .fila-envio {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #ececec;
-        font-size: 13px;
-    }
-
-    .fila-total {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid #e0e0e0;
-        font-size: 15px;
-        font-weight: 700;
-    }
-
-    .metodo-pago {
-        margin-top: 16px;
-        background: #e8f5e9;
-        border-radius: 10px;
-        padding: 12px 14px;
-    }
-
-    .titulo-pago {
-        font-size: 13px;
-        font-weight: 700;
-        color: #2e7d32;
-        margin-bottom: 2px;
-    }
-
-    .texto-pago {
-        font-size: 14px;
-        color: #333;
-    }
-
-    .aviso {
-        margin-top: 12px;
-        background: #e3f2fd;
-        border-radius: 10px;
-        padding: 12px 14px;
-        font-size: 13px;
-        color: #1565c0;
-        line-height: 1.5;
-    }
-
-    .pie {
-        position: sticky;
-        bottom: 0;
-        background: white;
-        border-top: 1px solid #e0e0e0;
-        padding: 16px;
-    }
-
-    .boton {
-        width: 100%;
-        padding: 22px 12px;
-        background: #1db510;
-        color: white;
-        border: none;
-        font-size: 24px;
-        font-weight: 900;
-        border-radius: 16px;
-        cursor: pointer;
-        box-shadow: 0 0 24px rgba(29,181,16,0.45);
-        letter-spacing: 1px;
-    }
-
-    .boton:hover {
-        filter: brightness(0.95);
-    }
-
-    .texto-ayuda {
-        margin-top: 6px;
-        font-size: 12px;
-        color: #666;
-        line-height: 1.4;
-    }
-
-    .oculto {
-        display: none;
-    }
-
-    @media (min-width: 700px) {
-        body {
-            background: #ececec;
-        }
-
-        .contenedor-principal {
-            box-shadow: 0 0 18px rgba(0,0,0,0.08);
-        }
-    }
+/* 🔥 MENSAJE DE CONFIANZA */
+.mensaje-final{
+    margin-top:12px;
+    text-align:center;
+    font-size:16px;
+    font-weight:bold;
+    line-height:1.4;
+    color:#1b5e20;
+    background:#e8f5e9;
+    padding:12px;
+    border-radius:12px;
+}
 </style>
 </head>
 
 <body>
 <div class="contenedor-principal">
 
-    <div class="barra">
-        <a href="{{ url_for('carrito') }}" class="volver">←</a>
-        <div class="titulo">📋 Datos de entrega</div>
-    </div>
+<div class="barra">
+<a href="{{ url_for('carrito') }}" class="volver">←</a>
+<div class="titulo">📋 Datos de entrega</div>
+</div>
 
-    <form method="POST" action="{{ url_for('finalizar_pedido') }}">
-        <div class="contenedor">
+<form method="POST" action="{{ url_for('finalizar_pedido') }}">
+<div class="contenedor">
 
-            <div class="intro">
-                Completa tus datos para finalizar el pedido. El resumen se enviará por WhatsApp.
-            </div>
+<div class="intro">
+Completa tus datos para finalizar el pedido.
+</div>
 
-            <div class="grupo">
-                <label class="label" for="nombre">👤 Nombre completo</label>
-                <input type="text" id="nombre" name="nombre" placeholder="Ej: María González" value="{{ nombre or '' }}" required>
-            </div>
+<input type="text" name="nombre" placeholder="Nombre" required>
+<input type="tel" name="telefono" placeholder="Teléfono" required>
 
-            <div class="grupo">
-                <label class="label" for="telefono">📱 Número de WhatsApp</label>
-                <input type="tel" id="telefono" name="telefono" placeholder="Ej: 6671234567" value="{{ telefono or '' }}" inputmode="numeric" required>
-                <div class="texto-ayuda">Escribe tu número para contactarte por WhatsApp.</div>
-            </div>
+<select name="tipo_entrega" required>
+<option value="domicilio">Envío a domicilio (+$40)</option>
+<option value="bodega">Recoger en bodega (Gratis)</option>
+</select>
 
-            <div class="grupo" id="grupo-direccion">
-                <label class="label" for="direccion" id="label-direccion">📍 Dirección de entrega</label>
-                <input type="text" id="direccion" name="direccion" placeholder="Ej: Calle Ángel Flores 345, Col. Centro" value="{{ direccion or '' }}" required>
-                <div class="texto-ayuda" id="ayuda-direccion">Escribe tu dirección completa para entregar tu pedido.</div>
-            </div>
+<input type="text" name="direccion" placeholder="Dirección">
 
-            <div class="grupo">
-                <label class="label" for="vendedor">🧑‍💼 Vendedor</label>
-                <select name="vendedor" id="vendedor" required>
-                    <option value="">— Selecciona un vendedor —</option>
-                    {% for vendedor in vendedores %}
-                    <option value="{{ vendedor }}" {% if vendedor_seleccionado == vendedor %}selected{% endif %}>
-                        {{ vendedor }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="grupo">
-                <label class="label">🚚 ¿Cómo quieres recibir tu pedido?</label>
-                <div class="opciones-entrega">
-
-                    <label class="opcion">
-                        <input type="radio" name="tipo_entrega" value="domicilio" {% if tipo_entrega == 'domicilio' or not tipo_entrega %}checked{% endif %} required>
-                        <div class="caja-opcion domicilio">
-                            <span class="texto-opcion">Envío a domicilio</span>
-                            <span class="precio-opcion">$40</span>
-                        </div>
-                    </label>
-
-                    <label class="opcion">
-                        <input type="radio" name="tipo_entrega" value="bodega" {% if tipo_entrega == 'bodega' %}checked{% endif %} required>
-                        <div class="caja-opcion bodega">
-                            <span class="texto-opcion">Recoger en bodega</span>
-                            <span class="precio-opcion">Gratis</span>
-                        </div>
-                    </label>
-
-                </div>
-            </div>
-
-            <div class="grupo">
-                <label class="label" for="nota">📝 Nota (opcional)</label>
-                <textarea id="nota" name="nota" placeholder="Ej: Dejar con el vecino, timbre no funciona, color preferido...">{{ nota or '' }}</textarea>
-            </div>
-
-            <div class="resumen">
-                <div class="resumen-titulo">Resumen del pedido</div>
-
-                {% for item in carrito %}
-                <div class="linea-item">
-                    <span>{{ item.nombre }} x{{ item.cantidad }}</span>
-                    <span>${{ item.subtotal }}.00</span>
-                </div>
-                {% endfor %}
-
-                <div class="fila-envio">
-                    <span>Costo de Entrega</span>
-                    <span id="texto-envio">
-                        {% if tipo_entrega == 'bodega' %}
-                            Gratis
-                        {% else %}
-                            $40.00
-                        {% endif %}
-                    </span>
-                </div>
-
-                <div class="fila-total">
-                    <span>Total</span>
-                    <span id="texto-total">
-                        {% if tipo_entrega == 'bodega' %}
-                            ${{ subtotal }}.00
-                        {% else %}
-                            ${{ subtotal + 40 }}.00
-                        {% endif %}
-                    </span>
-                </div>
-            </div>
-
-            <div class="metodo-pago">
-                <div class="titulo-pago">💵 Método de pago</div>
-                <div class="texto-pago">Efectivo contra entrega</div>
-            </div>
-
-            <div class="aviso">
-                ✅ Al presionar <strong>FINALIZAR</strong>, tu pedido quedará registrado y nos pondremos en contacto contigo.
-            </div>
-
-        </div>
-
-        <div class="pie">
-            <button class="boton" type="submit">FINALIZAR</button>
-        </div>
-    </form>
+<textarea name="nota" placeholder="Nota"></textarea>
 
 </div>
 
-<script>
-    const subtotal = {{ subtotal|default(0)|int }};
-    const costoDomicilio = 40;
+<div class="pie">
+<button class="boton" type="submit">FINALIZAR</button>
 
-    const radioDomicilio = document.querySelector('input[name="tipo_entrega"][value="domicilio"]');
-    const radioBodega = document.querySelector('input[name="tipo_entrega"][value="bodega"]');
+<!-- 🔥 MENSAJE NUEVO -->
+<div class="mensaje-final">
+📲 El repartidor te mandará WhatsApp para coordinar la entrega<br>
+💵 Pagas al recibir tu producto
+</div>
 
-    const textoEnvio = document.getElementById("texto-envio");
-    const textoTotal = document.getElementById("texto-total");
+</div>
+</form>
 
-    const grupoDireccion = document.getElementById("grupo-direccion");
-    const labelDireccion = document.getElementById("label-direccion");
-    const inputDireccion = document.getElementById("direccion");
-    const ayudaDireccion = document.getElementById("ayuda-direccion");
-
-    function actualizarVistaEntrega() {
-        if (radioBodega.checked) {
-            textoEnvio.textContent = "Gratis";
-            textoTotal.textContent = "$" + subtotal + ".00";
-
-            labelDireccion.textContent = "📍 Referencia o ubicación (opcional)";
-            inputDireccion.placeholder = "Ej: Frente al parque, pasaré por mi pedido";
-            inputDireccion.required = false;
-            ayudaDireccion.textContent = "Si recogerás en bodega, este campo puede quedar vacío.";
-        } else {
-            textoEnvio.textContent = "$40.00";
-            textoTotal.textContent = "$" + (subtotal + costoDomicilio) + ".00";
-
-            labelDireccion.textContent = "📍 Dirección de entrega";
-            inputDireccion.placeholder = "Ej: Calle Ángel Flores 345, Col. Centro";
-            inputDireccion.required = true;
-            ayudaDireccion.textContent = "Escribe tu dirección completa para entregar tu pedido.";
-        }
-    }
-
-    radioDomicilio.addEventListener("change", actualizarVistaEntrega);
-    radioBodega.addEventListener("change", actualizarVistaEntrega);
-
-    actualizarVistaEntrega();
-</script>
+</div>
 </body>
 </html>
