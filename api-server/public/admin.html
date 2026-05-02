@@ -378,6 +378,10 @@
             <button class="sec" onclick="guardarCategoria('${cat.id}')">Guardar cambios</button>
             <button class="gray" onclick="recargarTodo()">Recargar</button>
           </div>
+
+          <button class="danger" onclick="eliminarCategoria('${cat.id}')">
+            🗑 Eliminar categoría
+          </button>
         `;
 
         cont.appendChild(div);
@@ -539,6 +543,29 @@
         await cargarCategorias();
       } catch (e) {
         mostrarMensaje(e.message || "Error al guardar categoría", false);
+      }
+    }
+
+    async function eliminarCategoria(id) {
+      if (!confirm("¿Seguro que quieres eliminar esta categoría?")) return;
+
+      try {
+        const res = await fetch(`/api/categorias/${id}`, {
+          method: "DELETE",
+          headers: authHeaders()
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+          mostrarMensaje(data.error || "No se pudo eliminar la categoría", false);
+          return;
+        }
+
+        mostrarMensaje("Categoría eliminada");
+        await cargarCategorias();
+      } catch (e) {
+        mostrarMensaje("Error al eliminar categoría", false);
       }
     }
 
