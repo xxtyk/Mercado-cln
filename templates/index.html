@@ -8,146 +8,112 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#000000">
 
-<!-- META PREVIEW -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">
 <meta property="og:description" content="Entregas el mismo día y pagas al recibir.">
 <meta property="og:image" content="https://mercado-cln-1.onrender.com/IMG-20260114-WA0001.jpg">
 
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
 }
 
-/* PANTALLA NEGRA DE INICIO */
-#pantallaInicio {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  color: white;
-  z-index: 99998;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 25px;
+/* PANTALLA NEGRA */
+#pantallaInicio{
+  position:fixed;
+  inset:0;
+  background:#000;
+  color:white;
+  z-index:99998;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:25px;
 }
 
-#pantallaInicio img {
-  width: 260px;
-  max-width: 80%;
-  margin-bottom: 25px;
+#pantallaInicio img{
+  width:190px;
+  max-width:75%;
+  margin-bottom:18px;
 }
 
-#pantallaInicio h1 {
-  font-size: 34px;
-  margin: 0 0 25px;
+#pantallaInicio h1{
+  font-size:30px;
+  margin:0 0 16px;
 }
 
-.estado-app {
-  background: linear-gradient(135deg, #1d5cff, #3154c9);
-  border-radius: 30px;
-  padding: 18px 40px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #cfcfcf;
-  margin-bottom: 25px;
+#btnInstalarApp{
+  background:#007bff;
+  color:white;
+  border:none;
+  border-radius:16px;
+  padding:16px 28px;
+  font-size:22px;
+  font-weight:bold;
+  box-shadow:0 5px 14px rgba(0,0,0,.35);
 }
 
-.texto-app {
-  font-size: 24px;
-  color: #ddd;
-  margin-bottom: 35px;
-}
-
-.mensaje-confianza {
-  margin-top: 20px;
-  text-align: center;
-  color: white;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 1.4;
-}
-
-/* BOTÓN INSTALAR */
-#btnInstalarApp {
-  position: fixed;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 14px;
-  padding: 16px 28px;
-  font-size: 20px;
-  font-weight: bold;
-  z-index: 99999;
-  box-shadow: 0 5px 14px rgba(0,0,0,.35);
+.aviso{
+  margin-top:20px;
+  font-size:20px;
+  line-height:1.4;
+  color:#ddd;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<!-- PANTALLA NEGRA -->
 <div id="pantallaInicio">
   <div>
     <img src="/IMG-20260114-WA0001.jpg" alt="Mercado en Línea Culiacán">
 
-    <h1>Instala la app aquí</h1>
+    <h1>MERCADO EN LÍNEA CULIACÁN</h1>
 
-    <div class="estado-app">App instalada</div>
+    <button id="btnInstalarApp">📲 Descargar aquí<br>solo Android</button>
 
-    <div class="texto-app">Ya puedes abrirla desde tu pantalla</div>
-
-    <div class="mensaje-confianza">
-      Entrega el mismo día 🚚<br>
-      Pagas hasta tenerlo en tus manos
+    <div class="aviso">
+      Si no quieres descargar,<br>
+      espera 2 segundos y entra al catálogo.
     </div>
   </div>
 </div>
 
-<!-- TU APP (NO SE TOCA) -->
 <div id="app"></div>
-
-<!-- BOTÓN -->
-<button id="btnInstalarApp">📲 Descargar app</button>
 
 <script>
 let eventoInstalar = null;
 
-// Ocultar pantalla negra después de 5 segundos
-setTimeout(function() {
+setTimeout(function(){
   const pantalla = document.getElementById("pantallaInicio");
-  if (pantalla) {
+  if(pantalla){
     pantalla.style.display = "none";
   }
-}, 5000);
+}, 2000);
 
-// ANDROID (instalación directa)
-window.addEventListener("beforeinstallprompt", function(e) {
+window.addEventListener("beforeinstallprompt", function(e){
   e.preventDefault();
   eventoInstalar = e;
 });
 
-// CLICK BOTÓN
-document.getElementById("btnInstalarApp").addEventListener("click", async function() {
-
-  if (eventoInstalar) {
+document.getElementById("btnInstalarApp").addEventListener("click", async function(){
+  if(eventoInstalar){
     eventoInstalar.prompt();
     await eventoInstalar.userChoice;
     eventoInstalar = null;
-    return;
+  }else{
+    alert("La descarga de app es solo para Android.\n\nSi estás en iPhone, espera 2 segundos y entra al catálogo.");
   }
-
-  alert("Para instalar:\n\nToca el botón de compartir ↑\ny luego: Agregar a inicio");
 });
 
-// Cuando ya se instaló
-window.addEventListener("appinstalled", function() {
-  document.getElementById("btnInstalarApp").style.display = "none";
+window.addEventListener("appinstalled", function(){
+  const pantalla = document.getElementById("pantallaInicio");
+  if(pantalla){
+    pantalla.style.display = "none";
+  }
 });
 </script>
 
