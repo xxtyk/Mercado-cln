@@ -15,7 +15,6 @@ body{
   color:#111;
 }
 
-/* HEADER */
 .header{
   background:#000;
   color:#fff;
@@ -31,7 +30,6 @@ body{
   margin-right:10px;
 }
 
-/* IMAGEN GRANDE */
 .img-container{
   width:100%;
   height:80vh;
@@ -49,7 +47,6 @@ body{
   display:block;
 }
 
-/* INFO */
 .info{
   padding:14px;
 }
@@ -73,15 +70,47 @@ body{
   margin-bottom:14px;
 }
 
-/* BOTÓN */
-.btn{
-  width:100%;
-  padding:14px;
-  background:#25d366;
-  color:#fff;
+.cantidad{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-top:12px;
+}
+
+.cantidad button{
+  width:48px;
+  height:48px;
   border:none;
   border-radius:12px;
-  font-size:16px;
+  background:#000;
+  color:#fff;
+  font-size:28px;
+  font-weight:bold;
+}
+
+.numero{
+  min-width:60px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:12px;
+  background:#fff;
+  border:1px solid #ddd;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.carrito{
+  display:block;
+  margin-top:14px;
+  text-align:center;
+  text-decoration:none;
+  background:#000;
+  color:#fff;
+  padding:14px;
+  border-radius:12px;
   font-weight:bold;
 }
 </style>
@@ -103,21 +132,39 @@ body{
   <div class="precio" id="precio"></div>
   <div class="descripcion" id="descripcion"></div>
 
-  <button class="btn" onclick="agregar()">Agregar al carrito</button>
+  <div class="cantidad">
+    <button onclick="quitar()">-</button>
+    <div class="numero" id="cantidadProducto">0</div>
+    <button onclick="agregar()">+</button>
+  </div>
+
+  <a href="/carrito.html" class="carrito">🛒 Ver carrito</a>
 </div>
 
 <script>
+let producto = null;
+
 function obtenerCarrito(){
   return JSON.parse(localStorage.getItem("carrito") || "[]");
 }
 
 function guardarCarrito(data){
   localStorage.setItem("carrito", JSON.stringify(data));
+  actualizarCantidad();
+}
+
+function actualizarCantidad(){
+  if(!producto) return;
+
+  const carrito = obtenerCarrito();
+  const encontrado = carrito.find(p => String(p.id) === String(producto.id));
+  document.getElementById("cantidadProducto").textContent = encontrado ? encontrado.cantidad : 0;
 }
 
 function agregar(){
-  let carrito = obtenerCarrito();
+  if(!producto) return;
 
+  let carrito = obtenerCarrito();
   const existente = carrito.find(p => String(p.id) === String(producto.id));
 
   if (existente){
@@ -128,6 +175,7 @@ function agregar(){
       nombre: producto.nombre,
       precio: Number(producto.precio || 0),
       imagen: producto.imagen || producto.foto || producto.image || "",
+      descripcion: producto.descripcion || "",
       cantidad: 1
     });
   }
@@ -135,7 +183,22 @@ function agregar(){
   guardarCarrito(carrito);
 }
 
-let producto = null;
+function quitar(){
+  if(!producto) return;
+
+  let carrito = obtenerCarrito();
+  const index = carrito.findIndex(p => String(p.id) === String(producto.id));
+
+  if(index === -1) return;
+
+  carrito[index].cantidad -= 1;
+
+  if(carrito[index].cantidad <= 0){
+    carrito.splice(index, 1);
+  }
+
+  guardarCarrito(carrito);
+}
 
 async function cargarProducto(){
   const params = new URLSearchParams(window.location.search);
@@ -143,20 +206,17 @@ async function cargarProducto(){
 
   if (!id) return;
 
-  const res = await fetch("/api/productos/" + encodeURIComponent(id));
+  const res = await fetch("/api/productos/" + encodeURIComponent(id) + "?nocache=" + Date.now());
   producto = await res.json();
 
   const img = producto.imagen || producto.foto || producto.image || "";
 
-  if (img){
-    document.getElementById("imgProducto").src = img;
-  } else {
-    document.getElementById("imgProducto").src = "";
-  }
-
+  document.getElementById("imgProducto").src = img || "";
   document.getElementById("nombre").textContent = producto.nombre || "";
   document.getElementById("precio").textContent = "$" + Number(producto.precio || 0).toFixed(2);
   document.getElementById("descripcion").textContent = producto.descripcion || "";
+
+  actualizarCantidad();
 }
 
 cargarProducto();
