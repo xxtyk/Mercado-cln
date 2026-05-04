@@ -120,7 +120,7 @@ body{
     margin-bottom:8px;
 }
 
-/* FORM */
+/* CANTIDAD */
 .cantidad-box{
     display:flex;
     justify-content:center;
@@ -147,24 +147,7 @@ body{
     border:1px solid #ccc;
     border-radius:8px;
     font-size:16px;
-}
-
-.cantidad-input::-webkit-outer-spin-button,
-.cantidad-input::-webkit-inner-spin-button{
-    -webkit-appearance:none;
-    margin:0;
-}
-
-/* BOTÓN */
-.btn-agregar{
-    width:100%;
-    padding:10px;
-    border:none;
-    background:#000;
-    color:white;
-    border-radius:8px;
-    font-weight:bold;
-    font-size:14px;
+    background:#fff;
 }
 
 /* CARRITO */
@@ -214,17 +197,15 @@ body{
 
         <div class="precio">${{ '%.2f'|format(p.precio or 0) }}</div>
 
-        <form action="{{ url_for('agregar_al_carrito', id=p.id) }}" method="POST" onsubmit="return validarCantidad('c{{ p.id }}')">
-            <div class="cantidad-box">
-                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', -1)">-</button>
+        <!-- NUEVO SISTEMA -->
+        <div class="cantidad-box">
+            <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', -1)">-</button>
 
-                <input id="c{{ p.id }}" class="cantidad-input" type="number" name="cantidad" value="1" min="0">
+            <input id="c{{ p.id }}" class="cantidad-input" type="number" value="0" min="0" readonly>
 
-                <button type="button" class="cantidad-btn" onclick="cambiarCantidad('c{{ p.id }}', 1)">+</button>
-            </div>
+            <button type="button" class="cantidad-btn" onclick="agregarRapido('{{ p.id }}', 'c{{ p.id }}')">+</button>
+        </div>
 
-            <button type="submit" class="btn-agregar">Agregar</button>
-        </form>
     </div>
 </div>
 {% endfor %}
@@ -250,16 +231,24 @@ function cambiarCantidad(id, cambio){
     input.value = valor;
 }
 
-function validarCantidad(id){
-    const input = document.getElementById(id);
+function agregarRapido(productoId, inputId){
+    const input = document.getElementById(inputId);
+
     let valor = parseInt(input.value) || 0;
+    input.value = valor + 1;
 
-    if (valor <= 0){
-        alert("Selecciona mínimo 1 pieza para agregar.");
-        return false;
-    }
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "/agregar-al-carrito/" + productoId;
 
-    return true;
+    const cantidad = document.createElement("input");
+    cantidad.type = "hidden";
+    cantidad.name = "cantidad";
+    cantidad.value = 1;
+
+    form.appendChild(cantidad);
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 
