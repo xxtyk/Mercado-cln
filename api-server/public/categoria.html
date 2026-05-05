@@ -50,6 +50,7 @@ body{
   border-radius:16px;
   padding:12px;
   box-shadow:0 2px 10px rgba(0,0,0,.08);
+  text-align:center;
 }
 
 .link-producto{
@@ -90,25 +91,16 @@ body{
   font-weight:bold;
 }
 
-.desc-btn{
+.ver-btn{
   width:100%;
   border:none;
   border-radius:10px;
-  padding:10px;
-  font-size:13px;
+  padding:11px;
+  font-size:14px;
   font-weight:700;
-  background:#efefef;
-  color:#111;
+  background:#25d366;
+  color:#fff;
   margin-top:8px;
-}
-
-.desc{
-  display:none;
-  font-size:13px;
-  margin-top:8px;
-  background:#f8f8f8;
-  padding:10px;
-  border-radius:10px;
 }
 
 .cantidad{
@@ -227,12 +219,6 @@ function cambiar(id, valor){
   render();
 }
 
-function toggleDesc(id){
-  const d = document.getElementById("desc-" + id);
-  if (!d) return;
-  d.style.display = d.style.display === "block" ? "none" : "block";
-}
-
 async function cargar(){
   const cont = document.getElementById("productos");
 
@@ -287,10 +273,11 @@ function render(){
 
   productosData.forEach(p => {
     const img = p.imagen || p.foto || p.image || "";
+    const link = "/producto.html?id=" + encodeURIComponent(p.id);
 
     cont.innerHTML += `
       <div class="card">
-        <a class="link-producto" href="/producto.html?id=${encodeURIComponent(p.id)}">
+        <a class="link-producto" href="${link}">
           ${img
             ? `<img src="${img}" class="card-img" alt="${escapeHtml(p.nombre || "")}">`
             : `<div class="no-img">📦</div>`
@@ -300,8 +287,7 @@ function render(){
           <div class="precio">$${Number(p.precio || 0).toFixed(2)}</div>
         </a>
 
-        <button class="desc-btn" onclick="toggleDesc('${String(p.id)}')">Descripción</button>
-        <div id="desc-${String(p.id)}" class="desc">${escapeHtml(p.descripcion || "Sin descripción")}</div>
+        <button class="ver-btn" onclick="window.location.href='${link}'">🛒 Ver / Comprar</button>
 
         <div class="cantidad">
           <button onclick="cambiar('${String(p.id)}',-1)">-</button>
