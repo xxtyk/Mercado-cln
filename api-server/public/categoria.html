@@ -103,26 +103,31 @@ body{
   margin-top:8px;
 }
 
-.cantidad{
+/* 🔥 BOTÓN TIPO TEMU */
+.cantidad-temu{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  gap:8px;
-  margin-top:10px;
+  justify-content:center;
+  border:1px solid #ddd;
+  border-radius:12px;
+  overflow:hidden;
+  width:100%;
+  max-width:140px;
+  margin:10px auto 0;
 }
 
-.cantidad button{
-  width:35px;
-  height:35px;
-  font-size:20px;
-  border:none;
-  border-radius:10px;
-  background:#000;
-  color:#fff;
-}
-
-.cantidad-num{
+.cantidad-temu button{
   flex:1;
+  height:40px;
+  border:none;
+  background:#f5f5f5;
+  font-size:20px;
+  font-weight:bold;
+  color:#000;
+}
+
+.cantidad-temu span{
+  width:50px;
   text-align:center;
   font-size:18px;
   font-weight:bold;
@@ -279,19 +284,19 @@ function render(){
       <div class="card">
         <a class="link-producto" href="${link}">
           ${img
-            ? `<img src="${img}" class="card-img" alt="${escapeHtml(p.nombre || "")}">`
+            ? `<img src="${img}" class="card-img">`
             : `<div class="no-img">📦</div>`
           }
 
-          <div class="nombre">${escapeHtml(p.nombre || "")}</div>
+          <div class="nombre">${p.nombre}</div>
           <div class="precio">$${Number(p.precio || 0).toFixed(2)}</div>
         </a>
 
         <button class="ver-btn" onclick="window.location.href='${link}'">🛒 Ver / Comprar</button>
 
-        <div class="cantidad">
-          <button onclick="cambiar('${String(p.id)}',-1)">-</button>
-          <div class="cantidad-num">${cantidadActual(p.id)}</div>
+        <div class="cantidad-temu">
+          <button onclick="cambiar('${String(p.id)}',-1)">−</button>
+          <span>${cantidadActual(p.id)}</span>
           <button onclick="cambiar('${String(p.id)}',1)">+</button>
         </div>
       </div>
@@ -299,15 +304,6 @@ function render(){
   });
 
   actualizarCarrito();
-}
-
-function escapeHtml(valor){
-  return String(valor || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 actualizarCarrito();
