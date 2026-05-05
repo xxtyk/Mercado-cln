@@ -37,7 +37,6 @@ router.post("/pedidos", async (req, res) => {
       direccion,
       colonia,
       calle,
-      vendedor,
       nota,
       entrega,
       productos,
@@ -50,10 +49,10 @@ router.post("/pedidos", async (req, res) => {
       `
       INSERT INTO pedidos (
         id, nombre, telefono, direccion, colonia, calle,
-        vendedor, nota, entrega, subtotal, envio, total, productos
+        nota, entrega, subtotal, envio, total, productos
       ) VALUES (
         $1,$2,$3,$4,$5,$6,
-        $7,$8,$9,$10,$11,$12,$13
+        $7,$8,$9,$10,$11,$12
       )
       `,
       [
@@ -63,7 +62,6 @@ router.post("/pedidos", async (req, res) => {
         direccion || "",
         colonia || "",
         calle || "",
-        vendedor || "",
         nota || "",
         entrega || "",
         Number(subtotal || 0),
@@ -79,7 +77,7 @@ router.post("/pedidos", async (req, res) => {
         : "Recoger en bodega";
 
     const productosTexto = (productos || [])
-      .map((p: any) => `- ${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`)
+      .map((p) => `- ${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`)
       .join("\n");
 
     const direccionLineas = [
@@ -90,7 +88,9 @@ router.post("/pedidos", async (req, res) => {
 
     const direccionFinal = direccionLineas.join("\n");
 
-    const mensaje = `🛒 NUEVO PEDIDO
+    // 🔥 MENSAJE FINAL
+    const mensaje = `🛒 MERCADO EN LÍNEA CULIACÁN
+📦 NUEVO PEDIDO
 
 Nombre: ${nombre}
 ${direccionFinal}
@@ -104,7 +104,6 @@ ${productosTexto}
 Subtotal: $${subtotal}
 Envío: $${envio}
 Nota: ${nota || ""}
-Vendedor: ${vendedor || ""}
 `;
 
     const url = `${process.env.GREEN_API_HOST}/waInstance${process.env.GREEN_API_INSTANCE}/sendMessage/${process.env.GREEN_API_TOKEN}`;
