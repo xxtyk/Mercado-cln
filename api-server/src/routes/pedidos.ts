@@ -77,8 +77,11 @@ router.post("/pedidos", async (req, res) => {
         : "Recoger en bodega";
 
     const productosTexto = (productos || [])
-      .map((p) => `- ${p.nombre} x${p.cantidad} = $${p.precio * p.cantidad}`)
-      .join("\n");
+      .map((p) => `🟢━━━━━━━━━━━━
+${p.nombre}
+Cantidad: x${p.cantidad}
+Importe: $${Number(p.precio || 0) * Number(p.cantidad || 0)}`)
+      .join("\n\n");
 
     const direccionLineas = [
       colonia ? `Colonia: ${colonia}` : "",
@@ -88,22 +91,27 @@ router.post("/pedidos", async (req, res) => {
 
     const direccionFinal = direccionLineas.join("\n");
 
-    // 🔥 MENSAJE FINAL
     const mensaje = `🛒 MERCADO EN LÍNEA CULIACÁN
 📦 NUEVO PEDIDO
 
-Nombre: ${nombre}
+👤 Nombre: ${nombre}
 ${direccionFinal}
-Celular: ${telefono}
-Entrega: ${textoEntrega}
-Cobrar: $${total}
+📱 Celular: ${telefono}
 
-Producto(s):
+🚚 Entrega: ${textoEntrega}
+💵 Cobrar: $${total}
+
+🛍 PRODUCTOS:
+
 ${productosTexto}
 
-Subtotal: $${subtotal}
-Envío: $${envio}
-Nota: ${nota || ""}
+🟢━━━━━━━━━━━━
+
+💰 Subtotal: $${subtotal}
+🚚 Envío: $${envio}
+💵 Total: $${total}
+
+📝 Nota: ${nota || "Sin nota"}
 `;
 
     const url = `${process.env.GREEN_API_HOST}/waInstance${process.env.GREEN_API_INSTANCE}/sendMessage/${process.env.GREEN_API_TOKEN}`;
