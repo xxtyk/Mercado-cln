@@ -77,11 +77,11 @@ router.post("/pedidos", async (req, res) => {
         : "Recoger en bodega";
 
     const productosTexto = (productos || [])
-      .map((p) => `🟢━━━━━━━━━━━━
-${p.nombre}
-Cantidad: x${p.cantidad}
-Importe: $${Number(p.precio || 0) * Number(p.cantidad || 0)}`)
-      .join("\n\n");
+      .map((p) => `───────────────
+• ${p.nombre}
+  Cantidad: x${p.cantidad}
+  Importe: $${Number(p.precio || 0) * Number(p.cantidad || 0)}`)
+      .join("\n");
 
     const direccionLineas = [
       colonia ? `Colonia: ${colonia}` : "",
@@ -92,20 +92,15 @@ Importe: $${Number(p.precio || 0) * Number(p.cantidad || 0)}`)
     const direccionFinal = direccionLineas.join("\n");
 
     const mensaje = `🛒 MERCADO EN LÍNEA CULIACÁN
-📦 NUEVO PEDIDO
 
 👤 Nombre: ${nombre}
 ${direccionFinal}
 📱 Celular: ${telefono}
-
 🚚 Entrega: ${textoEntrega}
-💵 Cobrar: $${total}
 
 🛍 PRODUCTOS:
-
 ${productosTexto}
-
-🟢━━━━━━━━━━━━
+───────────────
 
 💰 Subtotal: $${subtotal}
 🚚 Envío: $${envio}
