@@ -101,12 +101,10 @@ button{
 
 <label>Tipo de entrega</label>
 <select id="tipoEntrega">
+  <option value="">Selecciona una opción</option>
   <option value="bodega">Recoger en bodega - $0</option>
   <option value="domicilio">Servicio a domicilio - $40</option>
 </select>
-
-<label>Vendedor</label>
-<select id="vendedor"></select>
 
 <textarea id="nota" placeholder="Nota"></textarea>
 
@@ -114,7 +112,7 @@ button{
 
 <button onclick="finalizar()">FINALIZAR PEDIDO</button>
 
-<!-- 🔥 MENSAJE DE CONFIANZA -->
+<!-- MENSAJE DE CONFIANZA -->
 <div style="
   margin-top:12px;
   text-align:center;
@@ -143,13 +141,16 @@ function guardar(data){
 
 function calcularEnvio(){
   const tipo = document.getElementById("tipoEntrega").value;
-  return tipo === "domicilio" ? 40 : 0;
+  if(tipo === "domicilio") return 40;
+  if(tipo === "bodega") return 0;
+  return 0;
 }
 
 function textoEntrega(){
-  return document.getElementById("tipoEntrega").value === "domicilio"
-    ? "Servicio a domicilio"
-    : "Recoger en bodega";
+  const tipo = document.getElementById("tipoEntrega").value;
+  if(tipo === "domicilio") return "Servicio a domicilio";
+  if(tipo === "bodega") return "Recoger en bodega";
+  return "";
 }
 
 function cargar(){
@@ -183,22 +184,10 @@ function eliminar(i){
   cargar();
 }
 
-async function cargarVendedores(){
-  const res = await fetch("/api/vendedores");
-  const data = await res.json();
-  const select = document.getElementById("vendedor");
-
-  select.innerHTML = `<option value="">Selecciona vendedor</option>`;
-  data.forEach(v=>{
-    select.innerHTML += `<option value="${v.nombre}">${v.nombre}</option>`;
-  });
-}
-
 async function finalizar(){
   const nombre = document.getElementById("nombre").value.trim();
   const telefono = document.getElementById("telefono").value.trim();
   const direccion = document.getElementById("direccion").value.trim();
-  const vendedor = document.getElementById("vendedor").value.trim();
   const nota = document.getElementById("nota").value.trim();
   const tipo = document.getElementById("tipoEntrega").value;
 
@@ -221,8 +210,8 @@ async function finalizar(){
     return;
   }
 
-  if (!vendedor) {
-    alert("Selecciona un vendedor");
+  if (!tipo) {
+    alert("Elige tipo de entrega para continuar");
     return;
   }
 
@@ -235,7 +224,6 @@ async function finalizar(){
     nombre,
     telefono,
     direccion,
-    vendedor,
     nota,
     entrega: textoEntrega(),
     productos: carrito,
@@ -257,7 +245,6 @@ async function finalizar(){
 document.getElementById("tipoEntrega").addEventListener("change", cargar);
 
 cargar();
-cargarVendedores();
 </script>
 
 </body>
