@@ -66,14 +66,17 @@ body{
 .btn-carrito{
   position:fixed;
   right:16px;
-  bottom:90px;
+  bottom:20px;
+  width:64px;
+  height:64px;
   background:#18d85b;
   color:#fff;
   text-decoration:none;
-  padding:14px 18px;
-  border-radius:999px;
-  font-size:20px;
-  font-weight:bold;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
   z-index:999;
   box-shadow:0 6px 18px rgba(0,0,0,.30);
 }
@@ -135,19 +138,53 @@ body{
   margin:10px 0;
 }
 
-.azul{background:#1976ff;color:#fff}
-.blanco{background:#fff;color:#000}
-.gris{background:#222;color:#fff;border:1px solid #555}
+.azul{
+  background:#1976ff;
+  color:#fff;
+}
+
+.blanco{
+  background:#fff;
+  color:#000;
+}
+
+.gris{
+  background:#222;
+  color:#fff;
+  border:1px solid #555;
+}
 
 @media(max-width:430px){
-  .contenedor{padding:14px}
-  .grid{gap:14px}
-  .card img{height:185px}
-  .nombre{font-size:18px}
 
-  #splash{padding:20px}
-  .splash-box{transform:translateY(-20px)}
-  .splash-logo{width:230px;margin-bottom:28px}
+  .contenedor{
+    padding:14px;
+  }
+
+  .grid{
+    gap:14px;
+  }
+
+  .card img{
+    height:185px;
+  }
+
+  .nombre{
+    font-size:18px;
+  }
+
+  #splash{
+    padding:20px;
+  }
+
+  .splash-box{
+    transform:translateY(-20px);
+  }
+
+  .splash-logo{
+    width:230px;
+    margin-bottom:28px;
+  }
+
 }
 </style>
 </head>
@@ -159,7 +196,7 @@ body{
 
     <img
       class="splash-logo"
-      src="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png"
+      src="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png?v=10"
       alt="Mercado en Línea Culiacán"
     >
 
@@ -193,7 +230,7 @@ body{
 </div>
 
 <a class="btn-carrito" href="/carrito.html">
-  🛒 Ver carrito
+  🛒
 </a>
 
 <script>
@@ -206,6 +243,7 @@ window.addEventListener("beforeinstallprompt", (e) => {
 
 function cerrarSplash(){
   const splash = document.getElementById("splash");
+
   if(!splash) return;
 
   splash.style.transition = "opacity .5s ease";
@@ -218,20 +256,29 @@ function cerrarSplash(){
 }
 
 window.addEventListener("load", () => {
+
   const btnInstalar = document.getElementById("btnInstalar");
   const btnEntrar = document.getElementById("btnEntrar");
   const btnIphone = document.getElementById("btnIphone");
 
-  if(btnEntrar) btnEntrar.onclick = cerrarSplash;
-  if(btnIphone) btnIphone.onclick = cerrarSplash;
+  if(btnEntrar){
+    btnEntrar.onclick = cerrarSplash;
+  }
+
+  if(btnIphone){
+    btnIphone.onclick = cerrarSplash;
+  }
 
   if(btnInstalar){
+
     btnInstalar.onclick = async () => {
+
       if(deferredPrompt){
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
         deferredPrompt = null;
       }
+
       cerrarSplash();
     };
   }
@@ -239,36 +286,71 @@ window.addEventListener("load", () => {
   setTimeout(() => {
     cerrarSplash();
   }, 10000);
+
 });
 </script>
 
 <script>
 async function cargarCategorias(){
+
   const cont = document.getElementById("categorias");
 
   try{
+
     const res = await fetch("/api/categorias?nocache=" + Date.now());
+
     const categorias = await res.json();
 
     if(!Array.isArray(categorias) || categorias.length === 0){
-      cont.innerHTML = `<div class="vacio">No hay categorías disponibles.</div>`;
+
+      cont.innerHTML = `
+        <div class="vacio">
+          No hay categorías disponibles.
+        </div>
+      `;
+
       return;
     }
 
     cont.innerHTML = categorias.map(c => {
-      const nombre = c.nombre || "Categoría";
-      const imagen = c.imagen || c.foto || c.image || "/img/no-image.png";
+
+      const nombre =
+        c.nombre || "Categoría";
+
+      const imagen =
+        c.imagen ||
+        c.foto ||
+        c.image ||
+        "/img/no-image.png";
 
       return `
-        <a class="card" href="categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}">
-          <img src="${imagen}" alt="${nombre}" onerror="this.src='/img/no-image.png'">
-          <div class="nombre">${nombre}</div>
+        <a
+          class="card"
+          href="categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}"
+        >
+
+          <img
+            src="${imagen}"
+            alt="${nombre}"
+            onerror="this.src='/img/no-image.png'"
+          >
+
+          <div class="nombre">
+            ${nombre}
+          </div>
+
         </a>
       `;
+
     }).join("");
 
   }catch(e){
-    cont.innerHTML = `<div class="vacio">No se pudieron cargar las categorías.</div>`;
+
+    cont.innerHTML = `
+      <div class="vacio">
+        No se pudieron cargar las categorías.
+      </div>
+    `;
   }
 }
 
