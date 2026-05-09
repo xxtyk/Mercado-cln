@@ -95,10 +95,10 @@ body{
   color:#fff;
   z-index:99999;
   display:flex;
-  align-items:center;
+  align-items:flex-start;
   justify-content:center;
   text-align:center;
-  padding:20px;
+  padding:55px 20px 20px;
 }
 
 .splash-box{
@@ -107,10 +107,11 @@ body{
 }
 
 .splash-logo{
-  width:170px;
-  max-width:70%;
+  width:260px;
+  max-width:95%;
   border-radius:18px;
-  margin-bottom:18px;
+  margin:0 auto 42px;
+  display:block;
 }
 
 .splash-title{
@@ -169,6 +170,15 @@ body{
     font-size:18px;
   }
 
+  #splash{
+    padding-top:55px;
+  }
+
+  .splash-logo{
+    width:260px;
+    margin-bottom:42px;
+  }
+
 }
 </style>
 </head>
@@ -190,20 +200,20 @@ body{
 
     <div class="splash-text">
       Puedes comprar sin descargar la app.<br>
-      Si deseas instalarla toca el botón azul.<br><br>
-      <b>Solo Android</b>
+      En Android puedes instalarla.<br>
+      En iPhone no se descarga.
     </div>
 
     <button id="btnInstalar" class="splash-btn azul">
-      Android: descargar aplicación
+      Descargar solo Android
     </button>
 
-    <button id="btnEntrar" class="splash-btn blanco">
-      Entrar sin descargar
+    <button id="btnIphone" class="splash-btn blanco">
+      iPhone: no se descarga
     </button>
 
-    <button id="btnCatalogo" class="splash-btn gris">
-      Ver catálogo
+    <button id="btnEntrar" class="splash-btn gris">
+      Comprar sin descargar
     </button>
 
   </div>
@@ -244,14 +254,14 @@ window.addEventListener("load", () => {
 
   const btnInstalar = document.getElementById("btnInstalar");
   const btnEntrar = document.getElementById("btnEntrar");
-  const btnCatalogo = document.getElementById("btnCatalogo");
+  const btnIphone = document.getElementById("btnIphone");
 
   if(btnEntrar){
     btnEntrar.onclick = cerrarSplash;
   }
 
-  if(btnCatalogo){
-    btnCatalogo.onclick = cerrarSplash;
+  if(btnIphone){
+    btnIphone.onclick = cerrarSplash;
   }
 
   if(btnInstalar){
