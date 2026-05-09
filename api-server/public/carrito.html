@@ -1,27 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrito</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+.barra{
+  background:#000;
+  color:#fff;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:sticky;
+  top:0;
+}
+
+.volver{
+  position:absolute;
+  left:14px;
+  color:#fff;
+  text-decoration:none;
+  font-size:28px;
+}
+
+.contenedor{
+  padding:12px;
+}
+
+.item{
+  background:#fff;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:14px;
+}
+
+.total{
+  font-size:22px;
+  font-weight:bold;
+  background:#fff;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:12px;
+}
+
+.bloque{
+  background:#fff;
+  padding:14px;
+  margin-bottom:12px;
+  border-radius:14px;
+}
+
+input, textarea, select{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  margin-top:8px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  background:#18c10f;
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="barra">
+  <a class="volver" href="/">←</a>
+  <div>🛒 Carrito</div>
+</div>
+
+<div class="contenedor">
+
+<div id="lista"></div>
+
+<div class="total" id="total"></div>
+
+<div class="bloque">
+
+<input id="nombre" placeholder="Nombre">
+
+<input id="telefono" placeholder="Teléfono">
+
+<input id="direccion" placeholder="Dirección">
+
+<label>Tipo de entrega</label>
+
+<select id="tipoEntrega">
+  <option value="">Selecciona una opción</option>
+  <option value="bodega">
+    Recoger en bodega - $0
+  </option>
+  <option value="domicilio">
+    Servicio a domicilio - $40
+  </option>
+</select>
+
+<textarea id="nota" placeholder="Nota"></textarea>
+
+</div>
+
+<button onclick="finalizar()">
+  FINALIZAR PEDIDO
+</button>
+
+<div style="
+  margin-top:12px;
+  text-align:center;
+  font-size:17px;
+  font-weight:bold;
+  line-height:1.4;
+  color:#1b5e20;
+  background:#e8f5e9;
+  padding:14px;
+  border-radius:12px;
+">
+  📲 El repartidor te mandará WhatsApp para ponerse de acuerdo con la entrega
+  <br><br>
+  💵 Pagas al recibir tu producto
+</div>
+
+</div>
+
 <script>
 
 function obtener(){
-  return JSON.parse(localStorage.getItem("carrito") || "[]");
+  return JSON.parse(
+    localStorage.getItem("carrito") || "[]"
+  );
 }
 
 function guardar(data){
-  localStorage.setItem("carrito", JSON.stringify(data));
+  localStorage.setItem(
+    "carrito",
+    JSON.stringify(data)
+  );
 }
 
 function calcularEnvio(){
-  const tipo = document.getElementById("tipoEntrega").value;
 
-  if(tipo === "domicilio") return 40;
-  if(tipo === "bodega") return 0;
+  const tipo =
+    document.getElementById("tipoEntrega").value;
+
+  if(tipo === "domicilio"){
+    return 40;
+  }
+
+  if(tipo === "bodega"){
+    return 0;
+  }
 
   return 0;
 }
 
 function textoEntrega(){
-  const tipo = document.getElementById("tipoEntrega").value;
 
-  if(tipo === "domicilio") return "Servicio a domicilio";
-  if(tipo === "bodega") return "Recoger en bodega";
+  const tipo =
+    document.getElementById("tipoEntrega").value;
+
+  if(tipo === "domicilio"){
+    return "Servicio a domicilio";
+  }
+
+  if(tipo === "bodega"){
+    return "Recoger en bodega";
+  }
 
   return "";
 }
@@ -30,7 +191,8 @@ function cargar(){
 
   const carrito = obtener();
 
-  const cont = document.getElementById("lista");
+  const cont =
+    document.getElementById("lista");
 
   let total = 0;
 
@@ -38,19 +200,26 @@ function cargar(){
 
   carrito.forEach((p,i)=>{
 
-    const subtotal = p.precio * p.cantidad;
+    const subtotal =
+      p.precio * p.cantidad;
 
     total += subtotal;
 
     cont.innerHTML += `
       <div class="item">
-        ${p.nombre}<br><br>
 
-        $${p.precio} x ${p.cantidad}<br><br>
+        <b>${p.nombre}</b>
+
+        <br><br>
+
+        $${p.precio} x ${p.cantidad}
+
+        <br><br>
 
         <button onclick="eliminar(${i})">
           Eliminar
         </button>
+
       </div>
     `;
   });
@@ -72,15 +241,29 @@ function eliminar(i){
 
 async function finalizar(){
 
-  const nombre = document.getElementById("nombre").value.trim();
+  const nombre =
+    document.getElementById("nombre")
+    .value
+    .trim();
 
-  const telefono = document.getElementById("telefono").value.trim();
+  const telefono =
+    document.getElementById("telefono")
+    .value
+    .trim();
 
-  const direccion = document.getElementById("direccion").value.trim();
+  const direccion =
+    document.getElementById("direccion")
+    .value
+    .trim();
 
-  const nota = document.getElementById("nota").value.trim();
+  const nota =
+    document.getElementById("nota")
+    .value
+    .trim();
 
-  const tipo = document.getElementById("tipoEntrega").value;
+  const tipo =
+    document.getElementById("tipoEntrega")
+    .value;
 
   const carrito = obtener();
 
@@ -111,8 +294,14 @@ async function finalizar(){
     return;
   }
 
-  if(tipo === "domicilio" && !direccion){
-    alert("Escribe la dirección");
+  if(
+    tipo === "domicilio"
+    &&
+    !direccion
+  ){
+    alert(
+      "Escribe la dirección para servicio a domicilio"
+    );
     return;
   }
 
@@ -149,8 +338,7 @@ document
 
 cargar();
 
-window.addEventListener("beforeunload", () => {
-  localStorage.removeItem("carrito");
-});
-
 </script>
+
+</body>
+</html>
