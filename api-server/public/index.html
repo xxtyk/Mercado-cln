@@ -266,7 +266,7 @@ async function cargarCategorias(){
       const emoji = c.emoji || "";
 
       return `
-        <a class="card" href="/categoria.html?id=${encodeURIComponent(c.id)}">
+        <a class="card" href="/categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}">
           <img src="${imagen}" alt="${nombre}" onerror="this.src='/img/no-image.png'">
           <div class="nombre">${emoji} ${nombre}</div>
         </a>
@@ -281,7 +281,15 @@ async function cargarCategorias(){
 cargarCategorias();
 
 if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(reg=>reg.unregister());
+  });
+
+  if(window.caches){
+    caches.keys().then(keys=>{
+      keys.forEach(key=>caches.delete(key));
+    });
+  }
 }
 </script>
 
