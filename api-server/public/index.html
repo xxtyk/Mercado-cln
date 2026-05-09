@@ -352,9 +352,7 @@ async function cargarCategorias(){
         c.nombre || "Categoría";
 
       const slug =
-        c.slug ||
-        c.id ||
-        nombre.toLowerCase().replaceAll(" ","-");
+        c.nombre || nombre;
 
       const imagen =
         c.imagen ||
