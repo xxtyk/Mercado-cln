@@ -135,15 +135,40 @@ body{
   margin:10px 0;
 }
 
-.azul{background:#1976ff;color:#fff}
-.blanco{background:#fff;color:#000}
-.gris{background:#222;color:#fff;border:1px solid #555}
+.azul{
+  background:#1976ff;
+  color:#fff;
+}
+
+.blanco{
+  background:#fff;
+  color:#000;
+}
+
+.gris{
+  background:#222;
+  color:#fff;
+  border:1px solid #555;
+}
 
 @media(max-width:430px){
-  .contenedor{padding:14px}
-  .grid{gap:14px}
-  .card img{height:185px}
-  .nombre{font-size:18px}
+
+  .contenedor{
+    padding:14px;
+  }
+
+  .grid{
+    gap:14px;
+  }
+
+  .card img{
+    height:185px;
+  }
+
+  .nombre{
+    font-size:18px;
+  }
+
 }
 </style>
 </head>
@@ -159,7 +184,9 @@ body{
       alt="Mercado en Línea Culiacán"
     >
 
-    <div class="splash-title">Mercado en Línea Culiacán</div>
+    <div class="splash-title">
+      Mercado en Línea Culiacán
+    </div>
 
     <div class="splash-text">
       Puedes comprar sin descargar la app.<br>
@@ -199,7 +226,9 @@ window.addEventListener("beforeinstallprompt", (e) => {
 });
 
 function cerrarSplash(){
+
   const splash = document.getElementById("splash");
+
   if(!splash) return;
 
   splash.style.transition = "opacity .5s ease";
@@ -217,8 +246,13 @@ window.addEventListener("load", () => {
   const btnEntrar = document.getElementById("btnEntrar");
   const btnCatalogo = document.getElementById("btnCatalogo");
 
-  if(btnEntrar) btnEntrar.onclick = cerrarSplash;
-  if(btnCatalogo) btnCatalogo.onclick = cerrarSplash;
+  if(btnEntrar){
+    btnEntrar.onclick = cerrarSplash;
+  }
+
+  if(btnCatalogo){
+    btnCatalogo.onclick = cerrarSplash;
+  }
 
   if(btnInstalar){
 
@@ -233,6 +267,11 @@ window.addEventListener("load", () => {
       cerrarSplash();
     };
   }
+
+  setTimeout(() => {
+    cerrarSplash();
+  }, 10000);
+
 });
 </script>
 
@@ -305,7 +344,7 @@ async function cargarCategorias(){
 
 cargarCategorias();
 
-if("serviceWorker" in navigator"){
+if("serviceWorker" in navigator){
   navigator.serviceWorker.getRegistrations().then(regs=>{
     regs.forEach(reg=>reg.unregister());
   });
