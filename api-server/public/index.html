@@ -25,19 +25,9 @@ body{
   padding-bottom:90px;
 }
 
-.header{
-  background:#000;
-  color:#fff;
-  text-align:center;
-  font-size:34px;
-  font-weight:bold;
-  padding:26px 10px;
-  position:sticky;
-  top:0;
-  z-index:100;
+.contenedor{
+  padding:18px;
 }
-
-.contenedor{padding:18px}
 
 .grid{
   display:grid;
@@ -150,7 +140,6 @@ body{
 .gris{background:#222;color:#fff;border:1px solid #555}
 
 @media(max-width:430px){
-  .header{font-size:30px}
   .contenedor{padding:14px}
   .grid{gap:14px}
   .card img{height:185px}
@@ -193,10 +182,6 @@ body{
   </div>
 </div>
 
-<div class="header">
-  Mercado en Línea Culiacán
-</div>
-
 <div class="contenedor">
   <div id="categorias" class="grid"></div>
 </div>
@@ -227,6 +212,7 @@ function cerrarSplash(){
 }
 
 window.addEventListener("load", () => {
+
   const btnInstalar = document.getElementById("btnInstalar");
   const btnEntrar = document.getElementById("btnEntrar");
   const btnCatalogo = document.getElementById("btnCatalogo");
@@ -235,12 +221,15 @@ window.addEventListener("load", () => {
   if(btnCatalogo) btnCatalogo.onclick = cerrarSplash;
 
   if(btnInstalar){
+
     btnInstalar.onclick = async () => {
+
       if(deferredPrompt){
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
         deferredPrompt = null;
       }
+
       cerrarSplash();
     };
   }
@@ -249,38 +238,74 @@ window.addEventListener("load", () => {
 
 <script>
 async function cargarCategorias(){
+
   const cont = document.getElementById("categorias");
 
   try{
+
     const res = await fetch("/api/categorias?nocache=" + Date.now());
+
     const categorias = await res.json();
 
     if(!Array.isArray(categorias) || categorias.length === 0){
-      cont.innerHTML = `<div class="vacio">No hay categorías disponibles.</div>`;
+
+      cont.innerHTML = `
+        <div class="vacio">
+          No hay categorías disponibles.
+        </div>
+      `;
+
       return;
     }
 
     cont.innerHTML = categorias.map(c => {
-      const nombre = c.nombre || "Categoría";
-      const imagen = c.imagen || c.foto || c.image || "/img/no-image.png";
-      const emoji = c.emoji || "";
+
+      const nombre =
+        c.nombre || "Categoría";
+
+      const imagen =
+        c.imagen ||
+        c.foto ||
+        c.image ||
+        "/img/no-image.png";
+
+      const emoji =
+        c.emoji || "";
 
       return `
-        <a class="card" href="/categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}">
-          <img src="${imagen}" alt="${nombre}" onerror="this.src='/img/no-image.png'">
-          <div class="nombre">${emoji} ${nombre}</div>
+        <a
+          class="card"
+          href="categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}"
+        >
+
+          <img
+            src="${imagen}"
+            alt="${nombre}"
+            onerror="this.src='/img/no-image.png'"
+          >
+
+          <div class="nombre">
+            ${emoji} ${nombre}
+          </div>
+
         </a>
       `;
+
     }).join("");
 
   }catch(e){
-    cont.innerHTML = `<div class="vacio">No se pudieron cargar las categorías.</div>`;
+
+    cont.innerHTML = `
+      <div class="vacio">
+        No se pudieron cargar las categorías.
+      </div>
+    `;
   }
 }
 
 cargarCategorias();
 
-if("serviceWorker" in navigator){
+if("serviceWorker" in navigator"){
   navigator.serviceWorker.getRegistrations().then(regs=>{
     regs.forEach(reg=>reg.unregister());
   });
