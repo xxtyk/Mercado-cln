@@ -308,9 +308,6 @@ async function cargarCategorias(){
         c.image ||
         "/img/no-image.png";
 
-      const emoji =
-        c.emoji || "";
-
       return `
         <a
           class="card"
@@ -324,7 +321,7 @@ async function cargarCategorias(){
           >
 
           <div class="nombre">
-            ${emoji} ${nombre}
+            ${nombre}
           </div>
 
         </a>
