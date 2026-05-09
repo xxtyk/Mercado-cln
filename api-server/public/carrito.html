@@ -112,7 +112,6 @@ button{
 
 <button onclick="finalizar()">FINALIZAR PEDIDO</button>
 
-<!-- MENSAJE DE CONFIANZA -->
 <div style="
   margin-top:12px;
   text-align:center;
@@ -131,44 +130,58 @@ button{
 </div>
 
 <script>
+
 function obtener(){
-  return JSON.parse(localStorage.getItem("carrito") || "[]");
+  return JSON.parse(sessionStorage.getItem("carrito") || "[]");
 }
 
 function guardar(data){
-  localStorage.setItem("carrito", JSON.stringify(data));
+  sessionStorage.setItem("carrito", JSON.stringify(data));
 }
 
 function calcularEnvio(){
   const tipo = document.getElementById("tipoEntrega").value;
+
   if(tipo === "domicilio") return 40;
   if(tipo === "bodega") return 0;
+
   return 0;
 }
 
 function textoEntrega(){
   const tipo = document.getElementById("tipoEntrega").value;
+
   if(tipo === "domicilio") return "Servicio a domicilio";
   if(tipo === "bodega") return "Recoger en bodega";
+
   return "";
 }
 
 function cargar(){
+
   const carrito = obtener();
+
   const cont = document.getElementById("lista");
 
   let total = 0;
+
   cont.innerHTML = "";
 
   carrito.forEach((p,i)=>{
+
     const subtotal = p.precio * p.cantidad;
+
     total += subtotal;
 
     cont.innerHTML += `
       <div class="item">
-        ${p.nombre}<br>
-        $${p.precio} x ${p.cantidad}<br>
-        <button onclick="eliminar(${i})">Eliminar</button>
+        ${p.nombre}<br><br>
+
+        $${p.precio} x ${p.cantidad}<br><br>
+
+        <button onclick="eliminar(${i})">
+          Eliminar
+        </button>
       </div>
     `;
   });
@@ -178,45 +191,59 @@ function cargar(){
 }
 
 function eliminar(i){
+
   let carrito = obtener();
+
   carrito.splice(i,1);
+
   guardar(carrito);
+
   cargar();
 }
 
 async function finalizar(){
+
   const nombre = document.getElementById("nombre").value.trim();
+
   const telefono = document.getElementById("telefono").value.trim();
+
   const direccion = document.getElementById("direccion").value.trim();
+
   const nota = document.getElementById("nota").value.trim();
+
   const tipo = document.getElementById("tipoEntrega").value;
 
   const carrito = obtener();
-  const envio = calcularEnvio();
-  const subtotal = carrito.reduce((s,p)=>s+(p.precio*p.cantidad),0);
 
-  if (carrito.length === 0) {
+  const envio = calcularEnvio();
+
+  const subtotal = carrito.reduce(
+    (s,p)=>s+(p.precio*p.cantidad),
+    0
+  );
+
+  if(carrito.length === 0){
     alert("Tu carrito está vacío");
     return;
   }
 
-  if (!nombre) {
+  if(!nombre){
     alert("Escribe tu nombre");
     return;
   }
 
-  if (!telefono) {
+  if(!telefono){
     alert("Escribe tu teléfono");
     return;
   }
 
-  if (!tipo) {
+  if(!tipo){
     alert("Elige tipo de entrega para continuar");
     return;
   }
 
-  if (tipo === "domicilio" && !direccion) {
-    alert("Escribe la dirección para servicio a domicilio");
+  if(tipo === "domicilio" && !direccion){
+    alert("Escribe la dirección");
     return;
   }
 
@@ -234,17 +261,25 @@ async function finalizar(){
 
   await fetch("/api/pedidos",{
     method:"POST",
-    headers:{ "Content-Type":"application/json"},
+    headers:{
+      "Content-Type":"application/json"
+    },
     body: JSON.stringify(pedido)
   });
 
-  localStorage.removeItem("carrito");
+  sessionStorage.removeItem("carrito");
+
+  alert("Pedido enviado");
+
   window.location="/";
 }
 
-document.getElementById("tipoEntrega").addEventListener("change", cargar);
+document
+.getElementById("tipoEntrega")
+.addEventListener("change", cargar);
 
 cargar();
+
 </script>
 
 </body>
