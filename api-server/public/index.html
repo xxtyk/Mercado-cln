@@ -1,23 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mercado en Línea Culiacán</title>
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">
+<meta property="og:description" content="Haz tu pedido aquí para que el repartidor te lo entregue. Entregas el mismo día y pagas al recibir.">
+<meta property="og:url" content="https://mercado-cln-1.onrender.com/">
+<meta property="og:image" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
+<meta property="og:image:secure_url" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  color:#111;
+  overflow:auto;
+  padding-bottom:80px;
+}
+
+.header{
+  background:#000;
+  color:#fff;
+  padding:18px 14px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.subheader{
+  background:#fff;
+  margin:12px;
+  padding:14px;
+  border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.10);
+  text-align:center;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.contenedor{
+  padding:12px;
+}
+
+h2{
+  margin:14px 0 10px;
+  font-size:22px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,.12);
+  text-decoration:none;
+  color:#111;
+  display:block;
+}
+
+.card img{
+  width:100%;
+  height:135px;
+  object-fit:cover;
+  background:#eee;
+  display:block;
+}
+
+.card .info{
+  padding:10px;
+}
+
+.card .nombre{
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.card .precio{
+  font-size:18px;
+  font-weight:bold;
+  color:#0a7a28;
+}
+
+.btn-carrito{
+  position:fixed;
+  bottom:14px;
+  left:14px;
+  right:14px;
+  background:#000;
+  color:#fff;
+  text-align:center;
+  padding:16px;
+  border-radius:18px;
+  text-decoration:none;
+  font-size:20px;
+  font-weight:bold;
+  z-index:20;
+}
+
+.vacio{
+  background:#fff;
+  padding:18px;
+  border-radius:16px;
+  text-align:center;
+  color:#555;
+}
+
+#splash{
+  position:fixed;
+  inset:0;
+  background:#000;
+  color:#fff;
+  z-index:9999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+}
+
+.splash-box{
+  max-width:380px;
+  width:100%;
+}
+
+.splash-logo{
+  width:210px;
+  max-width:85%;
+  margin-bottom:16px;
+  border-radius:18px;
+}
+
+.splash-title{
+  font-size:25px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.splash-text{
+  font-size:17px;
+  line-height:1.35;
+  margin-bottom:16px;
+}
+
+.splash-btn{
+  display:block;
+  width:100%;
+  border:none;
+  border-radius:16px;
+  padding:15px;
+  margin:10px 0;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.azul{
+  background:#1976ff;
+  color:#fff;
+}
+
+.blanco{
+  background:#fff;
+  color:#000;
+}
+
+.gris{
+  background:#222;
+  color:#fff;
+  border:1px solid #555;
+}
+
+.contador{
+  margin-top:12px;
+  font-size:14px;
+  color:#ddd;
+}
+
+@media(max-width:360px){
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div id="splash">
+  <div class="splash-box">
+    <img class="splash-logo" src="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png" alt="Mercado en Línea Culiacán">
+
+    <div class="splash-title">Mercado en Línea Culiacán</div>
+
+    <div class="splash-text">
+      Puedes comprar sin descargar la app.<br>
+      Si quieres instalarla, toca el botón azul.<br>
+      <b>Solo Android</b>
+    </div>
+
+    <button id="btnInstalar" class="splash-btn azul">Android: descargar aplicación</button>
+    <button id="btnEntrar" class="splash-btn blanco">Entrar sin descargar</button>
+    <button id="btnCatalogo" class="splash-btn gris">Ver catálogo</button>
+
+    <div class="contador" id="contador">Entrando automáticamente en 13 segundos...</div>
+  </div>
+</div>
+
+<div class="header">
+  Mercado en Línea Culiacán
+</div>
+
+<div class="subheader">
+  🚚 Entregas el mismo día en Culiacán<br>
+  💵 Pagas al recibir tu producto
+</div>
+
+<div class="contenedor">
+  <h2>Categorías</h2>
+  <div id="categorias" class="grid"></div>
+
+  <h2>Productos</h2>
+  <div id="productos" class="grid"></div>
+</div>
+
+<a class="btn-carrito" href="/carrito.html">🛒 Ver carrito</a>
+
 <script>
-window.addEventListener("load", () => {
+let deferredPrompt = null;
 
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+function cerrarSplash(){
   const splash = document.getElementById("splash");
+  if(!splash) return;
 
-  if(splash){
+  document.body.style.overflow = "auto";
+  splash.style.transition = "opacity .5s ease";
+  splash.style.opacity = "0";
+  splash.style.pointerEvents = "none";
 
-    splash.style.transition = "opacity .5s ease";
+  setTimeout(() => {
+    splash.remove();
+  }, 500);
+}
 
-    setTimeout(() => {
+window.addEventListener("load", () => {
+  document.body.style.overflow = "auto";
 
-      splash.style.opacity = "0";
+  const btnInstalar = document.getElementById("btnInstalar");
+  const btnEntrar = document.getElementById("btnEntrar");
+  const btnCatalogo = document.getElementById("btnCatalogo");
+  const contador = document.getElementById("contador");
 
-      setTimeout(() => {
-        splash.style.display = "none";
-      }, 500);
+  if(btnEntrar) btnEntrar.onclick = cerrarSplash;
+  if(btnCatalogo) btnCatalogo.onclick = cerrarSplash;
 
-    }, 8000);
-
+  if(btnInstalar){
+    btnInstalar.onclick = async () => {
+      if(deferredPrompt){
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      }
+      cerrarSplash();
+    };
   }
 
+  let segundos = 13;
+  const intervalo = setInterval(() => {
+    segundos--;
+    if(contador){
+      contador.textContent = "Entrando automáticamente en " + segundos + " segundos...";
+    }
+    if(segundos <= 0){
+      clearInterval(intervalo);
+      cerrarSplash();
+    }
+  }, 1000);
+
+  setTimeout(() => {
+    cerrarSplash();
+  }, 13000);
 });
 </script>
+
+<script>
+function imgProducto(p){
+  return p.imagen || p.foto || p.image || "/img/no-image.png";
+}
+
+function precioFormato(n){
+  const num = Number(n || 0);
+  return "$" + num.toFixed(0);
+}
+
+async function cargarCategorias(){
+  const cont = document.getElementById("categorias");
+  if(!cont) return;
+
+  try{
+    const res = await fetch("/api/categorias?nocache=" + Date.now());
+    const categorias = await res.json();
+
+    if(!Array.isArray(categorias) || categorias.length === 0){
+      cont.innerHTML = '<div class="vacio">No hay categorías disponibles.</div>';
+      return;
+    }
+
+    cont.innerHTML = categorias.map(c => {
+      const nombre = c.nombre || "Categoría";
+      const slug = c.slug || c.id || nombre.toLowerCase().replaceAll(" ","-");
+      const imagen = c.imagen || c.foto || c.image || "/img/no-image.png";
+      const emoji = c.emoji || "";
+
+      return `
+        <a class="card" href="/categoria.html?categoria=${encodeURIComponent(slug)}">
+          <img src="${imagen}" alt="${nombre}" onerror="this.src='/img/no-image.png'">
+          <div class="info">
+            <div class="nombre">${emoji} ${nombre}</div>
+          </div>
+        </a>
+      `;
+    }).join("");
+
+  }catch(e){
+    cont.innerHTML = '<div class="vacio">No se pudieron cargar las categorías.</div>';
+  }
+}
+
+async function cargarProductos(){
+  const cont = document.getElementById("productos");
+  if(!cont) return;
+
+  try{
+    const res = await fetch("/api/productos?nocache=" + Date.now());
+    const productos = await res.json();
+
+    if(!Array.isArray(productos) || productos.length === 0){
+      cont.innerHTML = '<div class="vacio">No hay productos disponibles.</div>';
+      return;
+    }
+
+    const visibles = productos.filter(p => p.activo !== false).slice(0, 40);
+
+    cont.innerHTML = visibles.map(p => {
+      const id = p.id || "";
+      const nombre = p.nombre || "Producto";
+      const precio = p.precio || 0;
+      const imagen = imgProducto(p);
+
+      return `
+        <a class="card" href="/producto.html?id=${encodeURIComponent(id)}">
+          <img src="${imagen}" alt="${nombre}" onerror="this.src='/img/no-image.png'">
+          <div class="info">
+            <div class="nombre">${nombre}</div>
+            <div class="precio">${precioFormato(precio)}</div>
+          </div>
+        </a>
+      `;
+    }).join("");
+
+  }catch(e){
+    cont.innerHTML = '<div class="vacio">No se pudieron cargar los productos.</div>';
+  }
+}
+
+cargarCategorias();
+cargarProductos();
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+}
+</script>
+
+</body>
+</html>
