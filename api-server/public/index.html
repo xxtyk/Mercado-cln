@@ -52,13 +52,16 @@ body{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:12px;
+  gap:14px;
   text-align:center;
 }
 
-.logo-splash{
-  width:210px;
-  max-width:85%;
+.titulo-splash{
+  color:#fff;
+  font-size:25px;
+  font-weight:bold;
+  margin:0 0 8px;
+  line-height:1.2;
 }
 
 .texto-principal{
@@ -71,14 +74,14 @@ body{
 
 .texto-secundario{
   color:#d9d9d9;
-  font-size:16px;
+  font-size:17px;
   line-height:1.35;
   margin:0 0 4px;
 }
 
 .btn-splash{
   width:100%;
-  padding:15px 14px;
+  padding:16px 14px;
   border:none;
   border-radius:24px;
   font-size:18px;
@@ -182,7 +185,10 @@ body{
 
 <div id="splash">
   <div class="splash-contenido">
-    <img src="/IMG-20260114-WA0001.jpg" class="logo-splash" alt="Mercado en Línea Culiacán">
+
+    <p class="titulo-splash">
+      MERCADO EN LÍNEA<br>CULIACÁN
+    </p>
 
     <p class="texto-principal">
       🚚 Entregas el mismo día<br>
@@ -206,7 +212,7 @@ body{
     </button>
 
     <div class="texto-auto">
-      Entrando automáticamente en 3 segundos...
+      Entrando automáticamente en 8 segundos...
     </div>
   </div>
 </div>
@@ -353,7 +359,7 @@ window.onload = () => {
 
   setTimeout(() => {
     cerrarSplash();
-  }, 3000);
+  }, 8000);
 };
 </script>
 
