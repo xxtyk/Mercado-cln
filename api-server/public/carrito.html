@@ -4,6 +4,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carrito</title>
 
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+
 <style>
 *{box-sizing:border-box}
 
@@ -78,6 +81,46 @@ button{
   font-size:18px;
   font-weight:bold;
 }
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:99999;
+}
+
+.modal-box{
+  background:#fff;
+  border-radius:18px;
+  padding:20px;
+  width:100%;
+  max-width:380px;
+  text-align:center;
+}
+
+.modal-box h2{
+  margin:0 0 10px;
+  font-size:24px;
+}
+
+.modal-box p{
+  font-size:17px;
+  line-height:1.4;
+  margin-bottom:18px;
+}
+
+.btn-si{
+  background:#1976ff;
+  margin-bottom:10px;
+}
+
+.btn-no{
+  background:#222;
+}
 </style>
 </head>
 
@@ -106,12 +149,8 @@ button{
 
 <select id="tipoEntrega">
   <option value="">Selecciona una opción</option>
-  <option value="bodega">
-    Recoger en bodega - $0
-  </option>
-  <option value="domicilio">
-    Servicio a domicilio - $40
-  </option>
+  <option value="bodega">Recoger en bodega - $0</option>
+  <option value="domicilio">Servicio a domicilio - $40</option>
 </select>
 
 <textarea id="nota" placeholder="Nota"></textarea>
@@ -140,7 +179,30 @@ button{
 
 </div>
 
+<div id="modalInstalar" class="modal">
+  <div class="modal-box">
+    <h2>✅ Pedido enviado</h2>
+    <p>
+      ¿Deseas instalar la aplicación para futuras compras?
+    </p>
+
+    <button class="btn-si" onclick="instalarApp()">
+      Sí, instalar app
+    </button>
+
+    <button class="btn-no" onclick="continuarSinInstalar()">
+      No, continuar
+    </button>
+  </div>
+</div>
+
 <script>
+let deferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
 
 function obtener(){
   return JSON.parse(
@@ -156,9 +218,7 @@ function guardar(data){
 }
 
 function calcularEnvio(){
-
-  const tipo =
-    document.getElementById("tipoEntrega").value;
+  const tipo = document.getElementById("tipoEntrega").value;
 
   if(tipo === "domicilio"){
     return 40;
@@ -172,9 +232,7 @@ function calcularEnvio(){
 }
 
 function textoEntrega(){
-
-  const tipo =
-    document.getElementById("tipoEntrega").value;
+  const tipo = document.getElementById("tipoEntrega").value;
 
   if(tipo === "domicilio"){
     return "Servicio a domicilio";
@@ -188,11 +246,8 @@ function textoEntrega(){
 }
 
 function cargar(){
-
   const carrito = obtener();
-
-  const cont =
-    document.getElementById("lista");
+  const cont = document.getElementById("lista");
 
   let total = 0;
 
@@ -200,26 +255,18 @@ function cargar(){
 
   carrito.forEach((p,i)=>{
 
-    const subtotal =
-      p.precio * p.cantidad;
-
+    const subtotal = p.precio * p.cantidad;
     total += subtotal;
 
     cont.innerHTML += `
       <div class="item">
-
         <b>${p.nombre}</b>
-
         <br><br>
-
         $${p.precio} x ${p.cantidad}
-
         <br><br>
-
         <button onclick="eliminar(${i})">
           Eliminar
         </button>
-
       </div>
     `;
   });
@@ -229,44 +276,21 @@ function cargar(){
 }
 
 function eliminar(i){
-
   let carrito = obtener();
-
   carrito.splice(i,1);
-
   guardar(carrito);
-
   cargar();
 }
 
 async function finalizar(){
 
-  const nombre =
-    document.getElementById("nombre")
-    .value
-    .trim();
-
-  const telefono =
-    document.getElementById("telefono")
-    .value
-    .trim();
-
-  const direccion =
-    document.getElementById("direccion")
-    .value
-    .trim();
-
-  const nota =
-    document.getElementById("nota")
-    .value
-    .trim();
-
-  const tipo =
-    document.getElementById("tipoEntrega")
-    .value;
+  const nombre = document.getElementById("nombre").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const direccion = document.getElementById("direccion").value.trim();
+  const nota = document.getElementById("nota").value.trim();
+  const tipo = document.getElementById("tipoEntrega").value;
 
   const carrito = obtener();
-
   const envio = calcularEnvio();
 
   const subtotal = carrito.reduce(
@@ -294,14 +318,8 @@ async function finalizar(){
     return;
   }
 
-  if(
-    tipo === "domicilio"
-    &&
-    !direccion
-  ){
-    alert(
-      "Escribe la dirección para servicio a domicilio"
-    );
+  if(tipo === "domicilio" && !direccion){
+    alert("Escribe la dirección para servicio a domicilio");
     return;
   }
 
@@ -327,8 +345,23 @@ async function finalizar(){
 
   localStorage.removeItem("carrito");
 
-  alert("Pedido enviado");
+  document.getElementById("modalInstalar").style.display = "flex";
+}
 
+async function instalarApp(){
+
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  }else{
+    alert("Si no aparece la instalación, abre el menú del navegador y elige Agregar a pantalla principal.");
+  }
+
+  window.location="/";
+}
+
+function continuarSinInstalar(){
   window.location="/";
 }
 
@@ -337,7 +370,6 @@ document
 .addEventListener("change", cargar);
 
 cargar();
-
 </script>
 
 </body>
