@@ -89,71 +89,6 @@ body{
   grid-column:1/-1;
 }
 
-#splash{
-  position:fixed;
-  inset:0;
-  background:#000;
-  color:#fff;
-  z-index:99999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:20px;
-}
-
-.splash-box{
-  width:100%;
-  max-width:380px;
-  transform:translateY(-20px);
-}
-
-.splash-logo{
-  width:230px;
-  max-width:85%;
-  border-radius:18px;
-  margin:0 auto 28px;
-  display:block;
-}
-
-.splash-title{
-  font-size:26px;
-  font-weight:bold;
-  margin-bottom:12px;
-}
-
-.splash-text{
-  font-size:17px;
-  line-height:1.4;
-  margin-bottom:18px;
-}
-
-.splash-btn{
-  width:100%;
-  border:none;
-  border-radius:16px;
-  padding:15px;
-  font-size:18px;
-  font-weight:bold;
-  margin:10px 0;
-}
-
-.azul{
-  background:#1976ff;
-  color:#fff;
-}
-
-.blanco{
-  background:#fff;
-  color:#000;
-}
-
-.gris{
-  background:#222;
-  color:#fff;
-  border:1px solid #555;
-}
-
 @media(max-width:430px){
 
   .contenedor{
@@ -172,58 +107,11 @@ body{
     font-size:18px;
   }
 
-  #splash{
-    padding:20px;
-  }
-
-  .splash-box{
-    transform:translateY(-20px);
-  }
-
-  .splash-logo{
-    width:230px;
-    margin-bottom:28px;
-  }
-
 }
 </style>
 </head>
 
 <body>
-
-<div id="splash">
-  <div class="splash-box">
-
-    <img
-      class="splash-logo"
-      src="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png?v=10"
-      alt="Mercado en Línea Culiacán"
-    >
-
-    <div class="splash-title">
-      Mercado en Línea Culiacán
-    </div>
-
-    <div class="splash-text">
-      Puedes comprar sin descargar la app.<br>
-      En Android puedes instalarla.<br>
-      En iPhone no se descarga.
-    </div>
-
-    <button id="btnInstalar" class="splash-btn azul">
-      Descargar solo Android
-    </button>
-
-    <button id="btnIphone" class="splash-btn blanco">
-      iPhone: no se descarga
-    </button>
-
-    <button id="btnEntrar" class="splash-btn gris">
-      Comprar sin descargar
-    </button>
-
-  </div>
-</div>
 
 <div class="contenedor">
   <div id="categorias" class="grid"></div>
@@ -232,63 +120,6 @@ body{
 <a class="btn-carrito" href="/carrito.html">
   🛒
 </a>
-
-<script>
-let deferredPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-function cerrarSplash(){
-  const splash = document.getElementById("splash");
-
-  if(!splash) return;
-
-  splash.style.transition = "opacity .5s ease";
-  splash.style.opacity = "0";
-  splash.style.pointerEvents = "none";
-
-  setTimeout(() => {
-    splash.remove();
-  }, 500);
-}
-
-window.addEventListener("load", () => {
-
-  const btnInstalar = document.getElementById("btnInstalar");
-  const btnEntrar = document.getElementById("btnEntrar");
-  const btnIphone = document.getElementById("btnIphone");
-
-  if(btnEntrar){
-    btnEntrar.onclick = cerrarSplash;
-  }
-
-  if(btnIphone){
-    btnIphone.onclick = cerrarSplash;
-  }
-
-  if(btnInstalar){
-
-    btnInstalar.onclick = async () => {
-
-      if(deferredPrompt){
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-      }
-
-      cerrarSplash();
-    };
-  }
-
-  setTimeout(() => {
-    cerrarSplash();
-  }, 10000);
-
-});
-</script>
 
 <script>
 async function cargarCategorias(){
