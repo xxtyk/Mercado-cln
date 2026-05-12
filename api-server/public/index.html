@@ -1,309 +1,186 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mercado en Línea Culiacán</title>
-
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#000000">
-
-<meta property="og:type" content="website">
-<meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">
-<meta property="og:description" content="Entregas el mismo día en Culiacán y pagas al recibir.">
-<meta property="og:url" content="https://mercado-cln-1.onrender.com/">
-<meta property="og:image" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f2f2f2;
-  color:#111;
-  padding-bottom:90px;
-}
-
-.hero{
-  background:linear-gradient(180deg,#050505,#171717);
-  color:#fff;
-  padding:28px 18px 24px;
-  text-align:center;
-  border-bottom-left-radius:28px;
-  border-bottom-right-radius:28px;
-  box-shadow:0 6px 20px rgba(0,0,0,.25);
-}
-
-.hero h1{
-  margin:0;
-  font-size:30px;
-  line-height:1.1;
-}
-
-.hero p{
-  margin:10px 0 0;
-  font-size:17px;
-  color:#e8e8e8;
-}
-
-.confianza{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  max-width:430px;
-  margin:20px auto 0;
-}
-
-.confianza div{
-  background:#fff;
-  color:#111;
-  padding:13px;
-  border-radius:16px;
-  font-size:19px;
-  font-weight:bold;
-  box-shadow:0 4px 12px rgba(0,0,0,.18);
-}
-
-.btn-entrar{
-  display:inline-block;
-  margin-top:20px;
-  background:#18d85b;
-  color:#fff;
-  text-decoration:none;
-  font-size:20px;
-  font-weight:bold;
-  padding:15px 26px;
-  border-radius:999px;
-  box-shadow:0 6px 18px rgba(0,0,0,.30);
-}
-
-.aviso{
-  margin-top:14px;
-  font-size:15px;
-  color:#dcdcdc;
-}
-
-.titulo-categorias{
-  padding:20px 18px 4px;
-  font-size:24px;
-  font-weight:bold;
-}
-
-.contenedor{
-  padding:18px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:18px;
-}
-
-.card{
-  background:#fff;
-  border-radius:24px;
-  overflow:hidden;
-  text-decoration:none;
-  color:#111;
-  display:block;
-  box-shadow:0 4px 16px rgba(0,0,0,.14);
-  padding:8px;
-}
-
-.card img{
-  width:100%;
-  height:230px;
-  object-fit:cover;
-  border-radius:18px;
-  display:block;
-  background:#eee;
-}
-
-.nombre{
-  text-align:center;
-  font-size:22px;
-  font-weight:bold;
-  padding:14px 6px 6px;
-  line-height:1.15;
-}
-
-.btn-carrito{
-  position:fixed;
-  right:16px;
-  bottom:20px;
-  width:64px;
-  height:64px;
-  background:#18d85b;
-  color:#fff;
-  text-decoration:none;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:28px;
-  z-index:999;
-  box-shadow:0 6px 18px rgba(0,0,0,.30);
-}
-
-.vacio{
-  background:#fff;
-  padding:20px;
-  border-radius:18px;
-  text-align:center;
-  grid-column:1/-1;
-}
-
-@media(max-width:430px){
-
-  .hero{
-    padding:24px 14px 22px;
-  }
-
-  .hero h1{
-    font-size:26px;
-  }
-
-  .hero p{
-    font-size:16px;
-  }
-
-  .confianza div{
-    font-size:17px;
-    padding:12px;
-  }
-
-  .contenedor{
-    padding:14px;
-  }
-
-  .grid{
-    gap:14px;
-  }
-
-  .card img{
-    height:185px;
-  }
-
-  .nombre{
-    font-size:18px;
-  }
-
-}
-</style>
-</head>
-
-<body>
-
-<section class="hero" id="inicio">
-  <h1>Mercado en Línea Culiacán</h1>
-  <p>Haz tu pedido fácil, rápido y seguro.</p>
-
-  <div class="confianza">
-    <div>✅ Pagas al recibir</div>
-    <div>🚚 Entregas el mismo día</div>
-    <div>📲 El repartidor te manda WhatsApp</div>
-  </div>
-
-  <a class="btn-entrar" href="#categorias">
-    Entrar a comprar
-  </a>
-
-  <div class="aviso">
-    No necesitas descargar nada para comprar.
-  </div>
-</section>
-
-<div class="titulo-categorias">
-  Categorías
-</div>
-
-<div class="contenedor">
-  <div id="categorias" class="grid"></div>
-</div>
-
-<a class="btn-carrito" href="/carrito.html">
-  🛒
-</a>
-
-<script>
-async function cargarCategorias(){
-
-  const cont = document.getElementById("categorias");
-
-  try{
-
-    const res = await fetch("/api/categorias?nocache=" + Date.now());
-
-    const categorias = await res.json();
-
-    if(!Array.isArray(categorias) || categorias.length === 0){
-
-      cont.innerHTML = `
-        <div class="vacio">
-          No hay categorías disponibles.
-        </div>
-      `;
-
-      return;
-    }
-
-    cont.innerHTML = categorias.map(c => {
-
-      const nombre =
-        c.nombre || "Categoría";
-
-      const imagen =
-        c.imagen ||
-        c.foto ||
-        c.image ||
-        "/img/no-image.png";
-
-      return `
-        <a
-          class="card"
-          href="categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}"
-        >
-
-          <img
-            src="${imagen}"
-            alt="${nombre}"
-            onerror="this.src='/img/no-image.png'"
-          >
-
-          <div class="nombre">
-            ${nombre}
-          </div>
-
-        </a>
-      `;
-
-    }).join("");
-
-  }catch(e){
-
-    cont.innerHTML = `
-      <div class="vacio">
-        No se pudieron cargar las categorías.
-      </div>
-    `;
-  }
-}
-
-cargarCategorias();
-
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.getRegistrations().then(regs=>{
-    regs.forEach(reg=>reg.unregister());
-  });
-
-  if(window.caches){
-    caches.keys().then(keys=>{
-      keys.forEach(key=>caches.delete(key));
-    });
-  }
-}
-</script>
-
-</body>
+<!DOCTYPE html>  <html lang="es">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Mercado en Línea Culiacán</title>  <link rel="manifest" href="/manifest.json">  
+<meta name="theme-color" content="#000000">  <meta property="og:type" content="website">  
+<meta property="og:title" content="Haz tu pedido aquí | Mercado en Línea Culiacán">  
+<meta property="og:description" content="Entregas el mismo día en Culiacán y pagas al recibir.">  
+<meta property="og:url" content="https://mercado-cln-1.onrender.com/">  
+<meta property="og:image" content="https://i.supaimg.com/f87c0974-d754-4d1e-a931-5da93884dab4/27aa4f9c-e4b7-445d-b14f-775740bbcffd.png">  <style>  
+*{box-sizing:border-box}  
+  
+body{  
+  margin:0;  
+  font-family:Arial,sans-serif;  
+  background:#f2f2f2;  
+  color:#111;  
+  padding-bottom:90px;  
+}  
+  
+.contenedor{  
+  padding:18px;  
+}  
+  
+.grid{  
+  display:grid;  
+  grid-template-columns:repeat(2,1fr);  
+  gap:18px;  
+}  
+  
+.card{  
+  background:#fff;  
+  border-radius:24px;  
+  overflow:hidden;  
+  text-decoration:none;  
+  color:#111;  
+  display:block;  
+  box-shadow:0 4px 16px rgba(0,0,0,.14);  
+  padding:8px;  
+}  
+  
+.card img{  
+  width:100%;  
+  height:230px;  
+  object-fit:cover;  
+  border-radius:18px;  
+  display:block;  
+  background:#eee;  
+}  
+  
+.nombre{  
+  text-align:center;  
+  font-size:22px;  
+  font-weight:bold;  
+  padding:14px 6px 6px;  
+  line-height:1.15;  
+}  
+  
+.btn-carrito{  
+  position:fixed;  
+  right:16px;  
+  bottom:20px;  
+  width:64px;  
+  height:64px;  
+  background:#18d85b;  
+  color:#fff;  
+  text-decoration:none;  
+  border-radius:50%;  
+  display:flex;  
+  align-items:center;  
+  justify-content:center;  
+  font-size:28px;  
+  z-index:999;  
+  box-shadow:0 6px 18px rgba(0,0,0,.30);  
+}  
+  
+.vacio{  
+  background:#fff;  
+  padding:20px;  
+  border-radius:18px;  
+  text-align:center;  
+  grid-column:1/-1;  
+}  
+  
+@media(max-width:430px){  
+  
+  .contenedor{  
+    padding:14px;  
+  }  
+  
+  .grid{  
+    gap:14px;  
+  }  
+  
+  .card img{  
+    height:185px;  
+  }  
+  
+  .nombre{  
+    font-size:18px;  
+  }  
+  
+}  
+</style>  </head>  <body>  <div class="contenedor">  
+  <div id="categorias" class="grid"></div>  
+</div>  <a class="btn-carrito" href="/carrito.html">  
+  🛒  
+</a>  <script>  
+async function cargarCategorias(){  
+  
+  const cont = document.getElementById("categorias");  
+  
+  try{  
+  
+    const res = await fetch("/api/categorias?nocache=" + Date.now());  
+  
+    const categorias = await res.json();  
+  
+    if(!Array.isArray(categorias) || categorias.length === 0){  
+  
+      cont.innerHTML = `  
+        <div class="vacio">  
+          No hay categorías disponibles.  
+        </div>  
+      `;  
+  
+      return;  
+    }  
+  
+    cont.innerHTML = categorias.map(c => {  
+  
+      const nombre =  
+        c.nombre || "Categoría";  
+  
+      const imagen =  
+        c.imagen ||  
+        c.foto ||  
+        c.image ||  
+        "/img/no-image.png";  
+  
+      return `  
+        <a  
+          class="card"  
+          href="categoria.html?id=${encodeURIComponent(c.id)}&v=${Date.now()}"  
+        >  
+  
+          <img  
+            src="${imagen}"  
+            alt="${nombre}"  
+            onerror="this.src='/img/no-image.png'"  
+          >  
+  
+          <div class="nombre">  
+            ${nombre}  
+          </div>  
+  
+        </a>  
+      `;  
+  
+    }).join("");  
+  
+  }catch(e){  
+  
+    cont.innerHTML = `  
+      <div class="vacio">  
+        No se pudieron cargar las categorías.  
+      </div>  
+    `;  
+  }  
+}  
+  
+cargarCategorias();  
+  
+if("serviceWorker" in navigator){  
+  navigator.serviceWorker.getRegistrations().then(regs=>{  
+    regs.forEach(reg=>reg.unregister());  
+  });  
+  
+  if(window.caches){  
+    caches.keys().then(keys=>{  
+      keys.forEach(key=>caches.delete(key));  
+    });  
+  }  
+}  
+</script>  </body>  
 </html>
