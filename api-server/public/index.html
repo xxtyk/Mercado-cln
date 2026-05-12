@@ -25,6 +25,71 @@ body{
   padding-bottom:90px;
 }
 
+.hero{
+  background:linear-gradient(180deg,#050505,#171717);
+  color:#fff;
+  padding:28px 18px 24px;
+  text-align:center;
+  border-bottom-left-radius:28px;
+  border-bottom-right-radius:28px;
+  box-shadow:0 6px 20px rgba(0,0,0,.25);
+}
+
+.hero h1{
+  margin:0;
+  font-size:30px;
+  line-height:1.1;
+}
+
+.hero p{
+  margin:10px 0 0;
+  font-size:17px;
+  color:#e8e8e8;
+}
+
+.confianza{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  max-width:430px;
+  margin:20px auto 0;
+}
+
+.confianza div{
+  background:#fff;
+  color:#111;
+  padding:13px;
+  border-radius:16px;
+  font-size:19px;
+  font-weight:bold;
+  box-shadow:0 4px 12px rgba(0,0,0,.18);
+}
+
+.btn-entrar{
+  display:inline-block;
+  margin-top:20px;
+  background:#18d85b;
+  color:#fff;
+  text-decoration:none;
+  font-size:20px;
+  font-weight:bold;
+  padding:15px 26px;
+  border-radius:999px;
+  box-shadow:0 6px 18px rgba(0,0,0,.30);
+}
+
+.aviso{
+  margin-top:14px;
+  font-size:15px;
+  color:#dcdcdc;
+}
+
+.titulo-categorias{
+  padding:20px 18px 4px;
+  font-size:24px;
+  font-weight:bold;
+}
+
 .contenedor{
   padding:18px;
 }
@@ -91,6 +156,23 @@ body{
 
 @media(max-width:430px){
 
+  .hero{
+    padding:24px 14px 22px;
+  }
+
+  .hero h1{
+    font-size:26px;
+  }
+
+  .hero p{
+    font-size:16px;
+  }
+
+  .confianza div{
+    font-size:17px;
+    padding:12px;
+  }
+
   .contenedor{
     padding:14px;
   }
@@ -112,6 +194,29 @@ body{
 </head>
 
 <body>
+
+<section class="hero" id="inicio">
+  <h1>Mercado en Línea Culiacán</h1>
+  <p>Haz tu pedido fácil, rápido y seguro.</p>
+
+  <div class="confianza">
+    <div>✅ Pagas al recibir</div>
+    <div>🚚 Entregas el mismo día</div>
+    <div>📲 El repartidor te manda WhatsApp</div>
+  </div>
+
+  <a class="btn-entrar" href="#categorias">
+    Entrar a comprar
+  </a>
+
+  <div class="aviso">
+    No necesitas descargar nada para comprar.
+  </div>
+</section>
+
+<div class="titulo-categorias">
+  Categorías
+</div>
 
 <div class="contenedor">
   <div id="categorias" class="grid"></div>
