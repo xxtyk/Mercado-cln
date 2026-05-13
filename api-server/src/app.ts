@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import router from "./routes/index.js";
 import vendedores from "./routes/vendedores.js";
+import pool from "./db.js";
 
 const app = express();
 
@@ -27,6 +28,61 @@ app.get("/admin", (_req, res) => {
 
 app.get("/admin.html", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "admin.html"));
+});
+
+// 👥 GUARDAR VISITA
+app.post("/api/visita", async (_req, res) => {
+  try {
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitas (
+        id SERIAL PRIMARY KEY,
+        creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      INSERT INTO visitas DEFAULT VALUES
+    `);
+
+    res.json({ ok: true });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      ok: false
+    });
+
+  }
+});
+
+// 👥 VISITAS DE HOY
+app.get("/api/visitas-hoy", async (_req, res) => {
+
+  try {
+
+    const result = await pool.query(`
+      SELECT COUNT(*) AS total
+      FROM visitas
+      WHERE DATE(creado) = CURRENT_DATE
+    `);
+
+    res.json({
+      total: result.rows[0].total
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.json({
+      total: 0
+    });
+
+  }
+
 });
 
 // 🔥 API
