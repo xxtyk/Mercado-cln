@@ -202,12 +202,12 @@ async function cargarVisitas(){
 
   try{
 
-    const res = await fetch("/api/visitas?nocache=" + Date.now());
+    const res = await fetch("/api/visitas-hoy?nocache=" + Date.now());
 
     const data = await res.json();
 
     document.getElementById("visitasHoy").textContent =
-      data.visitas ?? 0;
+      data.total ?? 0;
 
   }catch(e){
 
