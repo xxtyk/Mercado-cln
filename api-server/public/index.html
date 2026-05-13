@@ -90,7 +90,6 @@ body{
 }
 
 @media(max-width:430px){
-
   .contenedor{
     padding:14px;
   }
@@ -106,7 +105,6 @@ body{
   .nombre{
     font-size:18px;
   }
-
 }
 </style>
 </head>
@@ -129,7 +127,6 @@ async function cargarCategorias(){
   try{
 
     const res = await fetch("/api/categorias?nocache=" + Date.now());
-
     const categorias = await res.json();
 
     if(!Array.isArray(categorias) || categorias.length === 0){
@@ -145,8 +142,7 @@ async function cargarCategorias(){
 
     cont.innerHTML = categorias.map(c => {
 
-      const nombre =
-        c.nombre || "Categoría";
+      const nombre = c.nombre || "Categoría";
 
       const imagen =
         c.imagen ||
@@ -188,9 +184,12 @@ async function cargarCategorias(){
 cargarCategorias();
 
 // 👥 CONTADOR DE VISITAS
-fetch("/api/visita", {
-  method:"POST"
-});
+// Si este celular ya abrió el panel admin, NO se cuenta.
+if(!localStorage.getItem("adminActivo")){
+  fetch("/api/visita", {
+    method:"POST"
+  });
+}
 
 if("serviceWorker" in navigator){
   navigator.serviceWorker.getRegistrations().then(regs=>{
