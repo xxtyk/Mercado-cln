@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Admin - Mercado en Línea Culiacán</title>
+
   <style>
     *{box-sizing:border-box}
+
     body{
       margin:0;
       font-family:Arial,sans-serif;
@@ -24,6 +26,19 @@
       position:sticky;
       top:0;
       z-index:20;
+    }
+
+    .contador-visitas{
+      max-width:900px;
+      margin:12px auto;
+      background:#000;
+      color:#fff;
+      padding:14px;
+      border-radius:16px;
+      font-size:20px;
+      font-weight:bold;
+      text-align:center;
+      box-shadow:0 2px 10px rgba(0,0,0,.15);
     }
 
     .contenedor{
@@ -55,16 +70,6 @@
       font-family:inherit;
     }
 
-    input[type="file"]{
-      background:#fff;
-      padding:10px;
-    }
-
-    textarea{
-      min-height:90px;
-      resize:vertical;
-    }
-
     button{
       border:none;
       background:#000;
@@ -73,19 +78,27 @@
       cursor:pointer;
     }
 
-    button.sec{ background:#1976d2; }
-    button.danger{ background:#c62828; }
-    button.gray{ background:#666; }
-
-    .msg{
-      padding:12px;
-      border-radius:12px;
-      margin-bottom:10px;
-      font-size:14px;
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr 1fr;
+      gap:8px;
+      margin-bottom:14px;
     }
 
-    .ok{ background:#e8f5e9; color:#1b5e20; }
-    .err{ background:#ffebee; color:#b71c1c; }
+    .tab-btn{
+      background:#fff;
+      color:#111;
+      border:1px solid #ddd;
+    }
+
+    .tab-btn.activa{
+      background:#000;
+      color:#fff;
+      border-color:#000;
+    }
+
+    .seccion{display:none}
+    .seccion.activa{display:block}
 
     .grid{
       display:grid;
@@ -114,23 +127,6 @@
       object-fit:cover;
       background:#eee;
       flex-shrink:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:32px;
-      overflow:hidden;
-    }
-
-    .item-title{
-      font-size:17px;
-      font-weight:bold;
-      margin-bottom:4px;
-    }
-
-    .item-sub{
-      font-size:14px;
-      color:#666;
-      word-break:break-word;
     }
 
     .acciones{
@@ -139,33 +135,9 @@
       gap:8px;
     }
 
-    .producto-linea{
-      font-size:14px;
-      color:#444;
-      margin-top:6px;
-    }
-
-    .tabs{
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr 1fr;
-      gap:8px;
-      margin-bottom:14px;
-    }
-
-    .tab-btn{
-      background:#fff;
-      color:#111;
-      border:1px solid #ddd;
-    }
-
-    .tab-btn.activa{
-      background:#000;
-      color:#fff;
-      border-color:#000;
-    }
-
-    .seccion{ display:none; }
-    .seccion.activa{ display:block; }
+    .danger{background:#c62828}
+    .gray{background:#666}
+    .sec{background:#1976d2}
 
     .mini{
       font-size:13px;
@@ -174,630 +146,128 @@
     }
   </style>
 </head>
+
 <body>
-  <div class="barra">Panel Admin</div>
 
-  <div class="contenedor">
-    <div id="mensaje"></div>
+<div class="barra">Panel Admin</div>
 
-    <div class="tabs">
-      <button class="tab-btn activa" id="tabCategoriasBtn" onclick="mostrarTab('categorias')">Categorías</button>
-      <button class="tab-btn" id="tabProductosBtn" onclick="mostrarTab('productos')">Productos</button>
-      <button class="tab-btn" id="tabNuevoBtn" onclick="mostrarTab('nuevo')">Agregar producto</button>
-      <button class="tab-btn" id="tabVendedoresBtn" onclick="mostrarTab('vendedores')">Vendedores</button>
-    </div>
+<div class="contador-visitas">
+  👁️ Visitas hoy:
+  <span id="visitasHoy">cargando...</span>
+</div>
 
-    <div id="tabCategorias" class="seccion activa">
-      <div class="bloque">
-        <h2>Nueva categoría</h2>
-        <div class="mini">Aquí puedes agregar categorías nuevas.</div>
+<div class="contenedor">
 
-        <input id="nuevaCatNombre" type="text" placeholder="Nombre de la categoría">
-        <input id="nuevaCatEmoji" type="text" placeholder="Emoji (ejemplo: 🛍️)">
-        <input id="nuevaCatFile" type="file" accept="image/*">
+  <div class="tabs">
+    <button class="tab-btn activa" id="tabCategoriasBtn" onclick="mostrarTab('categorias')">Categorías</button>
 
-        <button onclick="crearCategoria()">Guardar categoría</button>
-      </div>
+    <button class="tab-btn" id="tabProductosBtn" onclick="mostrarTab('productos')">Productos</button>
 
-      <div class="bloque">
-        <h2>Categorías guardadas</h2>
-        <div class="mini">Aquí modificas nombre, emoji y foto de las categorías existentes.</div>
-        <div id="listaCategorias" class="grid"></div>
-      </div>
-    </div>
+    <button class="tab-btn" id="tabNuevoBtn" onclick="mostrarTab('nuevo')">Agregar producto</button>
 
-    <div id="tabProductos" class="seccion">
-      <div class="bloque">
-        <h2>Productos guardados</h2>
-        <div id="listaProductos" class="grid"></div>
-      </div>
-    </div>
-
-    <div id="tabNuevo" class="seccion">
-      <div class="bloque">
-        <h2>Agregar producto</h2>
-
-        <input id="nuevoNombre" type="text" placeholder="Nombre del producto" />
-        <input id="nuevoPrecio" type="number" step="0.01" placeholder="Precio" />
-        <select id="nuevoCategoria"></select>
-        <input id="nuevoImagenFile" type="file" accept="image/*" />
-        <textarea id="nuevoDescripcion" placeholder="Descripción"></textarea>
-
-        <button onclick="guardarProducto()">Guardar producto</button>
-      </div>
-    </div>
-
-    <div id="tabVendedores" class="seccion">
-      <div class="bloque">
-        <h2>Nuevo vendedor</h2>
-        <input id="nuevoVendedorNombre" type="text" placeholder="Nombre del vendedor">
-        <button onclick="crearVendedor()">Guardar vendedor</button>
-      </div>
-
-      <div class="bloque">
-        <h2>Vendedores guardados</h2>
-        <div id="listaVendedores" class="grid"></div>
-      </div>
-    </div>
+    <button class="tab-btn" id="tabVendedoresBtn" onclick="mostrarTab('vendedores')">Vendedores</button>
   </div>
 
-  <script>
-    const ADMIN_PASSWORD = "mercado2024";
-
-    let categorias = [];
-    let productos = [];
-    let vendedores = [];
-
-    function authHeaders() {
-      return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${ADMIN_PASSWORD}`
-      };
-    }
-
-    function mostrarMensaje(texto, ok = true) {
-      const box = document.getElementById("mensaje");
-      box.innerHTML = `<div class="msg ${ok ? "ok" : "err"}">${texto}</div>`;
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setTimeout(() => {
-        box.innerHTML = "";
-      }, 3500);
-    }
-
-    function mostrarTab(tab) {
-      const secciones = ["categorias", "productos", "nuevo", "vendedores"];
-      secciones.forEach(s => {
-        document.getElementById("tab" + s.charAt(0).toUpperCase() + s.slice(1)).classList.remove("activa");
-        document.getElementById("tab" + s.charAt(0).toUpperCase() + s.slice(1) + "Btn").classList.remove("activa");
-      });
-
-      document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add("activa");
-      document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1) + "Btn").classList.add("activa");
-    }
-
-    async function subirArchivo(file) {
-      if (!file) return "";
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${ADMIN_PASSWORD}`
-        },
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.ok || !data.url) {
-        throw new Error(data.error || "No se pudo subir la imagen");
-      }
-
-      return data.url;
-    }
-
-    async function cargarCategorias() {
-      try {
-        const res = await fetch("/api/categorias?nocache=" + Date.now());
-        categorias = await res.json();
-        if (!Array.isArray(categorias)) categorias = [];
-        renderCategorias();
-        llenarSelectCategorias();
-      } catch {
-        mostrarMensaje("No se pudieron cargar las categorías", false);
-      }
-    }
-
-    async function cargarProductos() {
-      try {
-        const res = await fetch("/api/productos?nocache=" + Date.now());
-        productos = await res.json();
-        if (!Array.isArray(productos)) productos = [];
-        renderProductos();
-      } catch {
-        mostrarMensaje("No se pudieron cargar los productos", false);
-      }
-    }
-
-    async function cargarVendedores() {
-      try {
-        const res = await fetch("/api/vendedores?nocache=" + Date.now());
-        vendedores = await res.json();
-        if (!Array.isArray(vendedores)) vendedores = [];
-        renderVendedores();
-      } catch {
-        mostrarMensaje("No se pudieron cargar los vendedores", false);
-      }
-    }
-
-    function llenarSelectCategorias() {
-      const select = document.getElementById("nuevoCategoria");
-      select.innerHTML = "";
-      categorias.forEach(cat => {
-        const op = document.createElement("option");
-        op.value = cat.slug || "";
-        op.textContent = cat.nombre || "Categoría";
-        select.appendChild(op);
-      });
-    }
-
-    function renderCategorias() {
-      const cont = document.getElementById("listaCategorias");
-
-      if (!categorias.length) {
-        cont.innerHTML = `<div class="item">No hay categorías.</div>`;
-        return;
-      }
-
-      cont.innerHTML = "";
-
-      categorias.forEach(cat => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        const preview = cat.imagen
-          ? `<img src="${cat.imagen}" class="preview" alt="${cat.nombre}">`
-          : `<div class="preview">${cat.emoji || "🛍️"}</div>`;
-
-        div.innerHTML = `
-          <div class="item-top">
-            ${preview}
-            <div>
-              <div class="item-title">${cat.nombre || "Sin nombre"}</div>
-              <div class="item-sub">Slug: ${cat.slug || ""}</div>
-            </div>
-          </div>
-
-          <input id="cat_nombre_${cat.id}" type="text" value="${escapeHtml(cat.nombre || "")}" placeholder="Nombre">
-          <input id="cat_emoji_${cat.id}" type="text" value="${escapeHtml(cat.emoji || "🛍️")}" placeholder="Emoji">
-          <input id="cat_file_${cat.id}" type="file" accept="image/*">
-
-          <div class="acciones">
-            <button class="sec" onclick="guardarCategoria('${cat.id}')">Guardar cambios</button>
-            <button class="gray" onclick="recargarTodo()">Recargar</button>
-          </div>
-
-          <button class="danger" onclick="eliminarCategoria('${cat.id}')">
-            🗑 Eliminar categoría
-          </button>
-        `;
-
-        cont.appendChild(div);
-      });
-    }
-
-    function nombreCategoriaPorSlug(slug) {
-      const cat = categorias.find(c => String(c.slug) === String(slug));
-      return cat ? cat.nombre : slug;
-    }
-
-    function renderProductos() {
-      const cont = document.getElementById("listaProductos");
-
-      if (!productos.length) {
-        cont.innerHTML = `<div class="item">No hay productos guardados.</div>`;
-        return;
-      }
-
-      cont.innerHTML = "";
-
-      productos.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        const preview = p.imagen
-          ? `<img src="${p.imagen}" class="preview" alt="${p.nombre}">`
-          : `<div class="preview">📦</div>`;
-
-        const activo = p.activo !== false;
-
-        div.innerHTML = `
-          <div class="item-top">
-            ${preview}
-            <div>
-              <div class="item-title">${p.nombre || "Sin nombre"}</div>
-              <div class="item-sub">$${Number(p.precio || 0).toFixed(2)}</div>
-              <div class="producto-linea">Categoría: ${nombreCategoriaPorSlug(p.categoria || "otro")}</div>
-              <div class="producto-linea">${activo ? "✅ Activo" : "⛔ Inactivo"}</div>
-            </div>
-          </div>
-
-          <div class="acciones">
-            <button class="danger" onclick="eliminarProducto(${Number(p.id)})">Eliminar</button>
-            <button class="gray" onclick="editarProducto(${Number(p.id)})">Editar</button>
-            <button class="${activo ? "gray" : "sec"}" onclick="toggleActivo(${Number(p.id)}, ${activo})">
-              ${activo ? "Desactivar" : "Activar"}
-            </button>
-          </div>
-        `;
-
-        cont.appendChild(div);
-      });
-    }
-
-    function renderVendedores() {
-      const cont = document.getElementById("listaVendedores");
-
-      if (!vendedores.length) {
-        cont.innerHTML = `<div class="item">No hay vendedores.</div>`;
-        return;
-      }
-
-      cont.innerHTML = "";
-
-      vendedores.forEach(v => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        div.innerHTML = `
-          <div class="item-top">
-            <div class="preview">👤</div>
-            <div>
-              <div class="item-title">${escapeHtml(v.nombre || "Sin nombre")}</div>
-              <div class="item-sub">ID: ${v.id}</div>
-            </div>
-          </div>
-
-          <input id="ven_nombre_${v.id}" type="text" value="${escapeHtml(v.nombre || "")}" placeholder="Nombre">
-
-          <div class="acciones">
-            <button class="sec" onclick="guardarVendedor(${Number(v.id)})">Guardar cambios</button>
-            <button class="danger" onclick="eliminarVendedor(${Number(v.id)})">Eliminar</button>
-          </div>
-        `;
-
-        cont.appendChild(div);
-      });
-    }
-
-    async function crearCategoria() {
-      const nombre = document.getElementById("nuevaCatNombre").value.trim();
-      const emoji = document.getElementById("nuevaCatEmoji").value.trim() || "🛍️";
-      const fileInput = document.getElementById("nuevaCatFile");
-      const file = fileInput.files[0];
-
-      if (!nombre) {
-        mostrarMensaje("Ponle nombre a la categoría", false);
-        return;
-      }
-
-      try {
-        let imagen = "";
-        if (file) imagen = await subirArchivo(file);
-
-        const res = await fetch("/api/categorias", {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({ nombre, emoji, imagen })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo crear la categoría", false);
-          return;
-        }
-
-        document.getElementById("nuevaCatNombre").value = "";
-        document.getElementById("nuevaCatEmoji").value = "";
-        document.getElementById("nuevaCatFile").value = "";
-
-        mostrarMensaje("Categoría creada");
-        await cargarCategorias();
-      } catch (e) {
-        mostrarMensaje(e.message || "Error al crear categoría", false);
-      }
-    }
-
-    async function guardarCategoria(id) {
-      const nombre = document.getElementById(`cat_nombre_${id}`).value.trim();
-      const emoji = document.getElementById(`cat_emoji_${id}`).value.trim() || "🛍️";
-      const fileInput = document.getElementById(`cat_file_${id}`);
-      const file = fileInput.files[0];
-
-      if (!nombre) {
-        mostrarMensaje("El nombre de la categoría es obligatorio", false);
-        return;
-      }
-
-      try {
-        let payload = { nombre, emoji };
-        if (file) payload.imagen = await subirArchivo(file);
-
-        const res = await fetch(`/api/categorias/${id}`, {
-          method: "PUT",
-          headers: authHeaders(),
-          body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo guardar la categoría", false);
-          return;
-        }
-
-        mostrarMensaje("Categoría actualizada");
-        await cargarCategorias();
-      } catch (e) {
-        mostrarMensaje(e.message || "Error al guardar categoría", false);
-      }
-    }
-
-    async function eliminarCategoria(id) {
-      if (!confirm("¿Seguro que quieres eliminar esta categoría?")) return;
-
-      try {
-        const res = await fetch(`/api/categorias/${id}`, {
-          method: "DELETE",
-          headers: authHeaders()
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo eliminar la categoría", false);
-          return;
-        }
-
-        mostrarMensaje("Categoría eliminada");
-        await cargarCategorias();
-      } catch (e) {
-        mostrarMensaje("Error al eliminar categoría", false);
-      }
-    }
-
-    async function guardarProducto() {
-      const nombre = document.getElementById("nuevoNombre").value.trim();
-      const precio = document.getElementById("nuevoPrecio").value.trim();
-      const categoria = document.getElementById("nuevoCategoria").value.trim();
-      const fileInput = document.getElementById("nuevoImagenFile");
-      const file = fileInput.files[0];
-      const descripcion = document.getElementById("nuevoDescripcion").value.trim();
-
-      if (!nombre) {
-        mostrarMensaje("Ponle nombre al producto", false);
-        return;
-      }
-
-      if (precio === "") {
-        mostrarMensaje("Ponle precio al producto", false);
-        return;
-      }
-
-      try {
-        let imagen = "";
-        if (file) imagen = await subirArchivo(file);
-
-        const res = await fetch("/api/admin/producto", {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            nombre,
-            precio: Number(precio),
-            categoria,
-            imagen,
-            descripcion,
-            etiqueta: "Nuevo"
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo guardar el producto", false);
-          return;
-        }
-
-        document.getElementById("nuevoNombre").value = "";
-        document.getElementById("nuevoPrecio").value = "";
-        document.getElementById("nuevoImagenFile").value = "";
-        document.getElementById("nuevoDescripcion").value = "";
-
-        mostrarMensaje("Producto guardado");
-        await cargarProductos();
-        mostrarTab("productos");
-      } catch (e) {
-        mostrarMensaje(e.message || "Error al guardar producto", false);
-      }
-    }
-
-    function editarProducto(id) {
-      const p = productos.find(x => Number(x.id) === Number(id));
-      if (!p) {
-        mostrarMensaje("No se encontró el producto", false);
-        return;
-      }
-
-      document.getElementById("nuevoNombre").value = p.nombre || "";
-      document.getElementById("nuevoPrecio").value = Number(p.precio || 0);
-      document.getElementById("nuevoCategoria").value = p.categoria || "";
-      document.getElementById("nuevoDescripcion").value = p.descripcion || "";
-
-      mostrarTab("nuevo");
-      mostrarMensaje("Edita los datos y guarda como nuevo o conecta luego edición completa");
-    }
-
-    async function eliminarProducto(id) {
-      if (!confirm("¿Eliminar este producto?")) return;
-
-      try {
-        const res = await fetch(`/api/admin/producto/${id}`, {
-          method: "DELETE",
-          headers: authHeaders()
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo eliminar el producto", false);
-          return;
-        }
-
-        mostrarMensaje("Producto eliminado");
-        await cargarProductos();
-      } catch {
-        mostrarMensaje("Error al eliminar producto", false);
-      }
-    }
-
-    async function toggleActivo(id, activoActual) {
-      try {
-        const producto = productos.find(p => Number(p.id) === Number(id));
-
-        if (!producto) {
-          mostrarMensaje("No se encontró el producto", false);
-          return;
-        }
-
-        const res = await fetch(`/api/admin/producto/${id}`, {
-          method: "PUT",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            nombre: producto.nombre || "",
-            precio: Number(producto.precio || 0),
-            categoria: producto.categoria || "",
-            categoria_id: producto.categoria_id || "",
-            imagen: producto.imagen || "",
-            descripcion: producto.descripcion || "",
-            etiqueta: producto.etiqueta || "Nuevo",
-            activo: !activoActual
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo cambiar el estado", false);
-          return;
-        }
-
-        mostrarMensaje(!activoActual ? "Producto activado" : "Producto desactivado");
-        await cargarProductos();
-      } catch (e) {
-        mostrarMensaje("Error al cambiar estado del producto", false);
-      }
-    }
-
-    async function crearVendedor() {
-      const nombre = document.getElementById("nuevoVendedorNombre").value.trim();
-
-      if (!nombre) {
-        mostrarMensaje("Ponle nombre al vendedor", false);
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/vendedores", {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({ nombre })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo guardar el vendedor", false);
-          return;
-        }
-
-        document.getElementById("nuevoVendedorNombre").value = "";
-        mostrarMensaje("Vendedor guardado");
-        await cargarVendedores();
-      } catch {
-        mostrarMensaje("Error al guardar vendedor", false);
-      }
-    }
-
-    async function guardarVendedor(id) {
-      const nombre = document.getElementById(`ven_nombre_${id}`).value.trim();
-
-      if (!nombre) {
-        mostrarMensaje("Ponle nombre al vendedor", false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/vendedores/${id}`, {
-          method: "PUT",
-          headers: authHeaders(),
-          body: JSON.stringify({ nombre })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo actualizar el vendedor", false);
-          return;
-        }
-
-        mostrarMensaje("Vendedor actualizado");
-        await cargarVendedores();
-      } catch {
-        mostrarMensaje("Error al actualizar vendedor", false);
-      }
-    }
-
-    async function eliminarVendedor(id) {
-      if (!confirm("¿Eliminar este vendedor?")) return;
-
-      try {
-        const res = await fetch(`/api/vendedores/${id}`, {
-          method: "DELETE",
-          headers: authHeaders()
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          mostrarMensaje(data.error || "No se pudo eliminar el vendedor", false);
-          return;
-        }
-
-        mostrarMensaje("Vendedor eliminado");
-        await cargarVendedores();
-      } catch {
-        mostrarMensaje("Error al eliminar vendedor", false);
-      }
-    }
-
-    async function recargarTodo() {
-      await cargarCategorias();
-      await cargarProductos();
-      await cargarVendedores();
-    }
-
-    function escapeHtml(valor) {
-      return String(valor || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
-    }
-
-    recargarTodo();
-  </script>
+  <div id="tabCategorias" class="seccion activa">
+
+    <div class="bloque">
+      <h2>Nueva categoría</h2>
+
+      <div class="mini">
+        Aquí puedes agregar categorías nuevas.
+      </div>
+
+      <input type="text" placeholder="Nombre de la categoría">
+
+      <input type="text" placeholder="Emoji">
+
+      <input type="file">
+
+      <button>Guardar categoría</button>
+    </div>
+
+    <div class="bloque">
+      <h2>Categorías guardadas</h2>
+
+      <div id="listaCategorias" class="grid"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+async function cargarVisitas(){
+
+  try{
+
+    const res = await fetch("/api/visitas?nocache=" + Date.now());
+
+    const data = await res.json();
+
+    document.getElementById("visitasHoy").textContent =
+      data.visitas ?? 0;
+
+  }catch(e){
+
+    document.getElementById("visitasHoy").textContent =
+      "no disponible";
+
+  }
+
+}
+
+function mostrarTab(tab){
+
+  const tabs = [
+    "categorias",
+    "productos",
+    "nuevo",
+    "vendedores"
+  ];
+
+  tabs.forEach(t => {
+
+    const sec =
+      document.getElementById(
+        "tab" +
+        t.charAt(0).toUpperCase() +
+        t.slice(1)
+      );
+
+    const btn =
+      document.getElementById(
+        "tab" +
+        t.charAt(0).toUpperCase() +
+        t.slice(1) +
+        "Btn"
+      );
+
+    if(sec) sec.classList.remove("activa");
+
+    if(btn) btn.classList.remove("activa");
+
+  });
+
+  document.getElementById(
+    "tab" +
+    tab.charAt(0).toUpperCase() +
+    tab.slice(1)
+  ).classList.add("activa");
+
+  document.getElementById(
+    "tab" +
+    tab.charAt(0).toUpperCase() +
+    tab.slice(1) +
+    "Btn"
+  ).classList.add("activa");
+
+}
+
+cargarVisitas();
+
+</script>
+
 </body>
 </html>
