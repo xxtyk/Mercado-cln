@@ -66,7 +66,8 @@ app.get("/api/visitas-hoy", async (_req, res) => {
     const result = await pool.query(`
       SELECT COUNT(*) AS total
       FROM visitas
-      WHERE DATE(creado) = CURRENT_DATE
+      WHERE DATE(creado AT TIME ZONE 'America/Mazatlan') =
+            DATE(NOW() AT TIME ZONE 'America/Mazatlan')
     `);
 
     res.json({
