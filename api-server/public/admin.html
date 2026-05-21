@@ -99,6 +99,7 @@ button{
   background:#000;
   color:#fff;
   font-weight:bold;
+  cursor:pointer;
 }
 
 button.sec{
@@ -214,6 +215,7 @@ Vendedores
 <div id="tabProductos" class="seccion activa">
 
 <div class="bloque">
+
 <h2>Productos guardados</h2>
 
 <div id="listaProductos" class="grid"></div>
@@ -250,7 +252,23 @@ Guardar producto
 
 <div class="bloque">
 
-<h2>Categorías</h2>
+<h2>Nueva categoría</h2>
+
+<input id="nuevaCatNombre" type="text" placeholder="Nombre de la categoría">
+
+<input id="nuevaCatEmoji" type="text" placeholder="Emoji">
+
+<input id="nuevaCatFile" type="file" accept="image/*">
+
+<button onclick="crearCategoria()">
+Guardar categoría
+</button>
+
+</div>
+
+<div class="bloque">
+
+<h2>Categorías guardadas</h2>
 
 <div id="listaCategorias" class="grid"></div>
 
@@ -448,11 +466,186 @@ function renderCategorias(){
 
       </div>
 
+      <input id="cat_nombre_${cat.id}" type="text" value="${cat.nombre || ""}">
+
+      <input id="cat_emoji_${cat.id}" type="text" value="${cat.emoji || ""}">
+
+      <input id="cat_file_${cat.id}" type="file" accept="image/*">
+
+      <div class="acciones">
+
+        <button class="sec" onclick="guardarCategoria('${cat.id}')">
+          Guardar
+        </button>
+
+        <button class="danger" onclick="eliminarCategoria('${cat.id}')">
+          Eliminar
+        </button>
+
+      </div>
+
     `;
 
     cont.appendChild(div);
 
   });
+
+}
+
+async function crearCategoria(){
+
+  const nombre = document.getElementById("nuevaCatNombre").value.trim();
+
+  const emoji = document.getElementById("nuevaCatEmoji").value.trim() || "🛍️";
+
+  const file = document.getElementById("nuevaCatFile").files[0];
+
+  if(!nombre){
+
+    mostrarMensaje("Ponle nombre a la categoría", false);
+
+    return;
+
+  }
+
+  try{
+
+    let imagen = "";
+
+    if(file){
+
+      imagen = await subirArchivo(file);
+
+    }
+
+    const res = await fetch("/api/categorias",{
+
+      method:"POST",
+
+      headers:authHeaders(),
+
+      body:JSON.stringify({
+        nombre,
+        emoji,
+        imagen
+      })
+
+    });
+
+    const data = await res.json();
+
+    if(!data.ok){
+
+      mostrarMensaje(data.error || "Error", false);
+
+      return;
+
+    }
+
+    document.getElementById("nuevaCatNombre").value = "";
+
+    document.getElementById("nuevaCatEmoji").value = "";
+
+    document.getElementById("nuevaCatFile").value = "";
+
+    mostrarMensaje("Categoría guardada");
+
+    await cargarCategorias();
+
+  }catch(e){
+
+    mostrarMensaje(e.message,false);
+
+  }
+
+}
+
+async function guardarCategoria(id){
+
+  const nombre = document.getElementById(`cat_nombre_${id}`).value.trim();
+
+  const emoji = document.getElementById(`cat_emoji_${id}`).value.trim();
+
+  const file = document.getElementById(`cat_file_${id}`).files[0];
+
+  try{
+
+    let payload = {
+      nombre,
+      emoji
+    };
+
+    if(file){
+
+      payload.imagen = await subirArchivo(file);
+
+    }
+
+    const res = await fetch(`/api/categorias/${id}`,{
+
+      method:"PUT",
+
+      headers:authHeaders(),
+
+      body:JSON.stringify(payload)
+
+    });
+
+    const data = await res.json();
+
+    if(!data.ok){
+
+      mostrarMensaje(data.error || "Error", false);
+
+      return;
+
+    }
+
+    mostrarMensaje("Categoría actualizada");
+
+    await cargarCategorias();
+
+  }catch(e){
+
+    mostrarMensaje(e.message,false);
+
+  }
+
+}
+
+async function eliminarCategoria(id){
+
+  if(!confirm("¿Eliminar categoría?")) return;
+
+  try{
+
+    const res = await fetch(`/api/categorias/${id}`,{
+
+      method:"DELETE",
+
+      headers:authHeaders()
+
+    });
+
+    const data = await res.json();
+
+    if(!data.ok){
+
+      mostrarMensaje(data.error || "Error", false);
+
+      return;
+
+    }
+
+    mostrarMensaje("Categoría eliminada");
+
+    await cargarCategorias();
+
+  }catch(e){
+
+    mostrarMensaje(e.message,false);
+
+  }
 
 }
 
