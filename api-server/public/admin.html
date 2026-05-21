@@ -138,6 +138,10 @@ button.gray{
   border-radius:14px;
   object-fit:cover;
   background:#eee;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
 }
 
 .item-title{
@@ -188,23 +192,38 @@ button.gray{
 <div id="mensaje"></div>
 
 <div class="tabs">
-<button class="tab-btn activa" id="tabProductosBtn" onclick="mostrarTab('productos')">Productos</button>
 
-<button class="tab-btn" id="tabNuevoBtn" onclick="mostrarTab('nuevo')">Agregar producto</button>
+<button class="tab-btn activa" id="tabProductosBtn" onclick="mostrarTab('productos')">
+Productos
+</button>
 
-<button class="tab-btn" id="tabCategoriasBtn" onclick="mostrarTab('categorias')">Categorías</button>
+<button class="tab-btn" id="tabNuevoBtn" onclick="mostrarTab('nuevo')">
+Agregar producto
+</button>
 
-<button class="tab-btn" id="tabVendedoresBtn" onclick="mostrarTab('vendedores')">Vendedores</button>
+<button class="tab-btn" id="tabCategoriasBtn" onclick="mostrarTab('categorias')">
+Categorías
+</button>
+
+<button class="tab-btn" id="tabVendedoresBtn" onclick="mostrarTab('vendedores')">
+Vendedores
+</button>
+
 </div>
 
 <div id="tabProductos" class="seccion activa">
+
 <div class="bloque">
 <h2>Productos guardados</h2>
+
 <div id="listaProductos" class="grid"></div>
+
 </div>
+
 </div>
 
 <div id="tabNuevo" class="seccion">
+
 <div class="bloque">
 
 <h2 id="tituloFormulario">Agregar producto</h2>
@@ -219,23 +238,36 @@ button.gray{
 
 <textarea id="nuevoDescripcion" placeholder="Descripción"></textarea>
 
-<button onclick="guardarProducto()">Guardar producto</button>
+<button onclick="guardarProducto()">
+Guardar producto
+</button>
 
 </div>
+
 </div>
 
 <div id="tabCategorias" class="seccion">
+
 <div class="bloque">
+
 <h2>Categorías</h2>
-<div id="listaCategorias"></div>
+
+<div id="listaCategorias" class="grid"></div>
+
 </div>
+
 </div>
 
 <div id="tabVendedores" class="seccion">
+
 <div class="bloque">
+
 <h2>Vendedores</h2>
-<div id="listaVendedores"></div>
+
+<div id="listaVendedores" class="grid"></div>
+
 </div>
+
 </div>
 
 </div>
@@ -251,10 +283,15 @@ let vendedores = [];
 let productoEditando = null;
 
 function authHeaders(){
+
   return {
+
     "Content-Type":"application/json",
+
     "Authorization":`Bearer ${ADMIN_PASSWORD}`
+
   };
+
 }
 
 function mostrarMensaje(texto, ok=true){
@@ -268,7 +305,9 @@ function mostrarMensaje(texto, ok=true){
   `;
 
   setTimeout(()=>{
+
     box.innerHTML = "";
+
   },3000);
 
 }
@@ -292,7 +331,9 @@ function mostrarTab(tab){
 }
 
 function capitalizar(t){
+
   return t.charAt(0).toUpperCase()+t.slice(1);
+
 }
 
 async function subirArchivo(file){
@@ -304,17 +345,23 @@ async function subirArchivo(file){
   formData.append("file", file);
 
   const res = await fetch("/api/upload",{
+
     method:"POST",
+
     headers:{
       "Authorization":`Bearer ${ADMIN_PASSWORD}`
     },
+
     body:formData
+
   });
 
   const data = await res.json();
 
   if(!data.ok){
+
     throw new Error("No se pudo subir imagen");
+
   }
 
   return data.url || "";
@@ -328,8 +375,12 @@ async function cargarCategorias(){
   categorias = await res.json();
 
   if(!Array.isArray(categorias)){
+
     categorias = [];
+
   }
+
+  renderCategorias();
 
   const select = document.getElementById("nuevoCategoria");
 
@@ -349,6 +400,62 @@ async function cargarCategorias(){
 
 }
 
+function renderCategorias(){
+
+  const cont = document.getElementById("listaCategorias");
+
+  if(!categorias.length){
+
+    cont.innerHTML = `
+      <div class="item">
+        No hay categorías
+      </div>
+    `;
+
+    return;
+
+  }
+
+  cont.innerHTML = "";
+
+  categorias.forEach(cat=>{
+
+    const div = document.createElement("div");
+
+    div.className = "item";
+
+    div.innerHTML = `
+
+      <div class="item-top">
+
+        ${
+          cat.imagen
+          ? `<img src="${cat.imagen}" class="preview">`
+          : `<div class="preview">${cat.emoji || "🛍️"}</div>`
+        }
+
+        <div>
+
+          <div class="item-title">
+            ${cat.nombre || ""}
+          </div>
+
+          <div class="item-sub">
+            ${cat.slug || ""}
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    cont.appendChild(div);
+
+  });
+
+}
+
 async function cargarProductos(){
 
   const res = await fetch("/api/productos?nocache="+Date.now());
@@ -356,7 +463,9 @@ async function cargarProductos(){
   productos = await res.json();
 
   if(!Array.isArray(productos)){
+
     productos = [];
+
   }
 
   renderProductos();
@@ -382,7 +491,7 @@ function renderProductos(){
         ${
           p.imagen
           ? `<img src="${p.imagen}" class="preview">`
-          : `<div class="preview"></div>`
+          : `<div class="preview">📦</div>`
         }
 
         <div>
@@ -428,8 +537,11 @@ function editarProducto(id){
   const p = productos.find(x=>Number(x.id)===Number(id));
 
   if(!p){
+
     mostrarMensaje("Producto no encontrado", false);
+
     return;
+
   }
 
   productoEditando = p.id;
@@ -461,13 +573,19 @@ async function guardarProducto(){
   const file = document.getElementById("nuevoImagenFile").files[0];
 
   if(!nombre){
+
     mostrarMensaje("Ponle nombre", false);
+
     return;
+
   }
 
   if(precio === ""){
+
     mostrarMensaje("Ponle precio", false);
+
     return;
+
   }
 
   try{
