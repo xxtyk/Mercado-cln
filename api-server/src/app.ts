@@ -37,12 +37,13 @@ app.post("/api/visita", async (_req, res) => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS visitas (
         id SERIAL PRIMARY KEY,
-        creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        creado TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Mazatlan')
       )
     `);
 
     await pool.query(`
-      INSERT INTO visitas DEFAULT VALUES
+      INSERT INTO visitas (creado)
+      VALUES (NOW() AT TIME ZONE 'America/Mazatlan')
     `);
 
     res.json({ ok: true });
