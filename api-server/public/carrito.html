@@ -81,46 +81,6 @@ button{
   font-size:18px;
   font-weight:bold;
 }
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.75);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  z-index:99999;
-}
-
-.modal-box{
-  background:#fff;
-  border-radius:18px;
-  padding:20px;
-  width:100%;
-  max-width:380px;
-  text-align:center;
-}
-
-.modal-box h2{
-  margin:0 0 10px;
-  font-size:24px;
-}
-
-.modal-box p{
-  font-size:17px;
-  line-height:1.4;
-  margin-bottom:18px;
-}
-
-.btn-si{
-  background:#1976ff;
-  margin-bottom:10px;
-}
-
-.btn-no{
-  background:#222;
-}
 </style>
 </head>
 
@@ -179,30 +139,7 @@ button{
 
 </div>
 
-<div id="modalInstalar" class="modal">
-  <div class="modal-box">
-    <h2>✅ Pedido enviado</h2>
-    <p>
-      ¿Deseas instalar la aplicación para futuras compras?
-    </p>
-
-    <button class="btn-si" onclick="instalarApp()">
-      Sí, instalar app
-    </button>
-
-    <button class="btn-no" onclick="continuarSinInstalar()">
-      No, continuar
-    </button>
-  </div>
-</div>
-
 <script>
-let deferredPrompt = null;
-
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
 
 function obtener(){
   return JSON.parse(
@@ -335,34 +272,29 @@ async function finalizar(){
     total: subtotal + envio
   };
 
-  await fetch("/api/pedidos",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body: JSON.stringify(pedido)
-  });
+  try{
 
-  localStorage.removeItem("carrito");
+    const respuesta = await fetch("/api/pedidos",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(pedido)
+    });
 
-  document.getElementById("modalInstalar").style.display = "flex";
-}
+    if(!respuesta.ok){
+      throw new Error("No se pudo enviar el pedido");
+    }
 
-async function instalarApp(){
+    localStorage.removeItem("carrito");
 
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-  }else{
-    alert("Si no aparece la instalación, abre el menú del navegador y elige Agregar a pantalla principal.");
+    window.location.href = "/pedido-recibido.html";
+
+  }catch(error){
+
+    alert("No se pudo enviar el pedido. Intenta nuevamente.");
+
   }
-
-  window.location="/";
-}
-
-function continuarSinInstalar(){
-  window.location="/";
 }
 
 document
@@ -370,6 +302,7 @@ document
 .addEventListener("change", cargar);
 
 cargar();
+
 </script>
 
 </body>
