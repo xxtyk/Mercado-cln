@@ -1,13 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Confirmar pedido</title>
 
 <style>
-*{ box-sizing:border-box; }
+
+*{
+    box-sizing:border-box;
+}
 
 body{
     margin:0;
@@ -16,7 +19,8 @@ body{
     color:#111;
 }
 
-/* HEADER */
+/* BARRA SUPERIOR */
+
 .barra{
     background:#000;
     color:#fff;
@@ -35,10 +39,16 @@ body{
     font-size:24px;
 }
 
+.barra div{
+    font-size:18px;
+    font-weight:bold;
+}
+
 /* CONTENIDO */
+
 .contenedor{
     padding:12px;
-    padding-bottom:130px;
+    padding-bottom:150px;
 }
 
 .bloque{
@@ -57,20 +67,26 @@ body{
 
 .item{
     margin-bottom:8px;
+    line-height:1.4;
 }
 
 .linea{
     display:flex;
     justify-content:space-between;
+    gap:10px;
     margin-bottom:6px;
 }
 
 .total{
     font-size:22px;
     font-weight:bold;
+    border-top:1px solid #ddd;
+    padding-top:10px;
+    margin-top:10px;
 }
 
-/* MENSAJE CONTRA ENTREGA */
+/* PAGO CONTRA ENTREGA */
+
 .contra{
     background:#e8f5e9;
     color:#1b5e20;
@@ -81,7 +97,25 @@ body{
     line-height:1.4;
 }
 
-/* BOTÓN FINAL */
+/* AVISO ANTES DE FINALIZAR */
+
+.aviso-final{
+    background:#fff;
+    border:2px solid #25D366;
+    border-radius:14px;
+    padding:14px;
+    margin-top:12px;
+    text-align:center;
+    font-size:15px;
+    line-height:1.5;
+}
+
+.aviso-final strong{
+    font-size:17px;
+}
+
+/* ZONA FIJA DEL BOTÓN */
+
 .boton-fijo{
     position:fixed;
     left:10px;
@@ -90,87 +124,337 @@ body{
     z-index:50;
 }
 
+/* MENSAJE CUANDO SE ESTÁ ENVIANDO */
+
+.enviando{
+    display:none;
+    background:#fff3cd;
+    color:#664d03;
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:8px;
+    font-weight:bold;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* BOTÓN */
+
 .btn-finalizar{
     width:100%;
     border:none;
     border-radius:16px;
     padding:18px;
-    font-size:18px;
+    font-size:19px;
     font-weight:bold;
     background:#25D366;
-    color:white;
+    color:#fff;
     box-shadow:0 4px 14px rgba(0,0,0,0.25);
     cursor:pointer;
 }
+
+.btn-finalizar:disabled{
+    background:#8c8c8c;
+    cursor:not-allowed;
+}
+
 </style>
 </head>
+
 <body>
 
+<!-- BARRA -->
+
 <div class="barra">
-    <a href="javascript:history.back()">←</a>
-    <div>Confirmar pedido</div>
+
+    <a href="javascript:history.back()">
+        ←
+    </a>
+
+    <div>
+        Confirmar pedido
+    </div>
+
 </div>
+
 
 <div class="contenedor">
 
+
     <!-- PRODUCTOS -->
+
     <div class="bloque">
-        <div class="titulo">Productos</div>
+
+        <div class="titulo">
+            🛒 Productos
+        </div>
 
         {% for item in carrito %}
+
         <div class="item">
-            {{ item.nombre }} x{{ item.cantidad }} - ${{ (item.precio * item.cantidad)|int }}
+            {{ item.nombre }}
+            x{{ item.cantidad }}
+            -
+            ${{ (item.precio * item.cantidad)|int }}
         </div>
+
         {% endfor %}
+
     </div>
 
-    <!-- DATOS -->
+
+    <!-- DATOS DEL CLIENTE -->
+
     <div class="bloque">
-        <div class="titulo">Datos</div>
 
-        <div class="item"><strong>Nombre:</strong> {{ datos.nombre }}</div>
-        <div class="item"><strong>Teléfono:</strong> {{ datos.telefono }}</div>
-        <div class="item"><strong>Vendedor:</strong> {{ datos.vendedor }}</div>
-        <div class="item"><strong>Entrega:</strong> {{ datos.tipo_entrega }}</div>
-        <div class="item"><strong>Dirección:</strong> {{ datos.direccion }}</div>
-        <div class="item"><strong>Colonia:</strong> {{ datos.colonia }}</div>
-        <div class="item"><strong>Referencia:</strong> {{ datos.referencia }}</div>
+        <div class="titulo">
+            👤 Tus datos
+        </div>
+
+        <div class="item">
+            <strong>Nombre:</strong>
+            {{ datos.nombre }}
+        </div>
+
+        <div class="item">
+            <strong>Teléfono:</strong>
+            {{ datos.telefono }}
+        </div>
+
+        <div class="item">
+            <strong>Vendedor:</strong>
+            {{ datos.vendedor }}
+        </div>
+
+        <div class="item">
+            <strong>Entrega:</strong>
+            {{ datos.tipo_entrega }}
+        </div>
+
+        <div class="item">
+            <strong>Dirección:</strong>
+            {{ datos.direccion }}
+        </div>
+
+        <div class="item">
+            <strong>Colonia:</strong>
+            {{ datos.colonia }}
+        </div>
+
+        <div class="item">
+            <strong>Referencia:</strong>
+            {{ datos.referencia }}
+        </div>
+
     </div>
+
 
     <!-- TOTAL -->
+
     <div class="bloque">
-        <div class="linea">
-            <span>Subtotal</span>
-            <span>${{ subtotal|int }}</span>
+
+        <div class="titulo">
+            💰 Total del pedido
         </div>
 
         <div class="linea">
-            <span>Envío</span>
-            <span>${{ envio }}</span>
+
+            <span>
+                Subtotal
+            </span>
+
+            <span>
+                ${{ subtotal|int }}
+            </span>
+
         </div>
+
+
+        <div class="linea">
+
+            <span>
+                Envío
+            </span>
+
+            <span>
+                ${{ envio }}
+            </span>
+
+        </div>
+
 
         <div class="linea total">
-            <span>Total</span>
-            <span>${{ total|int }}</span>
+
+            <span>
+                Total
+            </span>
+
+            <span>
+                ${{ total|int }}
+            </span>
+
         </div>
+
     </div>
 
-    <!-- CONTRA ENTREGA -->
+
+    <!-- PAGO CONTRA ENTREGA -->
+
     <div class="contra">
-        💵 PAGO CONTRA ENTREGA  
+
+        💵 PAGO CONTRA ENTREGA
+
         <br><br>
-        Pagas únicamente cuando recibas tu pedido, en efectivo o transferencia al momento de la entrega.
+
+        Pagas únicamente cuando recibas tu pedido.
+
+        <br><br>
+
+        Puedes pagar en efectivo o transferencia
+        al momento de la entrega.
+
     </div>
+
+
+    <!-- EXPLICACIÓN -->
+
+    <div class="aviso-final">
+
+        <strong>
+            👇 ÚLTIMO PASO
+        </strong>
+
+        <br><br>
+
+        Presiona una sola vez el botón
+
+        <br>
+
+        <strong>
+            FINALIZAR PEDIDO
+        </strong>
+
+        <br><br>
+
+        Después aparecerá una pantalla confirmando
+        que tu pedido fue recibido.
+
+    </div>
+
 
 </div>
 
-<form action="{{ url_for('finalizar_pedido') }}" method="POST">
+
+<!-- FORMULARIO FINAL -->
+
+<form
+    id="formPedido"
+    action="{{ url_for('finalizar_pedido') }}"
+    method="POST"
+>
+
+
     <div class="boton-fijo">
-        <button type="submit" class="btn-finalizar">
-            FINALIZAR PEDIDO
+
+
+        <div
+            id="mensajeEnviando"
+            class="enviando"
+        >
+
+            ⏳ Estamos registrando tu pedido.
+
+            <br>
+
+            Espera unos segundos.
+
+            <br>
+
+            No cierres esta página.
+
+        </div>
+
+
+        <button
+            id="btnFinalizar"
+            type="submit"
+            class="btn-finalizar"
+        >
+
+            ✅ FINALIZAR PEDIDO
+
         </button>
+
+
     </div>
+
+
 </form>
+
+
+<script>
+
+const formPedido =
+    document.getElementById("formPedido");
+
+const btnFinalizar =
+    document.getElementById("btnFinalizar");
+
+const mensajeEnviando =
+    document.getElementById("mensajeEnviando");
+
+
+let pedidoEnviado = false;
+
+
+formPedido.addEventListener(
+    "submit",
+    function(event){
+
+        /*
+        Evita que el cliente mande
+        el mismo pedido dos veces
+        */
+
+        if(pedidoEnviado){
+
+            event.preventDefault();
+
+            return;
+
+        }
+
+
+        pedidoEnviado = true;
+
+
+        /*
+        Bloquea el botón
+        */
+
+        btnFinalizar.disabled = true;
+
+
+        /*
+        Cambia el texto
+        */
+
+        btnFinalizar.innerHTML =
+            "⏳ ENVIANDO PEDIDO...";
+
+
+        /*
+        Muestra el aviso
+        */
+
+        mensajeEnviando.style.display =
+            "block";
+
+    }
+);
+
+</script>
+
 
 </body>
 </html>
