@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Pedido enviado correctamente</title>
+<title>Pedido recibido</title>
 
 <style>
 *{
@@ -43,7 +43,7 @@ body{
 }
 
 .titulo{
-    font-size:25px;
+    font-size:27px;
     font-weight:900;
     color:#2e7d32;
     line-height:1.3;
@@ -51,28 +51,34 @@ body{
 }
 
 .registrado{
-    font-size:17px;
-    color:#444;
+    font-size:18px;
+    color:#333;
     line-height:1.5;
     margin-bottom:20px;
 }
 
 .instrucciones{
-    text-align:left;
     background:#e3f2fd;
     border-radius:14px;
-    padding:16px;
-    font-size:16px;
+    padding:18px;
+    font-size:17px;
     line-height:1.5;
     margin-bottom:15px;
 }
 
-.instrucciones div{
-    margin-bottom:14px;
+.instrucciones strong{
+    font-size:18px;
 }
 
-.instrucciones div:last-child{
-    margin-bottom:0;
+.listo{
+    background:#f1f8e9;
+    color:#33691e;
+    border-radius:12px;
+    padding:15px;
+    font-size:17px;
+    font-weight:bold;
+    line-height:1.5;
+    margin-bottom:15px;
 }
 
 .entrega{
@@ -80,7 +86,7 @@ body{
     color:#1b5e20;
     border-radius:12px;
     padding:14px;
-    font-size:18px;
+    font-size:19px;
     font-weight:bold;
     margin-bottom:12px;
 }
@@ -90,7 +96,7 @@ body{
     color:#795548;
     border-radius:12px;
     padding:14px;
-    font-size:18px;
+    font-size:19px;
     font-weight:bold;
     margin-bottom:15px;
 }
@@ -126,43 +132,45 @@ body{
 <body>
 
 <div class="contenedor">
+
     <div class="card">
 
-        <div class="icono">✅</div>
+        <div class="icono">
+            ✅
+        </div>
 
         <div class="titulo">
-            ¡TU PEDIDO FUE ENVIADO CORRECTAMENTE!
+            ¡PEDIDO RECIBIDO!
         </div>
 
         <div class="registrado">
-            Ya recibimos tu pedido y quedó registrado.<br>
-            <strong>No necesitas volver a realizarlo.</strong>
+            <strong>Ya recibimos tu pedido correctamente.</strong>
         </div>
 
         <div class="instrucciones">
+            📲 <strong>Espera un WhatsApp del repartidor.</strong>
+            <br><br>
+            El repartidor te escribirá para ponerse de acuerdo contigo sobre la entrega de tu mercancía.
+        </div>
 
-            <div>
-                📱 <strong>Espera el mensaje del repartidor.</strong><br>
-                Te enviará un WhatsApp para coordinar la entrega.
-            </div>
-
-            <div>
-                📍 <strong>Envíale tu ubicación.</strong><br>
-                Cuando te escriba, mándale tu ubicación exacta para que pueda entregarte el producto.
-            </div>
-
+        <div class="listo">
+            ✅ Ya no necesitas hacer nada más.
+            <br>
+            Tu pedido ya quedó recibido.
+            <br>
+            No necesitas volver a enviarlo.
         </div>
 
         <div class="entrega">
-            🚚 Entregamos hoy mismo
+            🚚 Entregamos el mismo día
         </div>
 
         <div class="pago">
-            💵 Pagas hasta recibir tu producto
+            💵 Pagas al recibir
         </div>
 
         <div class="espera">
-            ⏳ Mantente pendiente de WhatsApp y espera el mensaje del repartidor.
+            ⏳ Mantente pendiente de tu WhatsApp para recibir el mensaje del repartidor.
         </div>
 
         <div class="horario">
@@ -174,6 +182,7 @@ body{
         </a>
 
     </div>
+
 </div>
 
 </body>
