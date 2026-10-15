@@ -1,20 +1,28 @@
+
 import { Router } from "express";
 import multer from "multer";
-import cloudinary from "cloudinary";
+import ImageKit from "imagekit";
 
 const router = Router();
-const ADMIN_PASS = process.env.ADMIN_PASSWORD ?? "mercado2024";
 
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+const ADMIN_PASS = process.env.ADMIN_PASSWORD;
+
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
+  urlEndpoint: "https://ik.imagekit.io/mercadocln"
 });
 
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 function auth(req: any, res: any): boolean {
-  if (req.headers.authorization !== `Bearer ${ADMIN_PASS}`) {
+  if (
+    !ADMIN_PASS ||
+    req.headers.authorization !== `Bearer ${ADMIN_PASS}`
+  ) {
     res.status(401).json({
       ok: false,
       error: "No autorizado"
@@ -24,19 +32,12 @@ function auth(req: any, res: any): boolean {
   return true;
 }
 
-async function subirACloudinary(file: Express.Multer.File) {
-  return await new Promise<any>((resolve, reject) => {
-    const stream = cloudinary.v2.uploader.upload_stream(
-      {
-        folder: "mercado_cln"
-      },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-
-    stream.end(file.buffer);
+async function subirAImageKit(file: Express.Multer.File) {
+  return imagekit.upload({
+    file: file.buffer,
+    fileName: file.originalname,
+    folder: "/mercado_cln",
+    useUniqueFileName: true
   });
 }
 
@@ -49,15 +50,16 @@ async function responderArchivo(req: any, res: any) {
       });
     }
 
-    const result = await subirACloudinary(req.file);
+    const result = await subirAImageKit(req.file);
 
     return res.json({
       ok: true,
-      filename: result.public_id,
-      url: result.secure_url
+      filename: result.fileId,
+      url: result.url
     });
   } catch (error) {
-    console.error("ERROR UPLOAD CLOUDINARY:", error);
+    console.error("ERROR UPLOAD IMAGEKIT:", error);
+
     return res.status(500).json({
       ok: false,
       error: "Error subiendo archivo"
@@ -65,13 +67,19 @@ async function responderArchivo(req: any, res: any) {
   }
 }
 
-// Ruta simple
-router.post("/upload", upload.single("file"), responderArchivo);
+router.post(
+  "/upload",
+  upload.single("file"),
+  responderArchivo
+);
 
-// Ruta que usa tu panel admin
-router.post("/admin/upload", upload.single("file"), (req, res) => {
-  if (!auth(req, res)) return;
-  return responderArchivo(req, res);
-});
+router.post(
+  "/admin/upload",
+  upload.single("file"),
+  (req, res) => {
+    if (!auth(req, res)) return;
+    return responderArchivo(req, res);
+  }
+);
 
 export default router;
